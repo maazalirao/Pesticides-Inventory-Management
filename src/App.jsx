@@ -5,6 +5,10 @@ import Inventory from './pages/Inventory';
 import Products from './pages/Products';
 import Suppliers from './pages/Suppliers';
 import Customers from './pages/Customers';
+import Invoices from './pages/Invoices';
+import Reports from './pages/Reports';
+import Store from './pages/Store';
+import Settings from './pages/Settings';
 import Login from './pages/Login';
 import TestComponent from './components/TestComponent';
 
@@ -86,8 +90,58 @@ function App() {
           }
         />
 
-        {/* Add more routes for other features */}
-        {/* Invoices, Reports, Online Store, Settings */}
+        {/* New routes for additional features */}
+        <Route
+          path="/invoices"
+          element={
+            isLoggedIn ? (
+              <MainLayout>
+                <Invoices />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="/reports"
+          element={
+            isLoggedIn ? (
+              <MainLayout>
+                <Reports />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="/store"
+          element={
+            isLoggedIn ? (
+              <MainLayout>
+                <Store />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+
+        <Route
+          path="/settings"
+          element={
+            isLoggedIn ? (
+              <MainLayout>
+                <Settings />
+              </MainLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
         
         {/* Fallback route */}
         <Route path="*" element={<Navigate to="/" />} />

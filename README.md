@@ -16,7 +16,6 @@ PestTrack is a modern web application for managing pesticide inventory, products
 ## Technology Stack
 
 - **Frontend**: React.js, Tailwind CSS
-- **UI Components**: Custom components with shadcn/ui styling
 - **State Management**: React Hooks
 - **Routing**: React Router
 - **Charts**: Chart.js with react-chartjs-2
