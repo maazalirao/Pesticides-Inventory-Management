@@ -8,9 +8,9 @@ const badgeVariants = {
     secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
     destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/80",
     outline: "text-foreground border border-input hover:bg-accent hover:text-accent-foreground",
-    success: "bg-green-600 text-white hover:bg-green-700",
-    warning: "bg-yellow-600 text-white hover:bg-yellow-700",
-    info: "bg-blue-600 text-white hover:bg-blue-700",
+    success: "bg-primary text-white hover:bg-primary/90",
+    warning: "bg-amber-500 text-white hover:bg-amber-600",
+    info: "bg-violet-500 text-white hover:bg-violet-600",
   },
 }
 

@@ -24,8 +24,8 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary mb-2">PestTrack</h1>
-          <p className="text-muted-foreground">Pesticide Inventory Management System</p>
+          <h1 className="text-3xl font-bold text-orange-700 mb-2">Pesticide Inventory</h1>
+          <p className="text-muted-foreground">Inventory Management System</p>
         </div>
         
         <Card>

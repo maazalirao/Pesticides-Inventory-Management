@@ -54,7 +54,7 @@ const Dashboard = () => {
   // Mock data for statistics
   const statistics = [
     {
-      title: "Total Inventory Items",
+      title: "Inventory Items",
       value: "248",
       description: "Total pesticide products in stock",
       icon: <Package className="h-5 w-5" />,
@@ -73,10 +73,10 @@ const Dashboard = () => {
     },
     {
       title: "Sales This Month",
-      value: "$12,548",
+      value: "12,800",
       description: "Total revenue from sales",
       icon: <DollarSign className="h-5 w-5" />,
-      iconClass: "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300",
+      iconClass: "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300",
       change: "+18% from last month",
       changeType: "positive"
     },
@@ -96,8 +96,8 @@ const Dashboard = () => {
     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
     datasets: [
       {
-        label: 'Revenue ($)',
-        data: [4500, 5200, 4800, 5800, 6000, 7200, 8500, 9200, 10000, 11500, 11000, 12500],
+        label: 'Revenue (₨)',
+        data: [450000, 520000, 480000, 580000, 600000, 720000, 850000, 920000, 1000000, 1150000, 1100000, 1250000],
         borderColor: 'hsl(var(--primary))',
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         fill: true,
@@ -105,8 +105,8 @@ const Dashboard = () => {
         order: 1,
       },
       {
-        label: 'Expenses ($)',
-        data: [3200, 3400, 3100, 3600, 3800, 4200, 4600, 5100, 5300, 5600, 5800, 6100],
+        label: 'Expenses (₨)',
+        data: [320000, 340000, 310000, 360000, 380000, 420000, 460000, 510000, 530000, 560000, 580000, 610000],
         borderColor: 'rgb(234, 88, 12)',
         backgroundColor: 'rgba(234, 88, 12, 0.1)',
         fill: true,
@@ -114,8 +114,8 @@ const Dashboard = () => {
         order: 2,
       },
       {
-        label: 'Profit ($)',
-        data: [1300, 1800, 1700, 2200, 2200, 3000, 3900, 4100, 4700, 5900, 5200, 6400],
+        label: 'Profit (₨)',
+        data: [130000, 180000, 170000, 220000, 220000, 300000, 390000, 410000, 470000, 590000, 520000, 640000],
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         fill: true,
@@ -184,7 +184,7 @@ const Dashboard = () => {
     datasets: [
       {
         label: 'Actual Sales',
-        data: [4500, 5200, 4800, 5800, 6000, 7200],
+        data: [450000, 520000, 480000, 580000, 600000, 720000],
         borderColor: 'hsl(var(--primary))',
         backgroundColor: 'rgba(34, 197, 94, 0.1)',
         fill: false,
@@ -192,7 +192,7 @@ const Dashboard = () => {
       },
       {
         label: 'Predicted Sales',
-        data: [null, null, null, null, null, 7200, 7800, 8500, 9200, 10500, 11200, 12800],
+        data: [null, null, null, null, null, 720000, 780000, 850000, 920000, 1050000, 1120000, 1280000],
         borderColor: 'rgba(139, 92, 246, 1)',
         backgroundColor: 'rgba(139, 92, 246, 0.1)',
         borderDash: [5, 5],
@@ -222,11 +222,11 @@ const Dashboard = () => {
 
   // Mock data for recent sales
   const recentSales = [
-    { id: 1, customer: "Green Farms Ltd", product: "MaxKill Insecticide", quantity: 20, total: 999.80, date: "Today, 10:15 AM" },
-    { id: 2, customer: "City Parks Department", product: "HerbControl Plus", quantity: 15, total: 577.50, date: "Today, 9:30 AM" },
-    { id: 3, customer: "Robert Greene", product: "FungoClear Solution", quantity: 5, total: 325.00, date: "Yesterday, 4:45 PM" },
-    { id: 4, customer: "Sunrise Orchards", product: "AntiPest Powder", quantity: 10, total: 425.00, date: "Yesterday, 2:20 PM" },
-    { id: 5, customer: "Community College", product: "RatAway Pellets", quantity: 8, total: 239.92, date: "Nov 15, 2023" },
+    { id: 1, customer: "Al-Barakat Farms", product: "MaxKill Insecticide", quantity: 20, total: 99980, date: "Today, 10:15 AM" },
+    { id: 2, customer: "City Parks Authority", product: "HerbControl Plus", quantity: 15, total: 57750, date: "Today, 9:30 AM" },
+    { id: 3, customer: "Maaz Ali", product: "FungoClear Solution", quantity: 5, total: 32500, date: "Yesterday, 4:45 PM" },
+    { id: 4, customer: "Rehman Orchards", product: "AntiPest Powder", quantity: 10, total: 42500, date: "Yesterday, 2:20 PM" },
+    { id: 5, customer: "Agriculture University", product: "RatAway Pellets", quantity: 8, total: 23992, date: "Nov 15, 2023" },
   ];
 
   // Chart options
@@ -256,6 +256,14 @@ const Dashboard = () => {
       },
     },
     cutout: '70%',
+  };
+
+  // Format currency
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat('ur-PK', {
+      style: 'currency',
+      currency: 'PKR'
+    }).format(amount);
   };
 
   return (
@@ -302,7 +310,7 @@ const Dashboard = () => {
       {/* Statistics cards */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         {statistics.map((stat, index) => (
-          <Card key={index} className="overflow-hidden">
+          <Card key={index} className="overflow-hidden relative">
             <CardContent className="p-0">
               <div className="p-6">
                 <div className="flex items-center justify-between">
@@ -316,7 +324,7 @@ const Dashboard = () => {
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
                 <div className={`mt-4 flex items-center text-xs ${
-                  stat.changeType === 'positive' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                  stat.changeType === 'positive' ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {stat.changeType === 'positive' ? (
                     <TrendingUp className="mr-1 h-3 w-3" />
@@ -326,17 +334,14 @@ const Dashboard = () => {
                   <span>{stat.change}</span>
                 </div>
               </div>
-              
-              {/* Mini sparkline - would be dynamic in a real implementation */}
-              <div className="h-12 bg-muted/30">
-                <div className={`h-full w-full ${
-                  stat.changeType === 'positive' 
-                    ? 'bg-gradient-to-r from-green-50 to-green-100 dark:from-green-950 dark:to-green-900'
-                    : 'bg-gradient-to-r from-red-50 to-red-100 dark:from-red-950 dark:to-red-900'
-                }`}>
-                </div>
-              </div>
             </CardContent>
+            
+            {/* Bottom color indicator */}
+            <div className={`absolute bottom-0 left-0 right-0 h-2 ${
+              stat.changeType === 'positive' 
+                ? 'bg-gradient-to-r from-orange-200 to-orange-500 dark:from-orange-900 dark:to-orange-600'
+                : 'bg-gradient-to-r from-red-200 to-red-500 dark:from-red-900 dark:to-red-600'
+            }`}></div>
           </Card>
         ))}
       </div>
@@ -524,7 +529,7 @@ const Dashboard = () => {
                     <td className="py-3 font-medium">{sale.customer}</td>
                     <td className="py-3">{sale.product}</td>
                     <td className="py-3">{sale.quantity}</td>
-                    <td className="py-3 font-medium">${sale.total.toFixed(2)}</td>
+                    <td className="py-3 font-medium">{formatCurrency(sale.total)}</td>
                     <td className="py-3 text-muted-foreground">{sale.date}</td>
                   </tr>
                 ))}

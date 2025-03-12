@@ -121,7 +121,7 @@ const MainLayout = ({ children }) => {
       >
         <div className="flex h-16 items-center justify-between px-4 border-b">
           <div className="flex items-center">
-            <span className="text-xl font-bold text-primary">PestTrack</span>
+            <span className="text-xl font-bold text-orange-700">Pesticide Inventory</span>
           </div>
           <button
             onClick={() => setSidebarOpen(false)}

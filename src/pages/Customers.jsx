@@ -10,99 +10,99 @@ const Customers = () => {
   const customers = [
     {
       id: 1,
-      name: "Green Farms Ltd",
+      name: "Al-Barakat Farms",
       type: "Business",
-      contact: "Emily Johnson",
-      email: "emily@greenfarms.com",
-      phone: "+1 (555) 111-2233",
-      address: "123 Farm Road, Rural County, TX 75001",
+      contact: "Muhammad Ibrahim",
+      email: "ibrahim@albarakat.com",
+      phone: "+92 (301) 123-4567",
+      address: "123 Agriculture Road, Multan, Punjab",
       joinDate: "2022-05-15",
       totalOrders: 24,
-      totalSpent: 5680.75
+      totalSpent: 568075
     },
     {
       id: 2,
-      name: "City Parks Department",
+      name: "City Parks Authority",
       type: "Government",
-      contact: "James Wilson",
-      email: "jwilson@cityparks.gov",
-      phone: "+1 (555) 333-4455",
-      address: "456 Municipal Way, Metro City, CA 90001",
+      contact: "Usman Khan",
+      email: "usman.khan@cda.gov.pk",
+      phone: "+92 (333) 987-6543",
+      address: "456 Municipal Complex, Islamabad",
       joinDate: "2022-07-22",
       totalOrders: 15,
-      totalSpent: 8925.50
+      totalSpent: 892550
     },
     {
       id: 3,
-      name: "Robert Greene",
+      name: "Maaz Ali",
       type: "Individual",
-      contact: "Robert Greene",
-      email: "robert.greene@email.com",
-      phone: "+1 (555) 555-6677",
-      address: "789 Orchard Lane, Springfield, IL 62701",
+      contact: "Maaz Ali",
+      email: "maaz.ahmed@gmail.com",
+      phone: "+92 (321) 234-5678",
+      address: "789 Garden Town, Lahore, Punjab",
       joinDate: "2023-01-10",
       totalOrders: 6,
-      totalSpent: 780.25
+      totalSpent: 78025
     },
     {
       id: 4,
-      name: "Sunrise Orchards",
+      name: "Rehman Orchards",
       type: "Business",
-      contact: "Maria Gonzalez",
-      email: "maria@sunriseorchards.com",
-      phone: "+1 (555) 777-8899",
-      address: "101 Apple Drive, Fruitvale, WA 98001",
+      contact: "Abdul Rehman",
+      email: "rehman@orchards.pk",
+      phone: "+92 (300) 111-2233",
+      address: "101 Fruit Market Road, Swat, KPK",
       joinDate: "2023-03-05",
       totalOrders: 18,
-      totalSpent: 4250.00
+      totalSpent: 425000
     },
     {
       id: 5,
-      name: "Garden Services Inc",
+      name: "Green Pakistan Services",
       type: "Business",
-      contact: "David Park",
-      email: "david@gardenservices.com",
-      phone: "+1 (555) 999-0011",
-      address: "202 Landscape Blvd, Greenville, NC 27858",
+      contact: "Jamal Malik",
+      email: "jamal@greenpak.com",
+      phone: "+92 (313) 444-5566",
+      address: "202 Commercial Area, Karachi, Sindh",
       joinDate: "2022-10-18",
       totalOrders: 30,
-      totalSpent: 12750.80
+      totalSpent: 1275080
     },
     {
       id: 6,
-      name: "Community College",
+      name: "Agriculture University",
       type: "Educational",
-      contact: "Susan Taylor",
-      email: "staylor@communitycollege.edu",
-      phone: "+1 (555) 222-3344",
-      address: "303 Campus Road, College Town, NY 14850",
+      contact: "Dr. Mudasir Khan",
+      email: "mudasir@agri.edu.pk",
+      phone: "+92 (345) 777-8899",
+      address: "303 University Road, Faisalabad, Punjab",
       joinDate: "2023-05-20",
       totalOrders: 8,
-      totalSpent: 3450.60
+      totalSpent: 345060
     },
     {
       id: 7,
-      name: "Jennifer Smith",
+      name: "Umar Farooq",
       type: "Individual",
-      contact: "Jennifer Smith",
-      email: "jsmith@email.com",
-      phone: "+1 (555) 444-5566",
-      address: "404 Residential Street, Hometown, OH 44101",
+      contact: "Umar Farooq",
+      email: "umar.farooq@gmail.com",
+      phone: "+92 (332) 876-5432",
+      address: "404 Model Town, Sialkot, Punjab",
       joinDate: "2023-02-15",
       totalOrders: 4,
-      totalSpent: 520.75
+      totalSpent: 52075
     },
     {
       id: 8,
-      name: "Evergreen Nursery",
+      name: "Al-Madina Nursery",
       type: "Business",
-      contact: "Michael Brown",
-      email: "michael@evergreennursery.com",
-      phone: "+1 (555) 666-7788",
-      address: "505 Plant Street, Gardenville, OR 97301",
+      contact: "Hassan Ali",
+      email: "hassan@almadinanursery.pk",
+      phone: "+92 (311) 222-3344",
+      address: "505 Nursery Road, Rawalpindi, Punjab",
       joinDate: "2022-08-10",
       totalOrders: 22,
-      totalSpent: 7350.25
+      totalSpent: 735025
     },
   ];
 
@@ -135,9 +135,9 @@ const Customers = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ur-PK', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PKR'
     }).format(amount);
   };
 

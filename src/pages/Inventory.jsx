@@ -90,7 +90,7 @@ const Inventory = () => {
           quantity: 25,
           manufacturingDate: "2023-01-15",
           expiryDate: "2023-12-15",
-          supplier: "AgriChem Inc.",
+          supplier: "Malik Agro Solutions",
           locationCode: "W1-A3-S2",
           notes: "Original packaging"
         },
@@ -100,7 +100,7 @@ const Inventory = () => {
           quantity: 20,
           manufacturingDate: "2023-02-10",
           expiryDate: "2024-01-10",
-          supplier: "AgriChem Inc.",
+          supplier: "Khan Organic Fertilizers",
           locationCode: "W1-A3-S3",
           notes: "New formula"
         }
@@ -123,7 +123,7 @@ const Inventory = () => {
           quantity: 28,
           manufacturingDate: "2023-02-05",
           expiryDate: "2023-12-20",
-          supplier: "GreenTech Solutions",
+          supplier: "Malik Agro Solutions",
           locationCode: "W1-B2-S1",
           notes: "Premium formula"
         }
@@ -146,7 +146,7 @@ const Inventory = () => {
           quantity: 10,
           manufacturingDate: "2023-01-20",
           expiryDate: "2023-12-28",
-          supplier: "FarmChem Ltd",
+          supplier: "Rashid Pest Control Supplies",
           locationCode: "W1-C1-S4",
           notes: ""
         },
@@ -156,7 +156,7 @@ const Inventory = () => {
           quantity: 6,
           manufacturingDate: "2023-03-15",
           expiryDate: "2024-02-15",
-          supplier: "FarmChem Ltd",
+          supplier: "Khan Organic Fertilizers",
           locationCode: "W1-C1-S5",
           notes: "Concentrated formula"
         }
@@ -179,7 +179,7 @@ const Inventory = () => {
           quantity: 34,
           manufacturingDate: "2023-02-25",
           expiryDate: "2024-01-05",
-          supplier: "PestControl Supplies",
+          supplier: "Malik Agro Solutions",
           locationCode: "W2-A1-S3",
           notes: ""
         }
@@ -202,7 +202,7 @@ const Inventory = () => {
           quantity: 22,
           manufacturingDate: "2023-03-10",
           expiryDate: "2024-01-10",
-          supplier: "AgriChem Inc.",
+          supplier: "Khan Organic Fertilizers",
           locationCode: "W2-B3-S1",
           notes: "All-purpose formula"
         }
@@ -225,7 +225,7 @@ const Inventory = () => {
           quantity: 3,
           manufacturingDate: "2023-01-05",
           expiryDate: "2023-11-05",
-          supplier: "GreenTech Solutions",
+          supplier: "Malik Agro Solutions",
           locationCode: "W2-C2-S2",
           notes: "Expiring soon"
         }
@@ -248,7 +248,7 @@ const Inventory = () => {
           quantity: 2,
           manufacturingDate: "2023-02-15",
           expiryDate: "2024-02-15",
-          supplier: "PestControl Supplies",
+          supplier: "Rashid Pest Control Supplies",
           locationCode: "W3-A1-S1",
           notes: "Professional grade"
         }
@@ -271,7 +271,7 @@ const Inventory = () => {
           quantity: 4,
           manufacturingDate: "2023-03-20",
           expiryDate: "2024-03-20",
-          supplier: "FarmChem Ltd",
+          supplier: "Khan Organic Fertilizers",
           locationCode: "W3-B2-S3",
           notes: "Water-resistant formula"
         }
@@ -294,7 +294,7 @@ const Inventory = () => {
           quantity: 6,
           manufacturingDate: "2023-04-05",
           expiryDate: "2024-04-05",
-          supplier: "GreenTech Solutions",
+          supplier: "Malik Agro Solutions",
           locationCode: "W3-C3-S4",
           notes: ""
         }

@@ -13,86 +13,86 @@ const Invoices = () => {
   const invoices = [
     {
       id: "INV-2023-001",
-      customer: "Green Farms Ltd",
+      customer: "Al-Barakat Farms",
       customerType: "Business",
       date: "2023-11-15",
       dueDate: "2023-12-15",
-      amount: 1250.75,
+      amount: 125075,
       status: "Paid",
       items: [
-        { id: 1, product: "MaxKill Insecticide", quantity: 5, unitPrice: 49.99, total: 249.95 },
-        { id: 2, product: "HerbControl Plus", quantity: 12, unitPrice: 38.50, total: 462.00 },
-        { id: 3, product: "AntControl", quantity: 15, unitPrice: 19.99, total: 299.85 },
-        { id: 4, product: "FungoClear Solution", quantity: 3, unitPrice: 65.00, total: 195.00 }
+        { id: 1, product: "MaxKill Insecticide", quantity: 5, unitPrice: 4999, total: 24995 },
+        { id: 2, product: "HerbControl Plus", quantity: 12, unitPrice: 3850, total: 46200 },
+        { id: 3, product: "AntControl", quantity: 15, unitPrice: 1999, total: 29985 },
+        { id: 4, product: "FungoClear Solution", quantity: 3, unitPrice: 6500, total: 19500 }
       ]
     },
     {
       id: "INV-2023-002",
-      customer: "City Parks Department",
+      customer: "City Parks Authority",
       customerType: "Government",
       date: "2023-11-20",
       dueDate: "2023-12-20",
-      amount: 3752.25,
+      amount: 375225,
       status: "Paid",
       items: [
-        { id: 1, product: "WeedBGone", quantity: 30, unitPrice: 27.99, total: 839.70 },
-        { id: 2, product: "MaxKill Insecticide", quantity: 40, unitPrice: 49.99, total: 1999.60 },
-        { id: 3, product: "RatAway Pellets", quantity: 25, unitPrice: 29.99, total: 749.75 }
+        { id: 1, product: "WeedBGone", quantity: 30, unitPrice: 2799, total: 83970 },
+        { id: 2, product: "MaxKill Insecticide", quantity: 40, unitPrice: 4999, total: 199960 },
+        { id: 3, product: "RatAway Pellets", quantity: 25, unitPrice: 2999, total: 74975 }
       ]
     },
     {
       id: "INV-2023-003",
-      customer: "Sunrise Orchards",
+      customer: "Rehman Orchards",
       customerType: "Business",
       date: "2023-11-28",
       dueDate: "2023-12-28",
-      amount: 980.50,
+      amount: 98050,
       status: "Pending",
       items: [
-        { id: 1, product: "FungoClear Solution", quantity: 8, unitPrice: 65.00, total: 520.00 },
-        { id: 2, product: "AntControl", quantity: 10, unitPrice: 19.99, total: 199.90 },
-        { id: 3, product: "MaxKill Insecticide", quantity: 5, unitPrice: 49.99, total: 249.95 }
+        { id: 1, product: "FungoClear Solution", quantity: 8, unitPrice: 6500, total: 52000 },
+        { id: 2, product: "AntControl", quantity: 10, unitPrice: 1999, total: 19990 },
+        { id: 3, product: "MaxKill Insecticide", quantity: 5, unitPrice: 4999, total: 24995 }
       ]
     },
     {
       id: "INV-2023-004",
-      customer: "Robert Greene",
+      customer: "Maaz Ali",
       customerType: "Individual",
       date: "2023-12-05",
       dueDate: "2024-01-05",
-      amount: 125.98,
+      amount: 12598,
       status: "Overdue",
       items: [
-        { id: 1, product: "AntControl", quantity: 2, unitPrice: 19.99, total: 39.98 },
-        { id: 2, product: "WeedBGone", quantity: 3, unitPrice: 27.99, total: 83.97 }
+        { id: 1, product: "AntControl", quantity: 2, unitPrice: 1999, total: 3998 },
+        { id: 2, product: "WeedBGone", quantity: 3, unitPrice: 2799, total: 8397 }
       ]
     },
     {
       id: "INV-2023-005",
-      customer: "Community College",
+      customer: "Agriculture University",
       customerType: "Educational",
       date: "2023-12-10",
       dueDate: "2024-01-10",
-      amount: 1560.75,
+      amount: 156075,
       status: "Pending",
       items: [
-        { id: 1, product: "MaxKill Insecticide", quantity: 10, unitPrice: 49.99, total: 499.90 },
-        { id: 2, product: "FungoClear Solution", quantity: 8, unitPrice: 65.00, total: 520.00 },
-        { id: 3, product: "HerbControl Plus", quantity: 14, unitPrice: 38.50, total: 539.00 }
+        { id: 1, product: "MaxKill Insecticide", quantity: 10, unitPrice: 4999, total: 49990 },
+        { id: 2, product: "FungoClear Solution", quantity: 8, unitPrice: 6500, total: 52000 },
+        { id: 3, product: "HerbControl Plus", quantity: 14, unitPrice: 3850, total: 53900 }
       ]
     },
     {
       id: "INV-2023-006",
-      customer: "Garden Services Inc",
+      customer: "Green Pakistan Services",
       customerType: "Business",
       date: "2023-12-15",
       dueDate: "2024-01-15",
-      amount: 2850.25,
+      amount: 285025,
       status: "Pending",
       items: [
-        { id: 1, product: "TermiteShield", quantity: 12, unitPrice: 89.99, total: 1079.88 },
-        { id: 2, product: "MoldBuster", quantity: 15, unitPrice: 45.50, total: 682.50 },
-        { id: 3, product: "HerbControl Plus", quantity: 28, unitPrice: 38.50, total: 1078.00 }
+        { id: 1, product: "TermiteShield", quantity: 12, unitPrice: 8999, total: 107988 },
+        { id: 2, product: "MoldBuster", quantity: 15, unitPrice: 4550, total: 68250 },
+        { id: 3, product: "HerbControl Plus", quantity: 28, unitPrice: 3850, total: 107800 }
       ]
     }
   ];
@@ -101,67 +101,67 @@ const Invoices = () => {
   const bills = [
     {
       id: "BILL-2023-001",
-      supplier: "AgriChem Inc",
+      supplier: "Al-Faisal Chemicals",
       date: "2023-11-10",
       dueDate: "2023-12-10",
-      amount: 5680.50,
+      amount: 568050,
       status: "Paid",
       items: [
-        { id: 1, product: "MaxKill Insecticide (Bulk)", quantity: 50, unitPrice: 42.50, total: 2125.00 },
-        { id: 2, product: "AntiPest Powder (Bulk)", quantity: 80, unitPrice: 36.80, total: 2944.00 },
-        { id: 3, product: "Packaging Materials", quantity: 1, unitPrice: 611.50, total: 611.50 }
+        { id: 1, product: "MaxKill Insecticide (Bulk)", quantity: 50, unitPrice: 4250, total: 212500 },
+        { id: 2, product: "AntiPest Powder (Bulk)", quantity: 80, unitPrice: 3680, total: 294400 },
+        { id: 3, product: "Packaging Materials", quantity: 1, unitPrice: 61150, total: 61150 }
       ]
     },
     {
       id: "BILL-2023-002",
-      supplier: "GreenTech Solutions",
+      supplier: "Malik Agro Solutions",
       date: "2023-11-18",
       dueDate: "2023-12-18",
-      amount: 4250.75,
+      amount: 425075,
       status: "Paid",
       items: [
-        { id: 1, product: "HerbControl Plus (Bulk)", quantity: 40, unitPrice: 32.25, total: 1290.00 },
-        { id: 2, product: "WeedBGone (Bulk)", quantity: 60, unitPrice: 23.85, total: 1431.00 },
-        { id: 3, product: "Spray Equipment", quantity: 5, unitPrice: 305.95, total: 1529.75 }
+        { id: 1, product: "HerbControl Plus (Bulk)", quantity: 40, unitPrice: 3225, total: 129000 },
+        { id: 2, product: "WeedBGone (Bulk)", quantity: 60, unitPrice: 2385, total: 143100 },
+        { id: 3, product: "Spray Equipment", quantity: 5, unitPrice: 30595, total: 152975 }
       ]
     },
     {
       id: "BILL-2023-003",
-      supplier: "PlantHealth Systems",
+      supplier: "Khan Agricultural Products",
       date: "2023-11-25",
       dueDate: "2023-12-25",
-      amount: 3780.50,
+      amount: 378050,
       status: "Pending",
       items: [
-        { id: 1, product: "FungoClear Solution (Bulk)", quantity: 30, unitPrice: 58.50, total: 1755.00 },
-        { id: 2, product: "MoldBuster (Bulk)", quantity: 35, unitPrice: 38.95, total: 1363.25 },
-        { id: 3, product: "Laboratory Testing", quantity: 1, unitPrice: 662.25, total: 662.25 }
+        { id: 1, product: "FungoClear Solution (Bulk)", quantity: 30, unitPrice: 5850, total: 175500 },
+        { id: 2, product: "MoldBuster (Bulk)", quantity: 35, unitPrice: 3895, total: 136325 },
+        { id: 3, product: "Laboratory Testing", quantity: 1, unitPrice: 66225, total: 66225 }
       ]
     },
     {
       id: "BILL-2023-004",
-      supplier: "PestStop International",
+      supplier: "Ahsan Brothers Trading",
       date: "2023-12-05",
       dueDate: "2024-01-05",
-      amount: 2985.25,
+      amount: 378525,
       status: "Overdue",
       items: [
-        { id: 1, product: "RatAway Pellets (Bulk)", quantity: 45, unitPrice: 24.85, total: 1118.25 },
-        { id: 2, product: "AntControl (Bulk)", quantity: 60, unitPrice: 16.95, total: 1017.00 },
-        { id: 3, product: "Safety Equipment", quantity: 10, unitPrice: 85.00, total: 850.00 }
+        { id: 1, product: "RatAway Pellets (Bulk)", quantity: 45, unitPrice: 2485, total: 111825 },
+        { id: 2, product: "AntControl (Bulk)", quantity: 60, unitPrice: 1695, total: 101700 },
+        { id: 3, product: "Safety Equipment", quantity: 10, unitPrice: 16500, total: 165000 }
       ]
     },
     {
       id: "BILL-2023-005",
-      supplier: "Pest Defense Ltd",
+      supplier: "Rashid Pest Control Supplies",
       date: "2023-12-12",
       dueDate: "2024-01-12",
-      amount: 7250.00,
+      amount: 725000,
       status: "Pending",
       items: [
-        { id: 1, product: "TermiteShield (Bulk)", quantity: 40, unitPrice: 76.50, total: 3060.00 },
-        { id: 2, product: "Insect Traps (Bulk)", quantity: 100, unitPrice: 12.50, total: 1250.00 },
-        { id: 3, product: "Application Equipment", quantity: 8, unitPrice: 367.50, total: 2940.00 }
+        { id: 1, product: "TermiteShield (Bulk)", quantity: 40, unitPrice: 7650, total: 306000 },
+        { id: 2, product: "Insect Traps (Bulk)", quantity: 100, unitPrice: 1250, total: 125000 },
+        { id: 3, product: "Application Equipment", quantity: 8, unitPrice: 36750, total: 294000 }
       ]
     }
   ];
@@ -201,9 +201,9 @@ const Invoices = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ur-PK', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PKR'
     }).format(amount);
   };
 

@@ -10,81 +10,81 @@ const Suppliers = () => {
   const suppliers = [
     {
       id: 1,
-      name: "AgriChem Inc",
-      contact: "John Smith",
-      email: "j.smith@agrichem.com",
-      phone: "+1 (555) 123-4567",
-      address: "123 Industrial Park, Chicago, IL 60007",
+      name: "Al-Faisal Chemicals",
+      contact: "Muhammad Akram",
+      email: "akram@alfaisal.pk",
+      phone: "+92 (301) 456-7890",
+      address: "123 Industrial Area, Lahore, Punjab",
       categories: ["Insecticide", "Herbicide"],
       status: "Active"
     },
     {
       id: 2,
-      name: "GreenTech Solutions",
-      contact: "Sarah Johnson",
-      email: "sarah@greentech.com",
-      phone: "+1 (555) 987-6543",
-      address: "456 Research Blvd, Boston, MA 02108",
+      name: "Malik Agro Solutions",
+      contact: "Zubair Malik",
+      email: "zubair@malikagro.pk",
+      phone: "+92 (333) 765-4321",
+      address: "456 Research Center, Islamabad",
       categories: ["Herbicide", "Fungicide"],
       status: "Active"
     },
     {
       id: 3,
-      name: "PlantHealth Systems",
-      contact: "Michael Chen",
-      email: "m.chen@planthealth.com",
-      phone: "+1 (555) 234-5678",
-      address: "789 Science Drive, San Francisco, CA 94107",
+      name: "Khan Agricultural Products",
+      contact: "Shahid Khan",
+      email: "shahid@khanagri.pk",
+      phone: "+92 (321) 234-5678",
+      address: "789 Business Park, Karachi, Sindh",
       categories: ["Fungicide"],
       status: "Active"
     },
     {
       id: 4,
-      name: "PestStop International",
-      contact: "David Rodriguez",
-      email: "david@peststop.com",
-      phone: "+1 (555) 345-6789",
-      address: "101 Distribution Center, Austin, TX 78701",
+      name: "Ahsan Brothers Trading",
+      contact: "Bilal Ahsan",
+      email: "bilal@ahsanbrothers.pk",
+      phone: "+92 (345) 678-9012",
+      address: "101 Distribution Hub, Rawalpindi, Punjab",
       categories: ["Insecticide", "Rodenticide"],
       status: "Active"
     },
     {
       id: 5,
-      name: "Pest Defense Ltd",
-      contact: "Lisa Williams",
-      email: "lisa@pestdefense.com",
-      phone: "+1 (555) 456-7890",
-      address: "202 Manufacturing Lane, Denver, CO 80014",
+      name: "Rashid Pest Control Supplies",
+      contact: "Usman Rashid",
+      email: "usman@rashidpest.pk",
+      phone: "+92 (311) 234-5678",
+      address: "202 Manufacturing Zone, Faisalabad, Punjab",
       categories: ["Insecticide"],
       status: "Inactive"
     },
     {
       id: 6,
-      name: "HealthGuard Solutions",
-      contact: "Robert Lee",
-      email: "r.lee@healthguard.com",
-      phone: "+1 (555) 567-8901",
-      address: "303 Laboratory Road, Seattle, WA 98101",
+      name: "Iqbal Agricultural Solutions",
+      contact: "Asad Iqbal",
+      email: "asad@iqbalagri.pk",
+      phone: "+92 (302) 876-5432",
+      address: "303 Research Road, Multan, Punjab",
       categories: ["Insecticide", "Fungicide"],
       status: "Active"
     },
     {
       id: 7,
-      name: "EcoShield Products",
-      contact: "Amanda Garcia",
-      email: "a.garcia@ecoshield.com",
-      phone: "+1 (555) 678-9012",
-      address: "404 Green Street, Portland, OR 97201",
+      name: "Khan Organic Fertilizers",
+      contact: "Farhan Ahmed",
+      email: "farhan@khanorganic.pk",
+      phone: "+92 (334) 987-6543",
+      address: "404 Green Valley, Peshawar, KPK",
       categories: ["Herbicide", "Fungicide"],
       status: "Active"
     },
     {
       id: 8,
-      name: "AgriPro Supplies",
-      contact: "Thomas Wilson",
-      email: "t.wilson@agripro.com",
-      phone: "+1 (555) 789-0123",
-      address: "505 Farm Road, Minneapolis, MN 55403",
+      name: "Pak Agri Supplies",
+      contact: "Tariq Mehmood",
+      email: "tariq@pakagri.pk",
+      phone: "+92 (300) 123-4567",
+      address: "505 Farm Center, Sialkot, Punjab",
       categories: ["Herbicide", "Insecticide", "Fungicide"],
       status: "Inactive"
     },
@@ -138,9 +138,8 @@ const Suppliers = () => {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredSuppliers.map((supplier) => (
-              <Card key={supplier.id} className="overflow-hidden">
+              <Card key={supplier.id} className="overflow-hidden relative">
                 <CardContent className="p-0">
-                  <div className={`h-2 w-full ${supplier.status === "Active" ? "bg-green-500" : "bg-red-500"}`}></div>
                   <div className="p-6">
                     <div className="flex justify-between">
                       <h3 className="font-semibold text-lg">{supplier.name}</h3>
@@ -195,6 +194,13 @@ const Suppliers = () => {
                       </Button>
                     </div>
                   </div>
+                  
+                  {/* Bottom color indicator */}
+                  <div className={`absolute bottom-0 left-0 right-0 h-2 ${
+                    supplier.status === "Active" 
+                      ? 'bg-gradient-to-r from-orange-200 to-orange-500 dark:from-orange-900 dark:to-orange-600'
+                      : 'bg-gradient-to-r from-red-200 to-red-500 dark:from-red-900 dark:to-red-600'
+                  }`}></div>
                 </CardContent>
               </Card>
             ))}

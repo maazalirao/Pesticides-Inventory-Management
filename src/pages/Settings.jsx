@@ -12,8 +12,8 @@ const Settings = () => {
   
   // Mock user data
   const userData = {
-    name: 'John Doe',
-    email: 'john.doe@example.com',
+    name: 'Maaz Ali',
+    email: 'maaz@example.com',
     role: 'Administrator',
     company: 'PestTrack Solutions',
     avatar: 'https://ui-avatars.com/api/?name=John+Doe&background=6366f1&color=fff',
@@ -559,9 +559,10 @@ const Settings = () => {
                   <div className="grid gap-2">
                     <label className="text-sm font-medium">Currency</label>
                     <select 
-                      defaultValue="USD"
+                      defaultValue="PKR"
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     >
+                      <option value="PKR">PKR (₨)</option>
                       <option value="USD">USD ($)</option>
                       <option value="EUR">EUR (€)</option>
                       <option value="GBP">GBP (£)</option>

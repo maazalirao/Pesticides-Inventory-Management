@@ -452,7 +452,7 @@ const Store = () => {
                 <label className="text-sm font-medium">Store Name</label>
                 <input 
                   type="text" 
-                  defaultValue="PestTrack Store" 
+                  defaultValue="Pesticide Inventory Store" 
                   className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary" 
                 />
               </div>
