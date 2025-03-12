@@ -3,19 +3,15 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // Check if user has theme preference in localStorage or prefer-color-scheme
+  // Check if user has theme preference in localStorage or default to light theme
   const [theme, setTheme] = useState(() => {
     const storedTheme = localStorage.getItem('pesttrack-theme');
     if (storedTheme) {
       return storedTheme;
     }
     
-    // Check for system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
-    }
-    
-    return 'light'; // Default theme
+    // Always default to light theme regardless of system preference
+    return 'light';
   });
 
   const toggleTheme = () => {
