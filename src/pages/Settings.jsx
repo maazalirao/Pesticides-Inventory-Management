@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
 import { Switch } from '../components/ui/switch';
-import { User, Bell, Shield, HardDrive, Palette, Globe, Mail, Key, ChevronRight, Save, AlertTriangle } from 'lucide-react';
+import { User, Bell, Shield, HardDrive, Palette, Globe, Mail, Key, ChevronRight, Save, AlertTriangle, Sun, Moon } from 'lucide-react';
+import { useTheme } from '../lib/ThemeProvider';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('account');
+  const { theme, toggleTheme } = useTheme();
   
   // Mock user data
   const userData = {
@@ -25,7 +27,7 @@ const Settings = () => {
       marketingEmails: false
     },
     appearance: {
-      theme: 'light',
+      theme: theme,
       compactMode: false,
       animationsEnabled: true,
       fontSize: 'medium'
@@ -39,6 +41,17 @@ const Settings = () => {
   
   // State for form values
   const [formValues, setFormValues] = useState(userData);
+  
+  // Update form values when theme changes
+  useEffect(() => {
+    setFormValues(prev => ({
+      ...prev,
+      appearance: {
+        ...prev.appearance,
+        theme: theme
+      }
+    }));
+  }, [theme]);
   
   // Handle form changes
   const handleChange = (section, field, value) => {
@@ -61,6 +74,11 @@ const Settings = () => {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
+  };
+
+  // Toggle between light and dark mode
+  const handleThemeToggle = () => {
+    toggleTheme();
   };
 
   return (
@@ -396,29 +414,40 @@ const Settings = () => {
                 <div className="space-y-4">
                   <h3 className="text-sm font-medium">Theme</h3>
                   
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="flex items-center justify-between py-2">
+                    <div className="flex items-center gap-2">
+                      {theme === 'dark' 
+                        ? <Moon className="h-5 w-5 text-muted-foreground" /> 
+                        : <Sun className="h-5 w-5 text-muted-foreground" />}
+                      <div>
+                        <p className="text-sm">Dark Mode</p>
+                        <p className="text-xs text-muted-foreground">
+                          Switch between light and dark themes
+                        </p>
+                      </div>
+                    </div>
+                    <Switch 
+                      id="theme-toggle" 
+                      checked={theme === 'dark'}
+                      onCheckedChange={handleThemeToggle}
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-3 gap-4 mt-4">
                     <div 
-                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${formValues.appearance.theme === 'light' ? 'border-primary bg-muted/50' : ''}`}
-                      onClick={() => handleChange('appearance', 'theme', 'light')}
+                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${theme === 'light' ? 'border-primary bg-muted/50' : ''}`}
+                      onClick={() => toggleTheme('light')}
                     >
                       <div className="h-20 bg-background border rounded-md mb-2"></div>
                       <p className="text-sm font-medium text-center">Light</p>
                     </div>
                     
                     <div 
-                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${formValues.appearance.theme === 'dark' ? 'border-primary bg-muted/50' : ''}`}
-                      onClick={() => handleChange('appearance', 'theme', 'dark')}
+                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${theme === 'dark' ? 'border-primary bg-muted/50' : ''}`}
+                      onClick={() => toggleTheme('dark')}
                     >
                       <div className="h-20 bg-zinc-800 border rounded-md mb-2"></div>
                       <p className="text-sm font-medium text-center">Dark</p>
-                    </div>
-                    
-                    <div 
-                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${formValues.appearance.theme === 'system' ? 'border-primary bg-muted/50' : ''}`}
-                      onClick={() => handleChange('appearance', 'theme', 'system')}
-                    >
-                      <div className="h-20 bg-gradient-to-b from-background to-zinc-800 border rounded-md mb-2"></div>
-                      <p className="text-sm font-medium text-center">System</p>
                     </div>
                   </div>
                 </div>
@@ -543,12 +572,12 @@ const Settings = () => {
                   </div>
                 </div>
                 
-                <div className="p-4 rounded-md bg-blue-50 border border-blue-200">
+                <div className="p-4 rounded-md bg-blue-50 border border-blue-200 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-200">
                   <div className="flex items-start">
-                    <AlertTriangle className="h-5 w-5 text-blue-600 mr-3 flex-shrink-0 mt-0.5" />
+                    <AlertTriangle className="h-5 w-5 text-blue-600 dark:text-blue-400 mr-3 flex-shrink-0 mt-0.5" />
                     <div>
-                      <h4 className="text-sm font-medium text-blue-800">Information</h4>
-                      <p className="text-xs text-blue-700 mt-1">
+                      <h4 className="text-sm font-medium text-blue-800 dark:text-blue-300">Information</h4>
+                      <p className="text-xs text-blue-700 dark:text-blue-400 mt-1">
                         Changing your language or regional settings will apply to all aspects of your PestTrack experience, including notifications, reports, and invoices.
                       </p>
                     </div>
