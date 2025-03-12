@@ -267,23 +267,23 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="hidden md:block text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="hidden md:block text-muted-foreground">
             Overview of your pesticide inventory and business metrics
           </p>
         </div>
         
-        <div className="flex flex-col sm:flex-row gap-2">
-          <div className="relative">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[120px]">
             <div className="flex items-center rounded-md border px-3 py-2 bg-background text-sm">
               <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
               <select 
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value)}
-                className="bg-transparent pr-8 focus:outline-none"
+                className="bg-transparent pr-8 focus:outline-none text-xs sm:text-sm"
               >
                 <option value="day">Today</option>
                 <option value="week">This Week</option>
@@ -295,35 +295,35 @@ const Dashboard = () => {
             </div>
           </div>
           
-          <Button variant="outline" className="gap-1">
+          <Button variant="outline" size="sm" className="gap-1">
             <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="sr-only sm:not-sr-only sm:inline">Refresh</span>
           </Button>
           
-          <Button variant="outline" className="gap-1">
+          <Button variant="outline" size="sm" className="gap-1">
             <Download className="h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="sr-only sm:not-sr-only sm:inline">Export</span>
           </Button>
         </div>
       </div>
 
       {/* Statistics cards */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 md:grid-cols-4">
         {statistics.map((stat, index) => (
           <Card key={index} className="overflow-hidden relative">
             <CardContent className="p-0">
-              <div className="p-6">
+              <div className="p-3 sm:p-4 md:p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <h2 className="text-2xl sm:text-3xl font-bold mt-1">{stat.value}</h2>
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.title}</p>
+                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mt-1">{stat.value}</h2>
                   </div>
-                  <div className={`p-2 rounded-full ${stat.iconClass}`}>
+                  <div className={`p-1.5 sm:p-2 rounded-full ${stat.iconClass}`}>
                     {stat.icon}
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
-                <div className={`mt-4 flex items-center text-xs ${
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{stat.description}</p>
+                <div className={`mt-2 sm:mt-4 flex items-center text-xs ${
                   stat.changeType === 'positive' ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {stat.changeType === 'positive' ? (
@@ -337,7 +337,7 @@ const Dashboard = () => {
             </CardContent>
             
             {/* Bottom color indicator */}
-            <div className={`absolute bottom-0 left-0 right-0 h-2 ${
+            <div className={`absolute bottom-0 left-0 right-0 h-1.5 sm:h-2 ${
               stat.changeType === 'positive' 
                 ? 'bg-gradient-to-r from-orange-200 to-orange-500 dark:from-orange-900 dark:to-orange-600'
                 : 'bg-gradient-to-r from-red-200 to-red-500 dark:from-red-900 dark:to-red-600'
@@ -347,43 +347,43 @@ const Dashboard = () => {
       </div>
 
       {/* Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         <Card className="md:col-span-2">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-0 pb-4">
+          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 pb-4">
             <div>
               <CardTitle>Business Performance</CardTitle>
               <CardDescription>Revenue, expenses and profit over time</CardDescription>
             </div>
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Button variant="outline" size="sm" className="h-7 px-2 sm:px-3 text-xs">
                 Monthly
               </Button>
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" className="h-7 px-2 sm:px-3 text-xs">
                 Quarterly
               </Button>
-              <Button variant="outline" size="sm" className="bg-muted/50">
+              <Button variant="outline" size="sm" className="h-7 px-2 sm:px-3 text-xs bg-muted/50">
                 Yearly
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] sm:h-[400px]">
+            <div className="h-[250px] sm:h-[300px] md:h-[400px]">
               <Line data={salesData} options={chartOptions} />
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Inventory Distribution</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg">Inventory Distribution</CardTitle>
             <CardDescription>Breakdown by product category</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
               <Doughnut data={inventoryData} options={doughnutOptions} />
             </div>
           </CardContent>
-          <CardFooter className="border-t px-6 py-3">
+          <CardFooter className="border-t px-3 sm:px-6 py-2 sm:py-3">
             <Button variant="ghost" className="w-full justify-center text-xs text-muted-foreground">
               View Detailed Inventory Report
             </Button>
@@ -391,16 +391,16 @@ const Dashboard = () => {
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Customer Segmentation</CardTitle>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base sm:text-lg">Customer Segmentation</CardTitle>
             <CardDescription>Sales distribution by customer type</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px]">
+            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
               <Pie data={customerSegmentData} options={doughnutOptions} />
             </div>
           </CardContent>
-          <CardFooter className="border-t px-6 py-3">
+          <CardFooter className="border-t px-3 sm:px-6 py-2 sm:py-3">
             <Button variant="ghost" className="w-full justify-center text-xs text-muted-foreground">
               View Customer Analytics
             </Button>
@@ -410,18 +410,18 @@ const Dashboard = () => {
 
       {/* Sales Forecast */}
       <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-0">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
           <div>
-            <CardTitle>6-Month Sales Forecast</CardTitle>
+            <CardTitle className="text-base sm:text-lg">6-Month Sales Forecast</CardTitle>
             <CardDescription>Predicted sales based on historical data</CardDescription>
           </div>
-          <Button variant="outline" size="sm" className="mt-4 sm:mt-0">
-            <Filter className="mr-2 h-4 w-4" />
-            Adjust Parameters
+          <Button variant="outline" size="sm" className="h-8 gap-1">
+            <Filter className="h-3.5 w-3.5 mr-1" />
+            <span className="text-xs">Adjust Parameters</span>
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="h-[300px]">
+          <div className="h-[250px] sm:h-[300px]">
             <Line data={forecastData} options={chartOptions} />
           </div>
         </CardContent>

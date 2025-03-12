@@ -394,8 +394,8 @@ const Inventory = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="hidden md:block text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="hidden md:block text-muted-foreground">
             Manage your pesticide products inventory with batch tracking
           </p>
         </div>

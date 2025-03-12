@@ -240,8 +240,8 @@ const Reports = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Reports & Analytics</h1>
-          <p className="text-muted-foreground">
+          <h1 className="hidden md:block text-3xl font-bold tracking-tight">Reports & Analytics</h1>
+          <p className="hidden md:block text-muted-foreground">
             Analyze your business performance with detailed reports
           </p>
         </div>

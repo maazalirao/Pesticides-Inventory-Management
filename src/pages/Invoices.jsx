@@ -216,8 +216,8 @@ const Invoices = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invoice & Billing</h1>
-          <p className="text-muted-foreground">
+          <h1 className="hidden md:block text-3xl font-bold tracking-tight">Invoice & Billing</h1>
+          <p className="hidden md:block text-muted-foreground">
             Manage your invoices, bills, and financial transactions
           </p>
         </div>
@@ -298,59 +298,62 @@ const Invoices = () => {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/50 border-b">
-                  <th className="py-3 px-4 text-left font-medium">{activeTab === 'invoices' ? 'Invoice #' : 'Bill #'}</th>
-                  <th className="py-3 px-4 text-left font-medium">{activeTab === 'invoices' ? 'Customer' : 'Supplier'}</th>
-                  <th className="py-3 px-4 text-left font-medium">Date</th>
-                  <th className="py-3 px-4 text-left font-medium">Due Date</th>
-                  <th className="py-3 px-4 text-left font-medium">Amount</th>
-                  <th className="py-3 px-4 text-left font-medium">Status</th>
-                  <th className="py-3 px-4 text-center font-medium">Actions</th>
+                  <th className="py-3 px-2 sm:px-4 text-left font-medium">{activeTab === 'invoices' ? 'Invoice #' : 'Bill #'}</th>
+                  <th className="py-3 px-2 sm:px-4 text-left font-medium">{activeTab === 'invoices' ? 'Customer' : 'Supplier'}</th>
+                  <th className="py-3 px-2 sm:px-4 text-left font-medium hidden sm:table-cell">Date</th>
+                  <th className="py-3 px-2 sm:px-4 text-left font-medium hidden md:table-cell">Due Date</th>
+                  <th className="py-3 px-2 sm:px-4 text-right font-medium">Amount</th>
+                  <th className="py-3 px-2 sm:px-4 text-center font-medium">Status</th>
+                  <th className="py-3 px-2 sm:px-4 text-center font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {(activeTab === 'invoices' ? filteredInvoices : filteredBills).map((item) => (
                   <tr key={item.id} className="border-b hover:bg-muted/25">
-                    <td className="py-3 px-4 font-medium">{item.id}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-2 sm:px-4 font-medium">{item.id}</td>
+                    <td className="py-3 px-2 sm:px-4">
                       <div>
-                        <p>{activeTab === 'invoices' ? item.customer : item.supplier}</p>
+                        <p className="truncate max-w-[100px] sm:max-w-[150px]">{activeTab === 'invoices' ? item.customer : item.supplier}</p>
                         {activeTab === 'invoices' && (
-                          <p className="text-xs text-muted-foreground">{item.customerType}</p>
+                          <p className="text-xs text-muted-foreground truncate max-w-[100px] sm:max-w-[150px]">{item.customerType}</p>
                         )}
                       </div>
                     </td>
-                    <td className="py-3 px-4">{formatDate(item.date)}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-2 sm:px-4 hidden sm:table-cell">{formatDate(item.date)}</td>
+                    <td className="py-3 px-2 sm:px-4 hidden md:table-cell">
                       <span className={item.status === 'Overdue' ? 'text-red-600 font-medium' : ''}>
                         {formatDate(item.dueDate)}
                       </span>
                     </td>
-                    <td className="py-3 px-4 font-medium">{formatCurrency(item.amount)}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
+                    <td className="py-3 px-2 sm:px-4 font-medium text-right">{formatCurrency(item.amount)}</td>
+                    <td className="py-3 px-2 sm:px-4 text-center">
+                      <span className={`px-2 py-1 inline-flex items-center justify-center rounded-full text-xs font-medium ${getStatusColor(item.status)}`}>
                         {item.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-center gap-2">
-                        <button className="p-1 rounded-md hover:bg-muted" title="View">
-                          <Eye className="h-4 w-4 text-blue-600" />
-                        </button>
-                        <button className="p-1 rounded-md hover:bg-muted" title="Edit">
-                          <Edit className="h-4 w-4 text-blue-600" />
-                        </button>
-                        <button className="p-1 rounded-md hover:bg-muted" title="Download">
-                          <Download className="h-4 w-4 text-green-600" />
-                        </button>
-                        <button className="p-1 rounded-md hover:bg-muted" title="Delete">
-                          <Trash className="h-4 w-4 text-red-600" />
-                        </button>
+                    <td className="py-3 px-2 sm:px-4 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Edit</span>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50">
+                          <Trash className="h-4 w-4" />
+                          <span className="sr-only">Delete</span>
+                        </Button>
                       </div>
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+            
+            {/* Mobile view for small screens */}
+            <div className="sm:hidden mt-2 px-2">
+              <p className="text-xs text-muted-foreground italic">
+                Swipe horizontally to see more columns
+              </p>
+            </div>
           </div>
 
           {(activeTab === 'invoices' ? filteredInvoices : filteredBills).length === 0 && (

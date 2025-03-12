@@ -103,16 +103,16 @@ const Suppliers = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Supplier Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="hidden md:block text-2xl md:text-3xl font-bold tracking-tight">Supplier Management</h1>
+          <p className="hidden md:block text-muted-foreground">
             Manage your pesticide suppliers and contacts
           </p>
         </div>
-        <Button className="flex items-center gap-2">
+        <Button className="flex items-center gap-2 whitespace-nowrap">
           <Plus className="h-4 w-4" />
-          Add New Supplier
+          <span>Add Supplier</span>
         </Button>
       </div>
 
@@ -131,22 +131,22 @@ const Suppliers = () => {
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search suppliers..."
-                className="pl-10 w-full rounded-md border border-input bg-background py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                className="pl-10 w-full rounded-md border border-input bg-background py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
               />
             </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {filteredSuppliers.map((supplier) => (
               <Card key={supplier.id} className="overflow-hidden relative">
                 <CardContent className="p-0">
-                  <div className="p-6">
-                    <div className="flex justify-between">
-                      <h3 className="font-semibold text-lg">{supplier.name}</h3>
+                  <div className="p-4 sm:p-6">
+                    <div className="flex justify-between items-start">
+                      <h3 className="font-semibold text-base sm:text-lg line-clamp-2">{supplier.name}</h3>
                       <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                         supplier.status === "Active" 
-                          ? "bg-green-100 text-green-800" 
-                          : "bg-red-100 text-red-800"
+                          ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" 
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
                       }`}>
                         {supplier.status}
                       </div>
@@ -154,28 +154,28 @@ const Suppliers = () => {
                     
                     <p className="text-sm text-muted-foreground">{supplier.contact}</p>
                     
-                    <div className="mt-4 space-y-2">
-                      <div className="flex items-center text-sm">
-                        <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
-                        <span>{supplier.email}</span>
+                    <div className="mt-3 sm:mt-4 space-y-1 sm:space-y-2 text-xs sm:text-sm">
+                      <div className="flex items-center">
+                        <Mail className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">{supplier.email}</span>
                       </div>
-                      <div className="flex items-center text-sm">
-                        <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <div className="flex items-center">
+                        <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-muted-foreground flex-shrink-0" />
                         <span>{supplier.phone}</span>
                       </div>
-                      <div className="flex text-sm">
-                        <MapPin className="h-4 w-4 mr-2 text-muted-foreground mt-1 flex-shrink-0" />
-                        <span>{supplier.address}</span>
+                      <div className="flex">
+                        <MapPin className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-2 text-muted-foreground mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-2">{supplier.address}</span>
                       </div>
                     </div>
                     
-                    <div className="mt-4">
-                      <p className="text-xs text-muted-foreground mb-2">Categories</p>
-                      <div className="flex flex-wrap gap-2">
+                    <div className="mt-3 sm:mt-4">
+                      <p className="text-xs text-muted-foreground mb-1.5">Categories</p>
+                      <div className="flex flex-wrap gap-1.5">
                         {supplier.categories.map((category, idx) => (
                           <span 
                             key={idx} 
-                            className="px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary"
+                            className="px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300"
                           >
                             {category}
                           </span>
@@ -183,14 +183,14 @@ const Suppliers = () => {
                       </div>
                     </div>
                     
-                    <div className="mt-6 flex gap-2 justify-end">
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <div className="mt-4 sm:mt-6 flex gap-2 justify-end">
+                      <Button variant="outline" size="sm" className="flex items-center gap-1 h-8 px-2.5 sm:px-3">
                         <Edit className="h-3 w-3" />
-                        Edit
+                        <span className="sm:inline">Edit</span>
                       </Button>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1 text-red-600 border-red-200 hover:bg-red-50">
+                      <Button variant="outline" size="sm" className="flex items-center gap-1 h-8 px-2.5 sm:px-3 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950">
                         <Trash className="h-3 w-3" />
-                        Delete
+                        <span className="sm:inline">Delete</span>
                       </Button>
                     </div>
                   </div>
