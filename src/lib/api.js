@@ -1,7 +1,9 @@
 import axios from 'axios';
 
-// Use environment variable if available or fallback to auto-detected base URL
-const API_URL = import.meta.env.VITE_API_URL || window.location.origin + '/api';
+// Use environment variable if available or fallback to relative path
+const API_URL = import.meta.env.VITE_API_URL || '/api';
+
+console.log('API URL:', API_URL); // Debug log for troubleshooting
 
 // Create axios instance
 const api = axios.create({

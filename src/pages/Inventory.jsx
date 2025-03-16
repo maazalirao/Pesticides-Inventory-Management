@@ -124,12 +124,14 @@ const Inventory = () => {
     const fetchInventoryItems = async () => {
       try {
         setLoading(true);
+        console.log('Attempting to fetch inventory items...');
         const data = await getInventoryItems();
+        console.log('Inventory items fetched successfully:', data);
         setInventoryItems(data);
         setError(null);
       } catch (err) {
-        setError('Failed to fetch inventory items. Please try again later.');
-        console.error(err);
+        console.error('Detailed error fetching inventory:', err);
+        setError(`Failed to fetch inventory items: ${err.message || 'Unknown error'}`);
       } finally {
         setLoading(false);
       }

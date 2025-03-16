@@ -13,7 +13,12 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [/\.vercel\.app$/, /yourdomain\.com$/] // Update with your actual domain if you have one
+    : 'http://localhost:5173', // Vite's default dev server
+  credentials: true
+}));
 app.use(express.json());
 
 // Routes (will import them later)
