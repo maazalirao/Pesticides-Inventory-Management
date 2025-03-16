@@ -77,7 +77,7 @@ const Inventory = () => {
     locationCode: '',
     notes: ''
   });
-  
+
   // State for API data
   const [inventoryItems, setInventoryItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,7 +91,7 @@ const Inventory = () => {
     quantity: 0,
     unit: '',
     price: 0,
-    threshold: 10,
+      threshold: 10,
     status: 'In Stock',
     supplier: '',
     batches: []
@@ -337,7 +337,7 @@ const Inventory = () => {
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-foreground">Inventory Management</h1>
           <p className="text-muted-foreground">
             Track and manage your product inventory and batch information.
           </p>
@@ -349,11 +349,12 @@ const Inventory = () => {
               resetForm();
               setIsAddModalOpen(true);
             }}
+            className="bg-primary hover:bg-primary/90 text-white shadow-sm"
           >
             <Plus className="mr-2 h-4 w-4" /> Add Item
           </Button>
           
-          <Button variant="outline">
+          <Button variant="outline" className="border-input hover:bg-accent/50">
             <Download className="mr-2 h-4 w-4" /> Export
           </Button>
         </div>
@@ -372,54 +373,70 @@ const Inventory = () => {
       )}
 
       {/* Inventory Stats */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <Package className="h-8 w-8 text-primary mb-2" />
-            <p className="text-sm font-medium text-muted-foreground">Total Products</p>
-            <h2 className="text-2xl font-bold">{totalItems}</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-card hover:shadow-md transition-all">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Products</p>
+                <h3 className="text-2xl font-bold">{totalItems}</h3>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+            </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <Clipboard className="h-8 w-8 text-blue-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground">Total Batches</p>
-            <h2 className="text-2xl font-bold">{totalBatches}</h2>
+
+        <Card className="bg-card hover:shadow-md transition-all">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Total Quantity</p>
+                <h3 className="text-2xl font-bold">{totalQuantity}</h3>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                <BarChart4 className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <BarChart4 className="h-8 w-8 text-green-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground">Total Units</p>
-            <h2 className="text-2xl font-bold">{totalQuantity}</h2>
+
+        <Card className="bg-card hover:shadow-md transition-all">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Low Stock</p>
+                <h3 className="text-2xl font-bold">{lowStockItems}</h3>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+              </div>
+            </div>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <AlertTriangle className="h-8 w-8 text-yellow-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground">Low Stock</p>
-            <h2 className="text-2xl font-bold">{lowStockItems}</h2>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4 flex flex-col items-center justify-center text-center">
-            <XCircle className="h-8 w-8 text-red-500 mb-2" />
-            <p className="text-sm font-medium text-muted-foreground">Out of Stock</p>
-            <h2 className="text-2xl font-bold">{outOfStockItems}</h2>
+
+        <Card className="bg-card hover:shadow-md transition-all">
+          <CardContent className="p-6">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground mb-1">Out of Stock</p>
+                <h3 className="text-2xl font-bold">{outOfStockItems}</h3>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                <XCircle className="h-5 w-5 text-red-600" />
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Tabs for different views */}
       <Tabs defaultValue="inventory" className="w-full" onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="inventory">Inventory</TabsTrigger>
-          <TabsTrigger value="batches">Batch Tracking</TabsTrigger>
-          <TabsTrigger value="locations">Warehouse Locations</TabsTrigger>
+        <TabsList className="mb-4 bg-muted p-1 rounded-md">
+          <TabsTrigger value="inventory" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Inventory</TabsTrigger>
+          <TabsTrigger value="batches" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Batch Tracking</TabsTrigger>
+          <TabsTrigger value="locations" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Warehouse Locations</TabsTrigger>
         </TabsList>
         
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
@@ -429,13 +446,13 @@ const Inventory = () => {
               <Input
                 type="search"
                 placeholder="Search products..."
-                className="pl-8"
+                className="pl-8 border-input focus:border-primary focus:ring-1 focus:ring-primary"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
             
-            <Button variant="outline" size="icon">
+            <Button variant="outline" size="icon" className="border-input hover:bg-accent/50">
               <Filter className="h-4 w-4" />
             </Button>
           </div>
@@ -445,12 +462,12 @@ const Inventory = () => {
               <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                 <SelectValue placeholder="Category" className="text-gray-500 dark:text-gray-400" />
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">All Categories</SelectItem>
-                <SelectItem value="insecticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Insecticide</SelectItem>
-                <SelectItem value="herbicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Herbicide</SelectItem>
-                <SelectItem value="fungicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Fungicide</SelectItem>
-                <SelectItem value="rodenticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Rodenticide</SelectItem>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">All Categories</SelectItem>
+                <SelectItem value="insecticide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Insecticide</SelectItem>
+                <SelectItem value="herbicide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Herbicide</SelectItem>
+                <SelectItem value="fungicide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Fungicide</SelectItem>
+                <SelectItem value="rodenticide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Rodenticide</SelectItem>
               </SelectContent>
             </Select>
             
@@ -458,11 +475,11 @@ const Inventory = () => {
               <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                 <SelectValue placeholder="Status" className="text-gray-500 dark:text-gray-400" />
               </SelectTrigger>
-              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">All Status</SelectItem>
-                <SelectItem value="in stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">In Stock</SelectItem>
-                <SelectItem value="low stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Low Stock</SelectItem>
-                <SelectItem value="out of stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Out of Stock</SelectItem>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">All Status</SelectItem>
+                <SelectItem value="in stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">In Stock</SelectItem>
+                <SelectItem value="low stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Low Stock</SelectItem>
+                <SelectItem value="out of stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Out of Stock</SelectItem>
               </SelectContent>
             </Select>
             
@@ -473,7 +490,7 @@ const Inventory = () => {
         </div>
         
         <TabsContent value="inventory" className="space-y-4">
-          <Card>
+          <Card className="border border-input">
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex justify-center items-center p-8">
@@ -481,51 +498,51 @@ const Inventory = () => {
                   <span className="ml-2">Loading inventory...</span>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[80px]">SKU</TableHead>
-                      <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
-                        <div className="flex items-center">
-                          Product Name
-                          {sortBy === 'name' && (
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="cursor-pointer" onClick={() => handleSort('category')}>
-                        <div className="flex items-center">
-                          Category
-                          {sortBy === 'category' && (
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="cursor-pointer text-right" onClick={() => handleSort('quantity')}>
-                        <div className="flex items-center justify-end">
-                          Quantity
-                          {sortBy === 'quantity' && (
-                            <ArrowUpDown className="ml-2 h-4 w-4" />
-                          )}
-                        </div>
-                      </TableHead>
-                      <TableHead className="text-right">Unit</TableHead>
-                      <TableHead className="text-right">Price</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Batches</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+              <Table>
+                <TableHeader>
+                  <TableRow className="hover:bg-muted/30">
+                    <TableHead className="w-[80px] text-muted-foreground">SKU</TableHead>
+                    <TableHead className="cursor-pointer text-muted-foreground" onClick={() => handleSort('name')}>
+                      <div className="flex items-center">
+                        Product Name
+                        {sortBy === 'name' && (
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer text-muted-foreground" onClick={() => handleSort('category')}>
+                      <div className="flex items-center">
+                        Category
+                        {sortBy === 'category' && (
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="cursor-pointer text-right text-muted-foreground" onClick={() => handleSort('quantity')}>
+                      <div className="flex items-center justify-end">
+                        Quantity
+                        {sortBy === 'quantity' && (
+                          <ArrowUpDown className="ml-2 h-4 w-4" />
+                        )}
+                      </div>
+                    </TableHead>
+                    <TableHead className="text-right text-muted-foreground">Unit</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Price</TableHead>
+                    <TableHead className="text-muted-foreground">Status</TableHead>
+                    <TableHead className="text-muted-foreground">Batches</TableHead>
+                    <TableHead className="text-right text-muted-foreground">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
                     {sortedItems.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8">
+                        <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
                           No inventory items found. Add some items to get started.
                         </TableCell>
                       </TableRow>
                     ) : (
                       sortedItems.map((item) => (
-                        <TableRow key={item._id}>
+                        <TableRow key={item._id} className="hover:bg-muted/30">
                           <TableCell className="font-mono text-xs">{item.sku}</TableCell>
                           <TableCell className="font-medium">{item.name}</TableCell>
                           <TableCell>{item.category}</TableCell>
@@ -535,13 +552,23 @@ const Inventory = () => {
                           <TableCell>
                             <Badge 
                               variant={
-                                item.status === 'In Stock' 
-                                  ? 'outline' 
-                                  : item.status === 'Low Stock' 
-                                    ? 'secondary' 
-                                    : 'destructive'
+                                    item.status === 'In Stock' 
+                                      ? 'outline' 
+                                      : item.status === 'Low Stock' 
+                                        ? 'secondary' 
+                                        : 'destructive'
+                              }
+                              className={
+                                item.status === 'In Stock'
+                                  ? 'bg-green-50 text-green-700 border-green-200 hover:bg-green-100'
+                                  : item.status === 'Low Stock'
+                                    ? 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
+                                    : 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100'
                               }
                             >
+                              {item.status === 'In Stock' && <CheckCircle2 className="mr-1 h-3 w-3" />}
+                              {item.status === 'Low Stock' && <AlertTriangle className="mr-1 h-3 w-3" />}
+                              {item.status === 'Out of Stock' && <XCircle className="mr-1 h-3 w-3" />}
                               {item.status}
                             </Badge>
                           </TableCell>
@@ -550,31 +577,35 @@ const Inventory = () => {
                               variant="ghost" 
                               size="sm"
                               onClick={() => handleViewBatches(item)}
+                              className="hover:bg-muted/50"
                             >
-                              {item.batches?.length || 0} Batches
+                                  {item.batches?.length || 0} Batches
                             </Button>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => openBatchModal(item)}
-                              >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => handleEditItem(item)}
-                              >
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => openBatchModal(item)}
+                                    className="hover:bg-muted/50"
+                                  >
+                                    <Plus className="h-4 w-4" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleEditItem(item)}
+                                    className="hover:bg-muted/50"
+                                  >
                                 <Edit className="h-4 w-4" />
                               </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => handleDeleteItem(item._id)}
-                              >
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon"
+                                    onClick={() => handleDeleteItem(item._id)}
+                                    className="hover:bg-muted/50"
+                                  >
                                 <Trash2 className="h-4 w-4" />
                               </Button>
                             </div>
@@ -582,8 +613,8 @@ const Inventory = () => {
                         </TableRow>
                       ))
                     )}
-                  </TableBody>
-                </Table>
+                </TableBody>
+              </Table>
               )}
             </CardContent>
           </Card>
@@ -600,7 +631,7 @@ const Inventory = () => {
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow className="bg-gray-50 dark:bg-gray-700">
+                  <TableRow className="bg-gray-50 dark:bg-gray-800">
                     <TableHead className="text-gray-900 dark:text-gray-200">Batch ID</TableHead>
                     <TableHead className="text-gray-900 dark:text-gray-200">Lot Number</TableHead>
                     <TableHead className="text-gray-900 dark:text-gray-200">Product</TableHead>
@@ -638,15 +669,15 @@ const Inventory = () => {
                           <TableCell className="text-gray-900 dark:text-gray-200">{batch.supplier || item.supplier || '-'}</TableCell>
                           <TableCell className="text-gray-900 dark:text-gray-200">{batch.locationCode}</TableCell>
                           <TableCell className="text-gray-900 dark:text-gray-200">
-                            <div className="flex gap-2">
+                          <div className="flex gap-2">
                               <Button variant="ghost" size="icon" className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
-                                <Edit className="h-4 w-4" />
-                              </Button>
+                              <Edit className="h-4 w-4" />
+                            </Button>
                               <Button variant="ghost" size="icon" className="text-red-700 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                         </TableRow>
                       ))
                     )
@@ -719,10 +750,10 @@ const Inventory = () => {
 
       {/* Add/Edit Inventory Item Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+        <DialogContent className="bg-card border border-input shadow-lg rounded-lg max-w-4xl">
           <DialogHeader>
-            <DialogTitle className="text-gray-900 dark:text-gray-100">{isEditMode ? 'Edit Inventory Item' : 'Add New Inventory Item'}</DialogTitle>
-            <DialogDescription className="text-gray-600 dark:text-gray-400">
+            <DialogTitle className="text-xl font-semibold">{isEditMode ? 'Edit Inventory Item' : 'Add New Inventory Item'}</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               {isEditMode 
                 ? 'Update the details of this inventory item' 
                 : 'Add a new item to your inventory system'}
@@ -732,7 +763,7 @@ const Inventory = () => {
           <form onSubmit={handleSubmitInventoryItem} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="name" className="text-sm font-medium flex items-center">
                   Item Name <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Input
@@ -741,13 +772,13 @@ const Inventory = () => {
                   placeholder="Enter item name"
                   value={newItem.name}
                   onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border-input focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="sku" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="sku" className="text-sm font-medium flex items-center">
                   SKU <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Input
@@ -756,13 +787,13 @@ const Inventory = () => {
                   placeholder="Enter SKU code"
                   value={newItem.sku}
                   onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border-input focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="category" className="text-sm font-medium flex items-center">
                   Category <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Select 
@@ -771,21 +802,21 @@ const Inventory = () => {
                   onValueChange={(value) => setNewItem({...newItem, category: value})}
                   required
                 >
-                  <SelectTrigger className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                  <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                     <SelectValue placeholder="Select category" className="text-gray-500 dark:text-gray-400" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                    <SelectItem value="Insecticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Insecticide</SelectItem>
-                    <SelectItem value="Herbicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Herbicide</SelectItem>
-                    <SelectItem value="Fungicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Fungicide</SelectItem>
-                    <SelectItem value="Rodenticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Rodenticide</SelectItem>
-                    <SelectItem value="Other" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Other</SelectItem>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                    <SelectItem value="Insecticide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Insecticide</SelectItem>
+                    <SelectItem value="Herbicide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Herbicide</SelectItem>
+                    <SelectItem value="Fungicide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Fungicide</SelectItem>
+                    <SelectItem value="Rodenticide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Rodenticide</SelectItem>
+                    <SelectItem value="Other" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="price" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="price" className="text-sm font-medium flex items-center">
                   Price (₹) <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Input
@@ -797,13 +828,13 @@ const Inventory = () => {
                   placeholder="Enter price"
                   value={newItem.price}
                   onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border-input focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="quantity" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="quantity" className="text-sm font-medium flex items-center">
                   Quantity <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Input
@@ -814,13 +845,13 @@ const Inventory = () => {
                   placeholder="Enter quantity"
                   value={newItem.quantity}
                   onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border-input focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="unit" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="unit" className="text-sm font-medium flex items-center">
                   Unit <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Select 
@@ -829,21 +860,21 @@ const Inventory = () => {
                   onValueChange={(value) => setNewItem({...newItem, unit: value})}
                   required
                 >
-                  <SelectTrigger className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                  <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                     <SelectValue placeholder="Select unit" className="text-gray-500 dark:text-gray-400" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                    <SelectItem value="Bottles" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Bottles</SelectItem>
-                    <SelectItem value="Cans" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Cans</SelectItem>
-                    <SelectItem value="Boxes" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Boxes</SelectItem>
-                    <SelectItem value="Bags" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Bags</SelectItem>
-                    <SelectItem value="Packets" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Packets</SelectItem>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                    <SelectItem value="Bottles" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Bottles</SelectItem>
+                    <SelectItem value="Cans" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Cans</SelectItem>
+                    <SelectItem value="Boxes" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Boxes</SelectItem>
+                    <SelectItem value="Bags" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Bags</SelectItem>
+                    <SelectItem value="Packets" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Packets</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="threshold" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="threshold" className="text-sm font-medium flex items-center">
                   Low Stock Threshold <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Input
@@ -854,13 +885,13 @@ const Inventory = () => {
                   placeholder="Enter threshold"
                   value={newItem.threshold}
                   onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border-input focus:border-primary focus:ring-1 focus:ring-primary"
                   required
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="supplier" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="supplier" className="text-sm font-medium flex items-center">
                   Supplier
                 </Label>
                 <Input
@@ -869,12 +900,12 @@ const Inventory = () => {
                   placeholder="Enter supplier name"
                   value={newItem.supplier || ''}
                   onChange={handleInputChange}
-                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full rounded-md border-input focus:border-primary focus:ring-1 focus:ring-primary"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                <Label htmlFor="status" className="text-sm font-medium flex items-center">
                   Status <span className="text-red-500 ml-1">*</span>
                 </Label>
                 <Select 
@@ -883,13 +914,13 @@ const Inventory = () => {
                   onValueChange={(value) => setNewItem({...newItem, status: value})}
                   required
                 >
-                  <SelectTrigger className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                  <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
                     <SelectValue placeholder="Select status" className="text-gray-500 dark:text-gray-400" />
                   </SelectTrigger>
-                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
-                    <SelectItem value="In Stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">In Stock</SelectItem>
-                    <SelectItem value="Low Stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Low Stock</SelectItem>
-                    <SelectItem value="Out of Stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Out of Stock</SelectItem>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                    <SelectItem value="In Stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">In Stock</SelectItem>
+                    <SelectItem value="Low Stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Low Stock</SelectItem>
+                    <SelectItem value="Out of Stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Out of Stock</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -5,7 +5,6 @@ const batchSchema = mongoose.Schema(
     batchId: {
       type: String,
       required: true,
-      unique: true,
     },
     lotNumber: {
       type: String,
@@ -90,6 +89,9 @@ const inventorySchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Add compound index to ensure batchId is unique within a document
+inventorySchema.index({ 'batches.batchId': 1 }, { unique: true, sparse: true });
 
 const Inventory = mongoose.model('Inventory', inventorySchema);
 

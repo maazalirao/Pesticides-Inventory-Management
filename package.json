@@ -11,6 +11,7 @@
     "server": "nodemon server/server.js",
     "dev:server": "nodemon server/server.js",
     "data:import": "node server/utils/seedProducts.js",
+    "data:import:inventory": "node server/utils/seedInventory.js",
     "client": "vite",
     "dev:full": "concurrently \"npm run server\" \"npm run client\"",
     "vercel-build": "vite build"
