@@ -13,11 +13,11 @@ const router = express.Router();
 // Public routes
 router.route('/')
   .get(getProducts)
-  .post(protect, admin, createProduct);
+  .post(createProduct);
 
 router.route('/:id')
   .get(getProductById)
-  .put(protect, admin, updateProduct)
-  .delete(protect, admin, deleteProduct);
+  .put(updateProduct)
+  .delete(deleteProduct);
 
 export default router; 

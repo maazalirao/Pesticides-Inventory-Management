@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
-import { getProducts, deleteProduct } from '../lib/api';
+import { getProducts, deleteProduct, createProduct } from '../lib/api';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -10,6 +11,21 @@ const Products = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    description: '',
+    category: '',
+    price: '',
+    stockQuantity: '',
+    manufacturer: '',
+    toxicityLevel: 'Low',
+    recommendedUse: '',
+    sku: '',
+    tags: []
+  });
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     const fetchProducts = async () => {
@@ -37,6 +53,51 @@ const Products = () => {
         setError('Failed to delete product');
         console.error(error);
       }
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewProduct({
+      ...newProduct,
+      [name]: name === 'price' || name === 'stockQuantity' 
+        ? parseFloat(value) || ''
+        : value
+    });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+
+    try {
+      // Validate required fields
+      if (!newProduct.name || !newProduct.category || !newProduct.price) {
+        setFormError('Please fill in all required fields');
+        setIsSubmitting(false);
+        return;
+      }
+
+      const createdProduct = await createProduct(newProduct);
+      setProducts([...products, createdProduct]);
+      setNewProduct({
+        name: '',
+        description: '',
+        category: '',
+        price: '',
+        stockQuantity: '',
+        manufacturer: '',
+        toxicityLevel: 'Low',
+        recommendedUse: '',
+        sku: '',
+        tags: []
+      });
+      setIsDialogOpen(false);
+    } catch (error) {
+      setFormError(error.toString());
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -74,10 +135,165 @@ const Products = () => {
             Add, edit and manage your pesticide product catalog
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Add New Product
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+              <Plus className="h-4 w-4" />
+              Add New Product
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg">
+            <DialogHeader className="border-b border-gray-700 pb-4">
+              <DialogTitle className="text-xl font-bold text-primary">Add New Product</DialogTitle>
+              <DialogDescription className="text-gray-300 text-sm mt-1">
+                Fill in the details below to add a new product to your inventory.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-5 py-5">
+              {formError && (
+                <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+                  {formError}
+                </div>
+              )}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Product Name <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
+                    value={newProduct.name}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="category" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Category <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    id="category"
+                    name="category"
+                    value={newProduct.category}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="price" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Price <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    id="price"
+                    name="price"
+                    type="number"
+                    step="0.01"
+                    value={newProduct.price}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="stockQuantity" className="text-sm font-semibold text-gray-200">
+                    Stock Quantity
+                  </label>
+                  <input
+                    id="stockQuantity"
+                    name="stockQuantity"
+                    type="number"
+                    value={newProduct.stockQuantity}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="sku" className="text-sm font-semibold text-gray-200">
+                    SKU
+                  </label>
+                  <input
+                    id="sku"
+                    name="sku"
+                    value={newProduct.sku}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="manufacturer" className="text-sm font-semibold text-gray-200">
+                    Manufacturer
+                  </label>
+                  <input
+                    id="manufacturer"
+                    name="manufacturer"
+                    value={newProduct.manufacturer}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="toxicityLevel" className="text-sm font-semibold text-gray-200">
+                    Toxicity Level
+                  </label>
+                  <select
+                    id="toxicityLevel"
+                    name="toxicityLevel"
+                    value={newProduct.toxicityLevel}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label htmlFor="recommendedUse" className="text-sm font-semibold text-gray-200">
+                    Recommended Use
+                  </label>
+                  <input
+                    id="recommendedUse"
+                    name="recommendedUse"
+                    value={newProduct.recommendedUse}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="description" className="text-sm font-semibold text-gray-200">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  value={newProduct.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                ></textarea>
+              </div>
+              <div className="pt-3 border-t border-gray-700 mt-4">
+                <p className="text-xs text-gray-400 mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white">
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create Product'}
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>

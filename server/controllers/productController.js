@@ -36,6 +36,9 @@ const createProduct = asyncHandler(async (req, res) => {
     sku,
     supplier,
     image,
+    manufacturer,
+    toxicityLevel,
+    recommendedUse,
     tags,
   } = req.body;
 
@@ -55,6 +58,9 @@ const createProduct = asyncHandler(async (req, res) => {
     sku,
     supplier,
     image: image || '/images/default-product.jpg',
+    manufacturer,
+    toxicityLevel,
+    recommendedUse,
     tags,
   });
 
@@ -81,6 +87,9 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.sku = req.body.sku || product.sku;
     product.supplier = req.body.supplier || product.supplier;
     product.image = req.body.image || product.image;
+    product.manufacturer = req.body.manufacturer || product.manufacturer;
+    product.toxicityLevel = req.body.toxicityLevel || product.toxicityLevel;
+    product.recommendedUse = req.body.recommendedUse || product.recommendedUse;
     product.isActive = req.body.isActive !== undefined ? req.body.isActive : product.isActive;
     product.tags = req.body.tags || product.tags;
 

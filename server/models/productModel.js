@@ -41,6 +41,19 @@ const productSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    manufacturer: {
+      type: String,
+      default: '',
+    },
+    toxicityLevel: {
+      type: String,
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Low',
+    },
+    recommendedUse: {
+      type: String,
+      default: '',
+    },
     tags: [String],
   },
   {
