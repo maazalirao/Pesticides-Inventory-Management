@@ -14,6 +14,9 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add timeout settings
+  timeout: 30000, // 30 seconds timeout
+  timeoutErrorMessage: 'Request timed out, please try again',
 });
 
 // Add a request interceptor to include the auth token in requests
@@ -57,8 +60,25 @@ api.interceptors.response.use(
 export const login = async (email, password) => {
   try {
     console.log('Attempting login:', { email, apiUrl: API_URL });
-    const { data } = await api.post('/users/login', { email, password });
-    console.log('Login successful, received data:', { token: data.token ? '✓ present' : '✗ missing', userId: data._id });
+    
+    // Create a timeout promise that rejects after 15 seconds
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Login request timed out')), 15000)
+    );
+    
+    // Create the actual login request
+    const loginPromise = api.post('/users/login', { email, password });
+    
+    // Race between the login request and the timeout
+    const response = await Promise.race([loginPromise, timeoutPromise]);
+    
+    // Extract data from response
+    const { data } = response;
+    
+    console.log('Login successful, received data:', { 
+      token: data.token ? '✓ present' : '✗ missing', 
+      userId: data._id 
+    });
     
     // Store user info and token in localStorage
     localStorage.setItem('userInfo', JSON.stringify(data));
@@ -72,6 +92,11 @@ export const login = async (email, password) => {
       data: error.response?.data,
       message: error.message
     });
+    
+    // Handle specific error cases
+    if (error.message === 'Login request timed out' || error.response?.status === 504) {
+      throw 'The login service is currently unavailable. Please try again in a few minutes.';
+    }
     
     // Re-throw with more specific message
     throw error.response?.data?.message || `Login failed: ${error.message}`;
@@ -208,6 +233,24 @@ export const addBatchToInventoryItem = async (id, batchData) => {
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to add batch to inventory item';
+  }
+};
+
+// Health check function
+export const checkDatabaseHealth = async () => {
+  try {
+    console.log('Checking database health');
+    const { data } = await api.get('/dbhealth');
+    console.log('Database health check result:', data);
+    return data;
+  } catch (error) {
+    console.error('Database health check failed:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      message: error.message
+    });
+    throw error.response?.data?.message || `Database health check failed: ${error.message}`;
   }
 };
 

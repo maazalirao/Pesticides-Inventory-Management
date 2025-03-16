@@ -34,16 +34,29 @@ const connectDB = async () => {
     }
 
     // If we already have a connection, use it
-    if (cachedDb) {
+    if (cachedDb && mongoose.connection.readyState === 1) {
       console.log('Using cached database connection');
       return cachedDb;
     }
     
+    // Disconnect any existing connection
+    if (mongoose.connection.readyState !== 0) {
+      console.log('Closing existing MongoDB connection');
+      await mongoose.disconnect();
+    }
+    
+    // Enhanced options for serverless environment
     const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 30s
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+      serverSelectionTimeoutMS: 5000, // Reduced to 5s for faster failure in serverless
+      socketTimeoutMS: 30000, // Reduced to 30s for serverless environment
+      connectTimeoutMS: 10000, // Added explicit connect timeout
+      // The following options help with quick connections
+      // and avoiding ECONNRESET errors in serverless environments
+      maxPoolSize: 10, // Reduced from default 100
+      minPoolSize: 0, // Start with no connections
+      family: 4 // Force IPv4
     });
     
     cachedDb = conn;
@@ -64,6 +77,36 @@ const connectDB = async () => {
 // Root route - use this for health checks
 app.get('/api', (req, res) => {
   res.json({ message: 'API is running...', env: process.env.NODE_ENV });
+});
+
+// Database health check endpoint
+app.get('/api/dbhealth', async (req, res) => {
+  try {
+    // Attempt to connect to the database
+    await connectDB();
+    
+    // Simple DB operation to validate connection
+    const dbState = mongoose.connection.readyState;
+    
+    res.json({
+      status: 'success',
+      message: 'Database connection successful',
+      dbState: dbState,
+      states: {
+        0: 'disconnected',
+        1: 'connected',
+        2: 'connecting',
+        3: 'disconnecting'
+      }
+    });
+  } catch (error) {
+    console.error('Database health check failed:', error.message);
+    res.status(500).json({
+      status: 'error',
+      message: 'Database connection failed',
+      error: error.message
+    });
+  }
 });
 
 // Routes import

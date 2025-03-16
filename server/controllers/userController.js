@@ -6,21 +6,56 @@ import generateToken from '../utils/generateToken.js';
 // @route   POST /api/users/login
 // @access  Public
 const authUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  console.log('Login attempt:', { email: req.body.email });
+  
+  try {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
-
-  if (user && (await user.matchPassword(password))) {
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      token: generateToken(user._id),
-    });
-  } else {
-    res.status(401);
-    throw new Error('Invalid email or password');
+    // Add timeout for database operations
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Database operation timed out')), 8000)
+    );
+    
+    // Find user with email
+    const userPromise = User.findOne({ email });
+    
+    // Race between database operation and timeout
+    const user = await Promise.race([userPromise, timeoutPromise]);
+    
+    if (!user) {
+      console.log('Login failed: User not found');
+      res.status(401);
+      throw new Error('Invalid email or password');
+    }
+    
+    // Check password
+    const isMatch = await user.matchPassword(password);
+    
+    if (isMatch) {
+      console.log('Login successful:', { userId: user._id });
+      res.json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        token: generateToken(user._id),
+      });
+    } else {
+      console.log('Login failed: Invalid password');
+      res.status(401);
+      throw new Error('Invalid email or password');
+    }
+  } catch (error) {
+    console.error('Login error:', error.message);
+    
+    // Handle different error types
+    if (error.message === 'Database operation timed out') {
+      res.status(504);
+      throw new Error('Login service unavailable. Please try again later.');
+    } else {
+      res.status(401);
+      throw error;
+    }
   }
 });
 
