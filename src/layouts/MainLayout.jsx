@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   ChevronDown, 
   Menu, 
@@ -17,15 +17,18 @@ import {
   User,
   Sun,
   Moon,
-  ChevronLeft
+  ChevronLeft,
+  LogOut
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
+import { logout } from '../lib/api';
 
-const MainLayout = ({ children }) => {
+const MainLayout = ({ children, userInfo, setIsLoggedIn, setUserInfo }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
   // Check if device is mobile or screen size is small
@@ -49,7 +52,14 @@ const MainLayout = ({ children }) => {
     if (isMobile) {
       setSidebarOpen(false);
     }
-  }, [location.pathname, isMobile]);
+  }, [location, isMobile]);
+
+  const handleLogout = () => {
+    logout();
+    setIsLoggedIn(false);
+    setUserInfo(null);
+    navigate('/login');
+  };
 
   const navItems = [
     { 
@@ -232,7 +242,10 @@ const MainLayout = ({ children }) => {
                 )}
               </button>
 
-              <button className="text-sm text-slate-400 hover:text-white transition-colors">
+              <button 
+                onClick={handleLogout}
+                className="text-sm text-slate-400 hover:text-white transition-colors"
+              >
                 Logout
               </button>
             </div>

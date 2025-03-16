@@ -1,125 +1,55 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
+import { getProducts, deleteProduct } from '../lib/api';
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   
-  // Mock data for products
-  const products = [
-    { 
-      id: 1, 
-      name: "MaxKill Insecticide", 
-      category: "Insecticide", 
-      description: "Effective against a wide range of insects",
-      price: 49.99,
-      manufacturer: "AgriChem Inc",
-      toxicityLevel: "Medium",
-      recommendedUse: "Agricultural, Residential",
-    },
-    { 
-      id: 2, 
-      name: "HerbControl Plus", 
-      category: "Herbicide", 
-      description: "Eliminates weeds while preserving crops",
-      price: 38.50,
-      manufacturer: "GreenTech Solutions",
-      toxicityLevel: "Low",
-      recommendedUse: "Agricultural",
-    },
-    { 
-      id: 3, 
-      name: "FungoClear Solution", 
-      category: "Fungicide", 
-      description: "Prevents and treats fungal infections in plants",
-      price: 65.00,
-      manufacturer: "PlantHealth Systems",
-      toxicityLevel: "Low",
-      recommendedUse: "Agricultural, Gardens",
-    },
-    { 
-      id: 4, 
-      name: "RatAway Pellets", 
-      category: "Rodenticide", 
-      description: "Controls rat and mice populations effectively",
-      price: 29.99,
-      manufacturer: "PestStop International",
-      toxicityLevel: "High",
-      recommendedUse: "Warehouses, Residential",
-    },
-    { 
-      id: 5, 
-      name: "AntiPest Powder", 
-      category: "Insecticide", 
-      description: "Powder formula for long-lasting insect control",
-      price: 42.50,
-      manufacturer: "AgriChem Inc",
-      toxicityLevel: "Medium",
-      recommendedUse: "Agricultural, Residential",
-    },
-    { 
-      id: 6, 
-      name: "WeedBGone", 
-      category: "Herbicide", 
-      description: "Fast-acting weed elimination solution",
-      price: 27.99,
-      manufacturer: "GreenTech Solutions",
-      toxicityLevel: "Medium",
-      recommendedUse: "Gardens, Residential",
-    },
-    { 
-      id: 7, 
-      name: "TermiteShield", 
-      category: "Insecticide", 
-      description: "Specifically designed for termite control",
-      price: 89.99,
-      manufacturer: "Pest Defense Ltd",
-      toxicityLevel: "High",
-      recommendedUse: "Structural, Residential",
-    },
-    { 
-      id: 8, 
-      name: "MosquitoKiller", 
-      category: "Insecticide", 
-      description: "Area treatment for mosquito control",
-      price: 32.75,
-      manufacturer: "HealthGuard Solutions",
-      toxicityLevel: "Medium",
-      recommendedUse: "Residential, Public Spaces",
-    },
-    { 
-      id: 9, 
-      name: "AntControl", 
-      category: "Insecticide", 
-      description: "Targets ant colonies at the source",
-      price: 19.99,
-      manufacturer: "PestStop International",
-      toxicityLevel: "Low",
-      recommendedUse: "Residential, Indoor",
-    },
-    { 
-      id: 10, 
-      name: "MoldBuster", 
-      category: "Fungicide", 
-      description: "Eliminates and prevents mold growth",
-      price: 45.50,
-      manufacturer: "PlantHealth Systems",
-      toxicityLevel: "Medium",
-      recommendedUse: "Agricultural, Warehouses",
-    },
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getProducts();
+        setProducts(data);
+      } catch (error) {
+        setError('Failed to fetch products');
+        console.error(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, []);
+
+  const handleDeleteProduct = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await deleteProduct(id);
+        setProducts(products.filter(product => product._id !== id));
+      } catch (error) {
+        setError('Failed to delete product');
+        console.error(error);
+      }
+    }
+  };
 
   // Filter products based on search term and category
-  const filteredProducts = products.filter((product) => {
-    return (
-      (searchTerm === '' || 
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.manufacturer.toLowerCase().includes(searchTerm.toLowerCase())) &&
-      (filterCategory === 'All' || product.category === filterCategory)
-    );
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
+    return matchesSearch && matchesCategory;
   });
+
+  // Get unique categories for filter dropdown
+  const categories = ['All', ...new Set(products.map(product => product.category))];
 
   // Toxicity level badge color
   const getToxicityColor = (level) => {
@@ -134,9 +64,6 @@ const Products = () => {
         return 'bg-gray-100 text-gray-800';
     }
   };
-
-  // Categories for filter
-  const categories = ['All', 'Insecticide', 'Herbicide', 'Fungicide', 'Rodenticide'];
 
   return (
     <div className="space-y-6">
@@ -237,7 +164,7 @@ const Products = () => {
                         <button className="p-1 rounded-md hover:bg-muted">
                           <Edit className="h-4 w-4 text-blue-600" />
                         </button>
-                        <button className="p-1 rounded-md hover:bg-muted">
+                        <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
                           <Trash className="h-4 w-4 text-red-600" />
                         </button>
                       </div>

@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
@@ -10,16 +11,30 @@ import Reports from './pages/Reports';
 import Store from './pages/Store';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
+import Register from './pages/Register';
 import TestComponent from './components/TestComponent';
 
 function App() {
-  // In a real app, this would be handled by a proper auth system
-  const isLoggedIn = true;
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+
+  useEffect(() => {
+    // Check if user is logged in
+    const userInfoFromStorage = localStorage.getItem('userInfo')
+      ? JSON.parse(localStorage.getItem('userInfo'))
+      : null;
+    
+    if (userInfoFromStorage) {
+      setIsLoggedIn(true);
+      setUserInfo(userInfoFromStorage);
+    }
+  }, []);
 
   return (
     <Router>
       <Routes>
-        <Route path="/login" element={!isLoggedIn ? <Login /> : <Navigate to="/" />} />
+        <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} /> : <Navigate to="/" />} />
+        <Route path="/register" element={!isLoggedIn ? <Register setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} /> : <Navigate to="/" />} />
         
         {/* Test route */}
         <Route path="/test" element={<TestComponent />} />
@@ -29,7 +44,7 @@ function App() {
           path="/"
           element={
             isLoggedIn ? (
-              <MainLayout>
+              <MainLayout userInfo={userInfo} setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo}>
                 <Dashboard />
               </MainLayout>
             ) : (

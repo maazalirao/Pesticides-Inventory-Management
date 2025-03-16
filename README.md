@@ -1,94 +1,115 @@
-# PestTrack - Pesticide Inventory Management System
+# Pesticide Inventory Management System
 
-PestTrack is a modern web application for managing pesticide inventory, products, suppliers, customers, and more. It's built with React.js, Tailwind CSS, and features a clean, professional user interface.
+A full-stack web application for managing pesticide inventory, suppliers, customers, and invoices.
 
 ## Features
 
-- **Dashboard**: Overview of key metrics, charts, and alerts
-- **Inventory Management**: Track stock levels, expiry dates, and receive alerts
-- **Product Management**: Organize and categorize pesticide products
-- **Supplier Management**: Keep track of supplier information and product categories
-- **Customer Management**: Manage customer profiles and purchase history
-- **Invoice & Billing**: (Coming soon) Generate purchase invoices and track bills
-- **Reporting & Analytics**: (Coming soon) View detailed reports on sales and inventory
-- **Online Store Features**: (Coming soon) Sell products online with integrated order management
+- User authentication and authorization
+- Product management
+- Supplier management
+- Customer management
+- Invoice generation and tracking
+- Inventory tracking
+- Reports and analytics
+- Responsive design
 
-## Technology Stack
+## Tech Stack
 
-- **Frontend**: React.js, Tailwind CSS
-- **State Management**: React Hooks
-- **Routing**: React Router
-- **Charts**: Chart.js with react-chartjs-2
-- **Icons**: Lucide React
+### Frontend
+- React
+- React Router
+- Tailwind CSS
+- Chart.js
+- Axios
+
+### Backend
+- Node.js
+- Express
+- MongoDB
+- Mongoose
+- JWT Authentication
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js (version 14 or higher)
-- npm or yarn
+- Node.js (v14 or higher)
+- MongoDB Atlas account or local MongoDB installation
 
 ### Installation
 
 1. Clone the repository
-   ```bash
-   git clone <repository-url>
-   cd pesttrack
-   ```
+```
+git clone <repository-url>
+cd <repository-folder>
+```
 
 2. Install dependencies
-   ```bash
-   npm install
-   # or
-   yarn install
-   ```
-
-3. Start the development server
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   ```
-
-4. Open your browser and navigate to `http://localhost:5173`
-
-## Project Structure
-
 ```
-src/
-├── assets/         # Static assets like images
-├── components/     # Reusable UI components
-│   └── ui/         # Base UI components
-├── layouts/        # Layout components
-├── lib/            # Utility functions
-├── pages/          # Page components
-└── main.jsx        # Application entry point
+npm install
 ```
 
-## Development Roadmap
+3. Set up environment variables
+Create a `.env` file in the root directory with the following variables:
+```
+NODE_ENV=development
+PORT=5000
+MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
+JWT_SECRET=<your-secret-key>
+```
 
-- [x] Dashboard
-- [x] Inventory Management
-- [x] Product Management
-- [x] Supplier Management
-- [x] Customer Management
-- [ ] Invoice & Billing
-- [ ] Reporting & Analytics
-- [ ] Online Store Features
-- [ ] Backend Integration
+Replace the placeholders with your actual MongoDB connection string and a secure JWT secret.
 
-## Backend Integration
+### Running the Application
 
-This project currently includes only the frontend implementation. To make it fully functional, you'll need to:
+#### Development Mode
 
-1. Develop a backend API (using Node.js, Django, Laravel, etc.)
-2. Set up a database (PostgreSQL, MySQL, MongoDB, etc.)
-3. Connect the frontend to the backend using API calls
+To run both frontend and backend concurrently:
+```
+npm run dev:full
+```
+
+To run only the frontend:
+```
+npm run client
+```
+
+To run only the backend:
+```
+npm run server
+```
+
+#### Production Mode
+
+1. Build the frontend
+```
+npm run build
+```
+
+2. Start the server
+```
+npm start
+```
+
+## API Endpoints
+
+### Authentication
+- `POST /api/users/login` - User login
+- `POST /api/users` - Register a new user
+
+### Users
+- `GET /api/users/profile` - Get user profile
+- `PUT /api/users/profile` - Update user profile
+- `GET /api/users` - Get all users (admin only)
+- `DELETE /api/users/:id` - Delete a user (admin only)
+
+### Products
+- `GET /api/products` - Get all products
+- `GET /api/products/:id` - Get a single product
+- `POST /api/products` - Create a new product (admin only)
+- `PUT /api/products/:id` - Update a product (admin only)
+- `DELETE /api/products/:id` - Delete a product (admin only)
 
 ## License
 
-[MIT License](LICENSE)
-
-## Contact
-
-For any questions or feedback, please open an issue in the repository.
+This project is licensed under the MIT License.

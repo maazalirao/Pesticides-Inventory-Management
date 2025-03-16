@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { useNavigate } from 'react-router-dom';
-import { login } from '../lib/api';
+import { register } from '../lib/api';
 
-const Login = ({ setIsLoggedIn, setUserInfo }) => {
+const Register = ({ setIsLoggedIn, setUserInfo }) => {
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -16,8 +18,14 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
     setIsLoading(true);
     setError('');
     
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      const userData = await login(email, password);
+      const userData = await register(name, email, password);
       setIsLoggedIn(true);
       setUserInfo(userData);
       navigate('/');
@@ -38,8 +46,8 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
         
         <Card>
           <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardTitle>Sign Up</CardTitle>
+            <CardDescription>Create a new account</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
@@ -49,6 +57,20 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
             )}
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <label htmlFor="name" className="text-sm font-medium">
+                    Full Name
+                  </label>
+                  <input
+                    id="name"
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="John Doe"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    required
+                  />
+                </div>
                 <div className="space-y-2">
                   <label htmlFor="email" className="text-sm font-medium">
                     Email
@@ -64,17 +86,9 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="password" className="text-sm font-medium">
-                      Password
-                    </label>
-                    <button
-                      type="button"
-                      className="text-xs text-primary hover:underline"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </label>
                   <input
                     id="password"
                     type="password"
@@ -85,15 +99,19 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
                     required
                   />
                 </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="remember"
-                    className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                  />
-                  <label htmlFor="remember" className="text-sm text-muted-foreground">
-                    Remember me
+                <div className="space-y-2">
+                  <label htmlFor="confirmPassword" className="text-sm font-medium">
+                    Confirm Password
                   </label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    required
+                  />
                 </div>
               </div>
               <Button
@@ -101,19 +119,19 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
                 className="w-full mt-6"
                 disabled={isLoading}
               >
-                {isLoading ? 'Signing in...' : 'Sign In'}
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </Button>
             </form>
           </CardContent>
           <CardFooter className="flex flex-col">
             <div className="text-center mt-2 text-sm text-muted-foreground">
-              Don't have an account?{' '}
+              Already have an account?{' '}
               <button
                 type="button"
                 className="text-primary hover:underline"
-                onClick={() => navigate('/register')}
+                onClick={() => navigate('/login')}
               >
-                Sign up
+                Sign in
               </button>
             </div>
           </CardFooter>
@@ -123,4 +141,4 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
   );
 };
 
-export default Login; 
+export default Register; 
