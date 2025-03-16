@@ -99,6 +99,59 @@ export const deleteProduct = async (id) => {
   }
 };
 
-// Add more API calls for other entities (suppliers, customers, invoices, etc.)
+// Inventory API calls
+export const getInventoryItems = async () => {
+  try {
+    const { data } = await api.get('/inventory');
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch inventory items';
+  }
+};
+
+export const getInventoryItemById = async (id) => {
+  try {
+    const { data } = await api.get(`/inventory/${id}`);
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to fetch inventory item';
+  }
+};
+
+export const createInventoryItem = async (inventoryData) => {
+  try {
+    const { data } = await api.post('/inventory', inventoryData);
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to create inventory item';
+  }
+};
+
+export const updateInventoryItem = async (id, inventoryData) => {
+  try {
+    const { data } = await api.put(`/inventory/${id}`, inventoryData);
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to update inventory item';
+  }
+};
+
+export const deleteInventoryItem = async (id) => {
+  try {
+    const { data } = await api.delete(`/inventory/${id}`);
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to delete inventory item';
+  }
+};
+
+export const addBatchToInventoryItem = async (id, batchData) => {
+  try {
+    const { data } = await api.post(`/inventory/${id}/batches`, batchData);
+    return data;
+  } catch (error) {
+    throw error.response?.data?.message || 'Failed to add batch to inventory item';
+  }
+};
 
 export default api; 

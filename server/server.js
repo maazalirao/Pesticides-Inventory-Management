@@ -4,6 +4,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
+import inventoryRoutes from './routes/inventoryRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -34,6 +35,7 @@ const connectDB = async () => {
 // Routes import
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/inventory', inventoryRoutes);
 // Add more routes as needed
 
 // Error handling middleware

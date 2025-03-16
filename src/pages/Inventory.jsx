@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -48,6 +48,13 @@ import {
   TableHeader,
   TableRow,
 } from '../components/ui/table';
+import { 
+  getInventoryItems, 
+  createInventoryItem, 
+  updateInventoryItem, 
+  deleteInventoryItem,
+  addBatchToInventoryItem
+} from '../lib/api';
 
 const Inventory = () => {
   // State for inventory filters and modals
@@ -70,249 +77,219 @@ const Inventory = () => {
     locationCode: '',
     notes: ''
   });
+  
+  // State for API data
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentItemId, setCurrentItemId] = useState(null);
+  const [newItem, setNewItem] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    quantity: 0,
+    unit: '',
+    price: 0,
+    threshold: 10,
+    status: 'In Stock',
+    supplier: '',
+    batches: []
+  });
 
-  // Mock data for inventory items with batch tracking
-  const inventoryItems = [
-    { 
-      id: 1, 
-      name: "MaxKill Insecticide",
-      sku: "MK-INS-001",
-      category: "Insecticide",
-      quantity: 45,
-      unit: "Bottles",
-      price: 48.99,
-      threshold: 10,
-      status: "In Stock",
-      batches: [
-        {
-          batchId: "B-MK-001",
-          lotNumber: "L22-45678",
-          quantity: 25,
-          manufacturingDate: "2023-01-15",
-          expiryDate: "2023-12-15",
-          supplier: "Malik Agro Solutions",
-          locationCode: "W1-A3-S2",
-          notes: "Original packaging"
-        },
-        {
-          batchId: "B-MK-002",
-          lotNumber: "L22-56789",
-          quantity: 20,
-          manufacturingDate: "2023-02-10",
-          expiryDate: "2024-01-10",
-          supplier: "Khan Organic Fertilizers",
-          locationCode: "W1-A3-S3",
-          notes: "New formula"
-        }
-      ]
-    },
-    { 
-      id: 2, 
-      name: "HerbControl Plus",
-      sku: "HC-HRB-002",
-      category: "Herbicide",
-      quantity: 28,
-      unit: "Cans",
-      price: 38.50,
-      threshold: 15,
-      status: "In Stock",
-      batches: [
-        {
-          batchId: "B-HC-001",
-          lotNumber: "L22-12345",
-          quantity: 28,
-          manufacturingDate: "2023-02-05",
-          expiryDate: "2023-12-20",
-          supplier: "Malik Agro Solutions",
-          locationCode: "W1-B2-S1",
-          notes: "Premium formula"
-        }
-      ]
-    },
-    { 
-      id: 3, 
-      name: "FungoClear Solution",
-      sku: "FC-FNG-003",
-      category: "Fungicide",
-      quantity: 16,
-      unit: "Bottles",
-      price: 65.00,
-      threshold: 8,
-      status: "In Stock",
-      batches: [
-        {
-          batchId: "B-FC-001",
-          lotNumber: "L22-23456",
-          quantity: 10,
-          manufacturingDate: "2023-01-20",
-          expiryDate: "2023-12-28",
-          supplier: "Rashid Pest Control Supplies",
-          locationCode: "W1-C1-S4",
-          notes: ""
-        },
-        {
-          batchId: "B-FC-002",
-          lotNumber: "L22-34567",
-          quantity: 6,
-          manufacturingDate: "2023-03-15",
-          expiryDate: "2024-02-15",
-          supplier: "Khan Organic Fertilizers",
-          locationCode: "W1-C1-S5",
-          notes: "Concentrated formula"
-        }
-      ]
-    },
-    { 
-      id: 4, 
-      name: "RatAway Pellets",
-      sku: "RA-ROD-004",
-      category: "Rodenticide",
-      quantity: 34,
-      unit: "Boxes",
-      price: 29.99,
-      threshold: 20,
-      status: "In Stock",
-      batches: [
-        {
-          batchId: "B-RA-001",
-          lotNumber: "L22-67890",
-          quantity: 34,
-          manufacturingDate: "2023-02-25",
-          expiryDate: "2024-01-05",
-          supplier: "Malik Agro Solutions",
-          locationCode: "W2-A1-S3",
-          notes: ""
-        }
-      ]
-    },
-    { 
-      id: 5, 
-      name: "AntiPest Powder",
-      sku: "AP-INS-005",
-      category: "Insecticide",
-      quantity: 22,
-      unit: "Bags",
-      price: 42.50,
-      threshold: 10,
-      status: "In Stock",
-      batches: [
-        {
-          batchId: "B-AP-001",
-          lotNumber: "L22-78901",
-          quantity: 22,
-          manufacturingDate: "2023-03-10",
-          expiryDate: "2024-01-10",
-          supplier: "Khan Organic Fertilizers",
-          locationCode: "W2-B3-S1",
-          notes: "All-purpose formula"
-        }
-      ]
-    },
-    { 
-      id: 6, 
-      name: "GardenGuard Spray",
-      sku: "GG-INS-006",
-      category: "Insecticide",
-      quantity: 3,
-      unit: "Cans",
-      price: 36.75,
-      threshold: 15,
-      status: "Low Stock",
-      batches: [
-        {
-          batchId: "B-GG-001",
-          lotNumber: "L22-89012",
-          quantity: 3,
-          manufacturingDate: "2023-01-05",
-          expiryDate: "2023-11-05",
-          supplier: "Malik Agro Solutions",
-          locationCode: "W2-C2-S2",
-          notes: "Expiring soon"
-        }
-      ]
-    },
-    { 
-      id: 7, 
-      name: "TermiteShield",
-      sku: "TS-INS-007",
-      category: "Insecticide",
-      quantity: 2,
-      unit: "Bottles",
-      price: 89.99,
-      threshold: 8,
-      status: "Low Stock",
-      batches: [
-        {
-          batchId: "B-TS-001",
-          lotNumber: "L22-90123",
-          quantity: 2,
-          manufacturingDate: "2023-02-15",
-          expiryDate: "2024-02-15",
-          supplier: "Rashid Pest Control Supplies",
-          locationCode: "W3-A1-S1",
-          notes: "Professional grade"
-        }
-      ]
-    },
-    { 
-      id: 8, 
-      name: "MosquitoKiller",
-      sku: "MK-INS-008",
-      category: "Insecticide",
-      quantity: 4,
-      unit: "Boxes",
-      price: 24.95,
-      threshold: 12,
-      status: "Low Stock",
-      batches: [
-        {
-          batchId: "B-MK-001",
-          lotNumber: "L23-01234",
-          quantity: 4,
-          manufacturingDate: "2023-03-20",
-          expiryDate: "2024-03-20",
-          supplier: "Khan Organic Fertilizers",
-          locationCode: "W3-B2-S3",
-          notes: "Water-resistant formula"
-        }
-      ]
-    },
-    { 
-      id: 9, 
-      name: "WeedBGone",
-      sku: "WB-HRB-009",
-      category: "Herbicide",
-      quantity: 6,
-      unit: "Bottles",
-      price: 45.50,
-      threshold: 10,
-      status: "Low Stock",
-      batches: [
-        {
-          batchId: "B-WB-001",
-          lotNumber: "L23-12345",
-          quantity: 6,
-          manufacturingDate: "2023-04-05",
-          expiryDate: "2024-04-05",
-          supplier: "Malik Agro Solutions",
-          locationCode: "W3-C3-S4",
-          notes: ""
-        }
-      ]
-    },
-    { 
-      id: 10, 
-      name: "CropShield Organic",
-      sku: "CS-FNG-010",
-      category: "Fungicide",
-      quantity: 0,
-      unit: "Bags",
-      price: 52.25,
-      threshold: 5,
-      status: "Out of Stock",
-      batches: []
+  // Fetch inventory items on component mount
+  useEffect(() => {
+    const fetchInventoryItems = async () => {
+      try {
+        setLoading(true);
+        const data = await getInventoryItems();
+        setInventoryItems(data);
+        setError(null);
+      } catch (err) {
+        setError('Failed to fetch inventory items. Please try again later.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInventoryItems();
+  }, []);
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewItem({
+      ...newItem,
+      [name]: name === 'price' || name === 'quantity' || name === 'threshold' 
+        ? parseFloat(value) || 0 
+        : value
+    });
+  };
+
+  // Handle batch form input changes
+  const handleBatchInputChange = (e) => {
+    const { name, value } = e.target;
+    setBatchDetails({
+      ...batchDetails,
+      [name]: name === 'quantity' ? parseFloat(value) || 0 : value
+    });
+  };
+
+  // Add or edit inventory item
+  const handleSubmitInventoryItem = async (e) => {
+    e.preventDefault();
+    
+    try {
+      setLoading(true);
+      
+      if (isEditMode) {
+        // Update existing item
+        await updateInventoryItem(currentItemId, newItem);
+        
+        // Update the UI
+        setInventoryItems(
+          inventoryItems.map((item) => 
+            item._id === currentItemId ? { ...item, ...newItem } : item
+          )
+        );
+      } else {
+        // Create new item
+        const createdItem = await createInventoryItem(newItem);
+        
+        // Add to UI
+        setInventoryItems([...inventoryItems, createdItem]);
+      }
+      
+      // Reset form and close modal
+      resetForm();
+      setIsAddModalOpen(false);
+      setError(null);
+    } catch (err) {
+      setError('Failed to save inventory item. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
+
+  // Add batch to inventory item
+  const handleAddBatch = async () => {
+    if (!selectedProduct) return;
+    
+    try {
+      setLoading(true);
+      
+      // Add batch via API
+      const updatedItem = await addBatchToInventoryItem(selectedProduct._id, batchDetails);
+      
+      // Update UI
+      setInventoryItems(
+        inventoryItems.map((item) => 
+          item._id === selectedProduct._id ? updatedItem : item
+        )
+      );
+      
+      // Reset form and close modal
+      setBatchDetails({
+        batchId: '',
+        lotNumber: '',
+        manufacturingDate: '',
+        expiryDate: '',
+        quantity: '',
+        supplier: '',
+        locationCode: '',
+        notes: ''
+      });
+      setIsBatchModalOpen(false);
+      setError(null);
+    } catch (err) {
+      setError('Failed to add batch. Please try again.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle delete item
+  const handleDeleteItem = async (id) => {
+    if (window.confirm('Are you sure you want to delete this inventory item?')) {
+      try {
+        setLoading(true);
+        
+        // Delete via API
+        await deleteInventoryItem(id);
+        
+        // Update UI
+        setInventoryItems(inventoryItems.filter(item => item._id !== id));
+        setError(null);
+      } catch (err) {
+        setError('Failed to delete inventory item. Please try again.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  // Handle edit item
+  const handleEditItem = (item) => {
+    setIsEditMode(true);
+    setCurrentItemId(item._id);
+    setNewItem({
+      name: item.name,
+      sku: item.sku,
+      category: item.category,
+      quantity: item.quantity,
+      unit: item.unit,
+      price: item.price,
+      threshold: item.threshold,
+      status: item.status,
+      supplier: item.supplier || '',
+      batches: item.batches || []
+    });
+    setIsAddModalOpen(true);
+  };
+
+  // Reset form
+  const resetForm = () => {
+    setNewItem({
+      name: '',
+      sku: '',
+      category: '',
+      quantity: 0,
+      unit: '',
+      price: 0,
+      threshold: 10,
+      status: 'In Stock',
+      supplier: '',
+      batches: []
+    });
+    setIsEditMode(false);
+    setCurrentItemId(null);
+  };
+
+  // Handle view batches
+  const handleViewBatches = (product) => {
+    setSelectedProduct(product);
+    setActiveTab('batches');
+  };
+
+  // Open batch modal
+  const openBatchModal = (product) => {
+    setSelectedProduct(product);
+    setIsBatchModalOpen(true);
+  };
+
+  // Handle sort
+  const handleSort = (column) => {
+    if (sortBy === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortDirection('asc');
+    }
+  };
 
   // Filter inventory items based on search query and filters
   const filteredItems = inventoryItems.filter(item => {
@@ -349,40 +326,6 @@ const Inventory = () => {
     return 0;
   });
 
-  // Handler for sort column click
-  const handleSort = (column) => {
-    if (sortBy === column) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortDirection('asc');
-    }
-  };
-
-  // Handler for view batch details
-  const handleViewBatches = (product) => {
-    setSelectedProduct(product);
-    setIsBatchModalOpen(true);
-  };
-
-  // Add a new batch for a product
-  const handleAddBatch = () => {
-    // In a real app, this would be an API call to add a batch to the database
-    console.log("Adding batch:", batchDetails, "for product:", selectedProduct?.name);
-    setIsBatchModalOpen(false);
-    // Reset batch form
-    setBatchDetails({
-      batchId: '',
-      lotNumber: '',
-      manufacturingDate: '',
-      expiryDate: '',
-      quantity: '',
-      supplier: '',
-      locationCode: '',
-      notes: ''
-    });
-  };
-
   // Calculate total items and batches
   const totalItems = inventoryItems.length;
   const totalBatches = inventoryItems.reduce((total, item) => total + item.batches.length, 0);
@@ -391,30 +334,42 @@ const Inventory = () => {
   const outOfStockItems = inventoryItems.filter(item => item.status === "Out of Stock").length;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div className="container mx-auto py-6 space-y-6">
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div>
-          <h1 className="hidden md:block text-3xl font-bold tracking-tight">Inventory Management</h1>
-          <p className="hidden md:block text-muted-foreground">
-            Manage your pesticide products inventory with batch tracking
+          <h1 className="text-3xl font-bold tracking-tight">Inventory Management</h1>
+          <p className="text-muted-foreground">
+            Track and manage your product inventory and batch information.
           </p>
         </div>
         
-        <div className="flex flex-wrap items-center gap-2">
-          <Button onClick={() => setIsAddModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Product
+        <div className="flex gap-2">
+          <Button
+            onClick={() => {
+              resetForm();
+              setIsAddModalOpen(true);
+            }}
+          >
+            <Plus className="mr-2 h-4 w-4" /> Add Item
           </Button>
+          
           <Button variant="outline">
-            <Printer className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Print</span>
-          </Button>
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">Export</span>
+            <Download className="mr-2 h-4 w-4" /> Export
           </Button>
         </div>
       </div>
+
+      {/* Display error message if there is one */}
+      {error && (
+        <Card className="bg-red-50 border-red-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-2 text-red-700">
+              <AlertTriangle className="h-5 w-5" />
+              <p>{error}</p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Inventory Stats */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
@@ -487,27 +442,27 @@ const Inventory = () => {
           
           <div className="flex gap-2">
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Category" />
+              <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <SelectValue placeholder="Category" className="text-gray-500 dark:text-gray-400" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="insecticide">Insecticide</SelectItem>
-                <SelectItem value="herbicide">Herbicide</SelectItem>
-                <SelectItem value="fungicide">Fungicide</SelectItem>
-                <SelectItem value="rodenticide">Rodenticide</SelectItem>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">All Categories</SelectItem>
+                <SelectItem value="insecticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Insecticide</SelectItem>
+                <SelectItem value="herbicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Herbicide</SelectItem>
+                <SelectItem value="fungicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Fungicide</SelectItem>
+                <SelectItem value="rodenticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Rodenticide</SelectItem>
               </SelectContent>
             </Select>
             
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="Status" />
+              <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <SelectValue placeholder="Status" className="text-gray-500 dark:text-gray-400" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="in stock">In Stock</SelectItem>
-                <SelectItem value="low stock">Low Stock</SelectItem>
-                <SelectItem value="out of stock">Out of Stock</SelectItem>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">All Status</SelectItem>
+                <SelectItem value="in stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">In Stock</SelectItem>
+                <SelectItem value="low stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Low Stock</SelectItem>
+                <SelectItem value="out of stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Out of Stock</SelectItem>
               </SelectContent>
             </Select>
             
@@ -520,86 +475,116 @@ const Inventory = () => {
         <TabsContent value="inventory" className="space-y-4">
           <Card>
             <CardContent className="p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[80px]">SKU</TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
-                      <div className="flex items-center">
-                        Product Name
-                        {sortBy === 'name' && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort('category')}>
-                      <div className="flex items-center">
-                        Category
-                        {sortBy === 'category' && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="cursor-pointer text-right" onClick={() => handleSort('quantity')}>
-                      <div className="flex items-center justify-end">
-                        Quantity
-                        {sortBy === 'quantity' && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-right">Unit</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Batches</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {sortedItems.map((item) => (
-                    <TableRow key={item.id}>
-                      <TableCell className="font-medium">{item.sku}</TableCell>
-                      <TableCell>{item.name}</TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{item.unit}</TableCell>
-                      <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                            item.status === "In Stock" 
-                              ? "success" 
-                              : item.status === "Low Stock" 
-                                ? "warning" 
-                                : "destructive"
-                          }
-                        >
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleViewBatches(item)}
-                        >
-                          View ({item.batches.length})
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button variant="ghost" size="icon">
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon">
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
+              {loading ? (
+                <div className="flex justify-center items-center p-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                  <span className="ml-2">Loading inventory...</span>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[80px]">SKU</TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
+                        <div className="flex items-center">
+                          Product Name
+                          {sortBy === 'name' && (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
                         </div>
-                      </TableCell>
+                      </TableHead>
+                      <TableHead className="cursor-pointer" onClick={() => handleSort('category')}>
+                        <div className="flex items-center">
+                          Category
+                          {sortBy === 'category' && (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="cursor-pointer text-right" onClick={() => handleSort('quantity')}>
+                        <div className="flex items-center justify-end">
+                          Quantity
+                          {sortBy === 'quantity' && (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </div>
+                      </TableHead>
+                      <TableHead className="text-right">Unit</TableHead>
+                      <TableHead className="text-right">Price</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Batches</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {sortedItems.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-8">
+                          No inventory items found. Add some items to get started.
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      sortedItems.map((item) => (
+                        <TableRow key={item._id}>
+                          <TableCell className="font-mono text-xs">{item.sku}</TableCell>
+                          <TableCell className="font-medium">{item.name}</TableCell>
+                          <TableCell>{item.category}</TableCell>
+                          <TableCell className="text-right">{item.quantity}</TableCell>
+                          <TableCell className="text-right">{item.unit}</TableCell>
+                          <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={
+                                item.status === 'In Stock' 
+                                  ? 'outline' 
+                                  : item.status === 'Low Stock' 
+                                    ? 'secondary' 
+                                    : 'destructive'
+                              }
+                            >
+                              {item.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewBatches(item)}
+                            >
+                              {item.batches?.length || 0} Batches
+                            </Button>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => openBatchModal(item)}
+                              >
+                                <Plus className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleEditItem(item)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDeleteItem(item._id)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -607,48 +592,64 @@ const Inventory = () => {
         <TabsContent value="batches" className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle>Batch Tracking</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-gray-900 dark:text-gray-100">Batch Tracking</CardTitle>
+              <CardDescription className="text-gray-600 dark:text-gray-400">
                 Track all batches and lot numbers across your inventory
               </CardDescription>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
-                  <TableRow>
-                    <TableHead>Batch ID</TableHead>
-                    <TableHead>Lot Number</TableHead>
-                    <TableHead>Product</TableHead>
-                    <TableHead>Quantity</TableHead>
-                    <TableHead>Manufacturing Date</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead>Location</TableHead>
-                    <TableHead>Actions</TableHead>
+                  <TableRow className="bg-gray-50 dark:bg-gray-700">
+                    <TableHead className="text-gray-900 dark:text-gray-200">Batch ID</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Lot Number</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Product</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Quantity</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Manufacturing Date</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Expiry Date</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Supplier</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Location</TableHead>
+                    <TableHead className="text-gray-900 dark:text-gray-200">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {inventoryItems.flatMap(item => 
-                    item.batches.map(batch => (
-                      <TableRow key={`${item.id}-${batch.batchId}`}>
-                        <TableCell className="font-medium">{batch.batchId}</TableCell>
-                        <TableCell>{batch.lotNumber}</TableCell>
-                        <TableCell>{item.name}</TableCell>
-                        <TableCell>{batch.quantity} {item.unit}</TableCell>
-                        <TableCell>{batch.manufacturingDate}</TableCell>
-                        <TableCell>{batch.expiryDate}</TableCell>
-                        <TableCell>{batch.locationCode}</TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="icon">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                  {inventoryItems.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-4 text-gray-500 dark:text-gray-400">
+                        No batches available. Add inventory items with batches to get started.
+                      </TableCell>
+                    </TableRow>
+                  ) : inventoryItems.flatMap(item => item.batches || []).length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-4 text-gray-500 dark:text-gray-400">
+                        No batches found. Add batches to your inventory items.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    inventoryItems.flatMap(item => 
+                      (item.batches || []).map(batch => (
+                        <TableRow key={`${item._id}-${batch.batchId}`} className="border-t border-gray-200 dark:border-gray-700">
+                          <TableCell className="font-medium text-gray-900 dark:text-gray-200">{batch.batchId}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.lotNumber}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{item.name}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.quantity} {item.unit}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.manufacturingDate).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.expiryDate).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.supplier || item.supplier || '-'}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.locationCode}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">
+                            <div className="flex gap-2">
+                              <Button variant="ghost" size="icon" className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="text-red-700 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )
                   )}
                 </TableBody>
               </Table>
@@ -716,144 +717,381 @@ const Inventory = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Add/Edit Inventory Item Modal */}
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+          <DialogHeader>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">{isEditMode ? 'Edit Inventory Item' : 'Add New Inventory Item'}</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
+              {isEditMode 
+                ? 'Update the details of this inventory item' 
+                : 'Add a new item to your inventory system'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleSubmitInventoryItem} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Item Name <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  placeholder="Enter item name"
+                  value={newItem.name}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="sku" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  SKU <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Input
+                  id="sku"
+                  name="sku"
+                  placeholder="Enter SKU code"
+                  value={newItem.sku}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="category" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Category <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Select 
+                  name="category" 
+                  value={newItem.category} 
+                  onValueChange={(value) => setNewItem({...newItem, category: value})}
+                  required
+                >
+                  <SelectTrigger className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <SelectValue placeholder="Select category" className="text-gray-500 dark:text-gray-400" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                    <SelectItem value="Insecticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Insecticide</SelectItem>
+                    <SelectItem value="Herbicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Herbicide</SelectItem>
+                    <SelectItem value="Fungicide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Fungicide</SelectItem>
+                    <SelectItem value="Rodenticide" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Rodenticide</SelectItem>
+                    <SelectItem value="Other" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="price" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Price (₹) <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Input
+                  id="price"
+                  name="price"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  placeholder="Enter price"
+                  value={newItem.price}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="quantity" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Quantity <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Input
+                  id="quantity"
+                  name="quantity"
+                  type="number"
+                  min="0"
+                  placeholder="Enter quantity"
+                  value={newItem.quantity}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="unit" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Unit <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Select 
+                  name="unit" 
+                  value={newItem.unit} 
+                  onValueChange={(value) => setNewItem({...newItem, unit: value})}
+                  required
+                >
+                  <SelectTrigger className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <SelectValue placeholder="Select unit" className="text-gray-500 dark:text-gray-400" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                    <SelectItem value="Bottles" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Bottles</SelectItem>
+                    <SelectItem value="Cans" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Cans</SelectItem>
+                    <SelectItem value="Boxes" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Boxes</SelectItem>
+                    <SelectItem value="Bags" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Bags</SelectItem>
+                    <SelectItem value="Packets" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Packets</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="threshold" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Low Stock Threshold <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Input
+                  id="threshold"
+                  name="threshold"
+                  type="number"
+                  min="0"
+                  placeholder="Enter threshold"
+                  value={newItem.threshold}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="supplier" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Supplier
+                </Label>
+                <Input
+                  id="supplier"
+                  name="supplier"
+                  placeholder="Enter supplier name"
+                  value={newItem.supplier || ''}
+                  onChange={handleInputChange}
+                  className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                  Status <span className="text-red-500 ml-1">*</span>
+                </Label>
+                <Select 
+                  name="status" 
+                  value={newItem.status} 
+                  onValueChange={(value) => setNewItem({...newItem, status: value})}
+                  required
+                >
+                  <SelectTrigger className="border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <SelectValue placeholder="Select status" className="text-gray-500 dark:text-gray-400" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700">
+                    <SelectItem value="In Stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">In Stock</SelectItem>
+                    <SelectItem value="Low Stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Low Stock</SelectItem>
+                    <SelectItem value="Out of Stock" className="text-gray-900 dark:text-gray-200 data-[state=checked]:bg-white dark:data-[state=checked]:bg-gray-800">Out of Stock</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" 
+                className="border border-gray-300 dark:border-gray-700 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                onClick={() => setIsAddModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}
+                className="bg-primary hover:bg-primary/90 text-white">
+                {loading ? (
+                  <>
+                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                    Saving...
+                  </>
+                ) : isEditMode ? 'Update Item' : 'Add Item'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Batch Details Modal */}
       <Dialog open={isBatchModalOpen} onOpenChange={setIsBatchModalOpen}>
-        <DialogContent className="max-w-4xl">
+        <DialogContent className="max-w-4xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
           <DialogHeader>
-            <DialogTitle>Batch Management: {selectedProduct?.name}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-gray-900 dark:text-gray-100">Batch Management: {selectedProduct?.name}</DialogTitle>
+            <DialogDescription className="text-gray-600 dark:text-gray-400">
               View and manage batch details for this product
             </DialogDescription>
           </DialogHeader>
           
           <Tabs defaultValue="view" className="w-full">
-            <TabsList className="mb-4">
-              <TabsTrigger value="view">View Batches</TabsTrigger>
-              <TabsTrigger value="add">Add New Batch</TabsTrigger>
+            <TabsList className="mb-4 bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <TabsTrigger value="view" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">View Batches</TabsTrigger>
+              <TabsTrigger value="add" className="data-[state=active]:bg-white dark:data-[state=active]:bg-gray-700">Add New Batch</TabsTrigger>
             </TabsList>
             
             <TabsContent value="view" className="space-y-4">
-              {selectedProduct?.batches.length > 0 ? (
-                <ScrollArea className="h-[350px]">
+              {selectedProduct?.batches?.length > 0 ? (
+                <ScrollArea className="h-[350px] border border-gray-200 dark:border-gray-700 rounded-md">
                   <Table>
                     <TableHeader>
-                      <TableRow>
-                        <TableHead>Batch ID</TableHead>
-                        <TableHead>Lot Number</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Manufacturing Date</TableHead>
-                        <TableHead>Expiry Date</TableHead>
-                        <TableHead>Supplier</TableHead>
-                        <TableHead>Location</TableHead>
-                        <TableHead>Notes</TableHead>
+                      <TableRow className="bg-gray-50 dark:bg-gray-800">
+                        <TableHead className="text-gray-900 dark:text-gray-200">Batch ID</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Lot Number</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Quantity</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Manufacturing Date</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Expiry Date</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Supplier</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Location</TableHead>
+                        <TableHead className="text-gray-900 dark:text-gray-200">Notes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {selectedProduct?.batches.map((batch, index) => (
-                        <TableRow key={index}>
-                          <TableCell className="font-medium">{batch.batchId}</TableCell>
-                          <TableCell>{batch.lotNumber}</TableCell>
-                          <TableCell>{batch.quantity} {selectedProduct?.unit}</TableCell>
-                          <TableCell>{batch.manufacturingDate}</TableCell>
-                          <TableCell>{batch.expiryDate}</TableCell>
-                          <TableCell>{batch.supplier}</TableCell>
-                          <TableCell>{batch.locationCode}</TableCell>
-                          <TableCell>{batch.notes || "-"}</TableCell>
+                      {selectedProduct?.batches.map((batch) => (
+                        <TableRow key={batch.batchId} className="border-t border-gray-200 dark:border-gray-700">
+                          <TableCell className="font-medium text-gray-900 dark:text-gray-200">{batch.batchId}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.lotNumber}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.quantity} {selectedProduct?.unit}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.manufacturingDate).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.expiryDate).toLocaleDateString()}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.supplier || selectedProduct?.supplier || '-'}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.locationCode}</TableCell>
+                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.notes || "-"}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </ScrollArea>
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">No batches found for this product</p>
+                <div className="text-center py-8 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
+                  <p className="text-gray-500 dark:text-gray-400">No batches found for this item</p>
                 </div>
               )}
             </TabsContent>
             
             <TabsContent value="add" className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 border border-gray-200 dark:border-gray-700 rounded-md p-4 bg-gray-50 dark:bg-gray-800">
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="batchId">Batch ID</Label>
+                    <Label htmlFor="batchId" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Batch ID <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="batchId"
+                      name="batchId"
                       placeholder="Enter batch ID"
                       value={batchDetails.batchId}
-                      onChange={(e) => setBatchDetails({...batchDetails, batchId: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="lotNumber">Lot Number</Label>
+                    <Label htmlFor="lotNumber" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Lot Number <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="lotNumber"
+                      name="lotNumber"
                       placeholder="Enter lot number"
                       value={batchDetails.lotNumber}
-                      onChange={(e) => setBatchDetails({...batchDetails, lotNumber: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="quantity">Quantity</Label>
+                    <Label htmlFor="quantity" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Quantity <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="quantity"
+                      name="quantity"
                       type="number"
                       placeholder="Enter quantity"
                       value={batchDetails.quantity}
-                      onChange={(e) => setBatchDetails({...batchDetails, quantity: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="supplier">Supplier</Label>
+                    <Label htmlFor="supplier" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Supplier <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="supplier"
+                      name="supplier"
                       placeholder="Enter supplier name"
                       value={batchDetails.supplier}
-                      onChange={(e) => setBatchDetails({...batchDetails, supplier: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="manufacturingDate">Manufacturing Date</Label>
+                    <Label htmlFor="manufacturingDate" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Manufacturing Date <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="manufacturingDate"
+                      name="manufacturingDate"
                       type="date"
                       value={batchDetails.manufacturingDate}
-                      onChange={(e) => setBatchDetails({...batchDetails, manufacturingDate: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="expiryDate">Expiry Date</Label>
+                    <Label htmlFor="expiryDate" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Expiry Date <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="expiryDate"
+                      name="expiryDate"
                       type="date"
                       value={batchDetails.expiryDate}
-                      onChange={(e) => setBatchDetails({...batchDetails, expiryDate: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="locationCode">Location Code</Label>
+                    <Label htmlFor="locationCode" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
+                      Location Code <span className="text-red-500 ml-1">*</span>
+                    </Label>
                     <Input
                       id="locationCode"
+                      name="locationCode"
                       placeholder="W1-A1-S1"
                       value={batchDetails.locationCode}
-                      onChange={(e) => setBatchDetails({...batchDetails, locationCode: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      required
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="notes">Notes</Label>
+                    <Label htmlFor="notes" className="text-sm font-medium text-gray-900 dark:text-gray-200">
+                      Notes
+                    </Label>
                     <Input
                       id="notes"
+                      name="notes"
                       placeholder="Any additional notes"
                       value={batchDetails.notes}
-                      onChange={(e) => setBatchDetails({...batchDetails, notes: e.target.value})}
+                      onChange={handleBatchInputChange}
+                      className="w-full rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 px-3 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>
@@ -861,61 +1099,22 @@ const Inventory = () => {
             </TabsContent>
           </Tabs>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsBatchModalOpen(false)}>
+          <DialogFooter className="mt-6">
+            <Button variant="outline" 
+              className="border border-gray-300 dark:border-gray-700 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+              onClick={() => setIsBatchModalOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddBatch}>
-              Save Batch
+            <Button 
+              className="bg-primary hover:bg-primary/90 text-white"
+              onClick={handleAddBatch} disabled={loading}>
+              {loading ? (
+                <>
+                  <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>
+                  Saving...
+                </>
+              ) : 'Add Batch'}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Product Modal (placeholder) */}
-      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add New Product</DialogTitle>
-            <DialogDescription>
-              Add a new product to your inventory
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="productName">Product Name</Label>
-              <Input id="productName" placeholder="Enter product name" />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="sku">SKU</Label>
-              <Input id="sku" placeholder="Enter SKU" />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="insecticide">Insecticide</SelectItem>
-                    <SelectItem value="herbicide">Herbicide</SelectItem>
-                    <SelectItem value="fungicide">Fungicide</SelectItem>
-                    <SelectItem value="rodenticide">Rodenticide</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Initial Quantity</Label>
-                <Input id="quantity" type="number" placeholder="0" />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
-              Cancel
-            </Button>
-            <Button>Save Product</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
