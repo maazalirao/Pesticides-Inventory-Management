@@ -1,12 +1,7 @@
 import axios from 'axios';
 
 // Use environment variable if available or fallback to auto-detected base URL
-const API_URL = import.meta.env.VITE_API_URL || 
-  (window.location.origin.includes('vercel.app') 
-    ? `${window.location.origin}/api` 
-    : `${window.location.origin}/api`);
-
-console.log('API URL:', API_URL); // For debugging purposes
+const API_URL = import.meta.env.VITE_API_URL || window.location.origin + '/api';
 
 // Create axios instance
 const api = axios.create({
@@ -14,44 +9,18 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // Add timeout settings
-  timeout: 30000, // 30 seconds timeout
-  timeoutErrorMessage: 'Request timed out, please try again',
 });
 
 // Add a request interceptor to include the auth token in requests
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('userToken');
-    console.log('Sending request to:', config.url, token ? 'With auth token' : 'Without auth token');
-    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
-    return Promise.reject(error);
-  }
-);
-
-// Add a response interceptor to handle common errors
-api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // Handle unauthorized errors (token expired, etc.)
-    if (error.response && error.response.status === 401) {
-      console.error('Unauthorized access, clearing auth data');
-      localStorage.removeItem('userInfo');
-      localStorage.removeItem('userToken');
-      // For production, you might want to redirect to login
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-    }
     return Promise.reject(error);
   }
 );
@@ -59,47 +28,12 @@ api.interceptors.response.use(
 // Auth API calls
 export const login = async (email, password) => {
   try {
-    console.log('Attempting login:', { email, apiUrl: API_URL });
-    
-    // Create a timeout promise that rejects after 15 seconds
-    const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('Login request timed out')), 15000)
-    );
-    
-    // Create the actual login request
-    const loginPromise = api.post('/users/login', { email, password });
-    
-    // Race between the login request and the timeout
-    const response = await Promise.race([loginPromise, timeoutPromise]);
-    
-    // Extract data from response
-    const { data } = response;
-    
-    console.log('Login successful, received data:', { 
-      token: data.token ? '✓ present' : '✗ missing', 
-      userId: data._id 
-    });
-    
-    // Store user info and token in localStorage
+    const { data } = await api.post('/users/login', { email, password });
     localStorage.setItem('userInfo', JSON.stringify(data));
     localStorage.setItem('userToken', data.token);
-    
     return data;
   } catch (error) {
-    console.error('Login error:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message
-    });
-    
-    // Handle specific error cases
-    if (error.message === 'Login request timed out' || error.response?.status === 504) {
-      throw 'The login service is currently unavailable. Please try again in a few minutes.';
-    }
-    
-    // Re-throw with more specific message
-    throw error.response?.data?.message || `Login failed: ${error.message}`;
+    throw error.response?.data?.message || 'Login failed';
   }
 };
 
@@ -122,18 +56,10 @@ export const logout = () => {
 // Product API calls
 export const getProducts = async () => {
   try {
-    console.log('Making API request to:', `${API_URL}/products`);
     const { data } = await api.get('/products');
-    console.log('API response for products:', data);
     return data;
   } catch (error) {
-    console.error('API error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message
-    });
-    throw error.response?.data?.message || `Failed to fetch products: ${error.message}`;
+    throw error.response?.data?.message || 'Failed to fetch products';
   }
 };
 
@@ -176,18 +102,10 @@ export const deleteProduct = async (id) => {
 // Inventory API calls
 export const getInventoryItems = async () => {
   try {
-    console.log('Making API request to:', `${API_URL}/inventory`);
     const { data } = await api.get('/inventory');
-    console.log('API response for inventory items:', data);
     return data;
   } catch (error) {
-    console.error('API error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message
-    });
-    throw error.response?.data?.message || `Failed to fetch inventory items: ${error.message}`;
+    throw error.response?.data?.message || 'Failed to fetch inventory items';
   }
 };
 
@@ -233,24 +151,6 @@ export const addBatchToInventoryItem = async (id, batchData) => {
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to add batch to inventory item';
-  }
-};
-
-// Health check function
-export const checkDatabaseHealth = async () => {
-  try {
-    console.log('Checking database health');
-    const { data } = await api.get('/dbhealth');
-    console.log('Database health check result:', data);
-    return data;
-  } catch (error) {
-    console.error('Database health check failed:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      message: error.message
-    });
-    throw error.response?.data?.message || `Database health check failed: ${error.message}`;
   }
 };
 
