@@ -190,9 +190,6 @@ const Inventory = () => {
         )
       );
       
-      // Update selectedProduct with the latest data
-      setSelectedProduct(updatedItem);
-      
       // Reset form and close modal
       setBatchDetails({
         batchId: '',
@@ -280,9 +277,7 @@ const Inventory = () => {
 
   // Open batch modal
   const openBatchModal = (product) => {
-    // Get the latest version of the product from the inventory items
-    const currentProduct = inventoryItems.find(item => item._id === product._id) || product;
-    setSelectedProduct(currentProduct);
+    setSelectedProduct(product);
     setIsBatchModalOpen(true);
   };
 
@@ -724,7 +719,7 @@ const Inventory = () => {
 
       {/* Add/Edit Inventory Item Modal */}
       <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader>
             <DialogTitle className="text-gray-900 dark:text-gray-100">{isEditMode ? 'Edit Inventory Item' : 'Add New Inventory Item'}</DialogTitle>
             <DialogDescription className="text-gray-600 dark:text-gray-400">
