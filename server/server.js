@@ -13,13 +13,16 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? [/\.vercel\.app$/, /localhost/] 
+    : '*',
+  credentials: true
+}));
 app.use(express.json());
 
-// Routes (will import them later)
-app.get('/api', (req, res) => {
-  res.send('API is running...');
-});
+// Database connection
+let cachedDb = null;
 
 // Connect to MongoDB
 const connectDB = async () => {
@@ -29,20 +32,39 @@ const connectDB = async () => {
     if (!mongoUri) {
       throw new Error('MONGO_URI environment variable is not defined');
     }
+
+    // If we already have a connection, use it
+    if (cachedDb) {
+      console.log('Using cached database connection');
+      return cachedDb;
+    }
     
     const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 30s
       socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     });
     
+    cachedDb = conn;
     console.log(`MongoDB Connected: ${conn.connection.host}`);
+    return cachedDb;
   } catch (error) {
     console.error(`MongoDB Connection Error: ${error.message}`);
-    process.exit(1);
+    
+    // In production, don't exit the process as this will terminate the serverless function
+    if (process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+    
+    throw error; // Re-throw to be handled by error middleware
   }
 };
+
+// Root route - use this for health checks
+app.get('/api', (req, res) => {
+  res.json({ message: 'API is running...', env: process.env.NODE_ENV });
+});
 
 // Routes import
 app.use('/api/users', userRoutes);
@@ -52,6 +74,7 @@ app.use('/api/inventory', inventoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
+  console.error(`Error in ${req.method} ${req.path}:`, err.message);
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
   res.status(statusCode);
   res.json({
@@ -60,10 +83,22 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+// Connect to database and start server
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 5000;
+  connectDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+    });
+  }).catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
   });
-}); 
+} else {
+  // For production/serverless, just connect to database once
+  connectDB().catch(err => {
+    console.error('Failed to connect to MongoDB in serverless environment:', err);
+  });
+}
+
+export default app; 
