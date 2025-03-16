@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
-import { getProducts, deleteProduct, createProduct } from '../lib/api';
+import { getProducts, deleteProduct, createProduct, updateProduct } from '../lib/api';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 
 const Products = () => {
@@ -12,6 +12,8 @@ const Products = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [currentProductId, setCurrentProductId] = useState(null);
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -57,6 +59,44 @@ const Products = () => {
     }
   };
 
+  const handleEditProduct = (product) => {
+    setIsEditMode(true);
+    setCurrentProductId(product._id);
+    setNewProduct({
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      price: product.price,
+      stockQuantity: product.stockQuantity,
+      manufacturer: product.manufacturer || '',
+      toxicityLevel: product.toxicityLevel || 'Low',
+      recommendedUse: product.recommendedUse || '',
+      sku: product.sku || '',
+      image: product.image || 'https://picsum.photos/seed/pesticide/300/300',
+      tags: product.tags || []
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleAddNewProduct = () => {
+    setIsEditMode(false);
+    setCurrentProductId(null);
+    setNewProduct({
+      name: '',
+      description: '',
+      category: '',
+      price: '',
+      stockQuantity: '',
+      manufacturer: '',
+      toxicityLevel: 'Low',
+      recommendedUse: '',
+      sku: '',
+      image: 'https://picsum.photos/seed/pesticide/300/300',
+      tags: []
+    });
+    setIsDialogOpen(true);
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewProduct({
@@ -80,8 +120,18 @@ const Products = () => {
         return;
       }
 
-      const createdProduct = await createProduct(newProduct);
-      setProducts([...products, createdProduct]);
+      let result;
+      if (isEditMode) {
+        result = await updateProduct(currentProductId, newProduct);
+        // Update the product in the list
+        setProducts(products.map(p => p._id === currentProductId ? result : p));
+      } else {
+        result = await createProduct(newProduct);
+        // Add the new product to the list
+        setProducts([...products, result]);
+      }
+      
+      // Reset form and close dialog
       setNewProduct({
         name: '',
         description: '',
@@ -105,14 +155,14 @@ const Products = () => {
 
   // Filter products based on search term and category
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
   // Get unique categories for filter dropdown
-  const categories = ['All', ...new Set(products.map(product => product.category))];
+  const categories = ['All', ...new Set(products.map(product => product.category).filter(Boolean))];
 
   // Toxicity level badge color
   const getToxicityColor = (level) => {
@@ -139,16 +189,20 @@ const Products = () => {
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90" onClick={handleAddNewProduct}>
               <Plus className="h-4 w-4" />
               Add New Product
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg">
             <DialogHeader className="border-b border-gray-700 pb-4">
-              <DialogTitle className="text-xl font-bold text-primary">Add New Product</DialogTitle>
+              <DialogTitle className="text-xl font-bold text-primary">
+                {isEditMode ? 'Edit Product' : 'Add New Product'}
+              </DialogTitle>
               <DialogDescription className="text-gray-300 text-sm mt-1">
-                Fill in the details below to add a new product to your inventory.
+                {isEditMode 
+                  ? 'Update the details of this product in your inventory.' 
+                  : 'Fill in the details below to add a new product to your inventory.'}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-5 py-5">
@@ -303,7 +357,9 @@ const Products = () => {
                     disabled={isSubmitting}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                   >
-                    {isSubmitting ? 'Creating...' : 'Create Product'}
+                    {isSubmitting 
+                      ? (isEditMode ? 'Updating...' : 'Creating...') 
+                      : (isEditMode ? 'Update Product' : 'Create Product')}
                   </Button>
                 </DialogFooter>
               </div>
@@ -403,7 +459,10 @@ const Products = () => {
                     <td className="py-3 px-4">{product.recommendedUse}</td>
                     <td className="py-3 px-4">
                       <div className="flex justify-center gap-2">
-                        <button className="p-1 rounded-md hover:bg-muted">
+                        <button 
+                          className="p-1 rounded-md hover:bg-muted"
+                          onClick={() => handleEditProduct(product)}
+                        >
                           <Edit className="h-4 w-4 text-blue-600" />
                         </button>
                         <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
