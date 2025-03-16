@@ -481,109 +481,107 @@ const Inventory = () => {
                   <span className="ml-2">Loading inventory...</span>
                 </div>
               ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[80px]">SKU</TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort('name')}>
-                      <div className="flex items-center">
-                        Product Name
-                        {sortBy === 'name' && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="cursor-pointer" onClick={() => handleSort('category')}>
-                      <div className="flex items-center">
-                        Category
-                        {sortBy === 'category' && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="cursor-pointer text-right" onClick={() => handleSort('quantity')}>
-                      <div className="flex items-center justify-end">
-                        Quantity
-                        {sortBy === 'quantity' && (
-                          <ArrowUpDown className="ml-2 h-4 w-4" />
-                        )}
-                      </div>
-                    </TableHead>
-                    <TableHead className="text-right">Unit</TableHead>
-                    <TableHead className="text-right">Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Batches</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+              <div className="overflow-x-auto rounded-md border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50 border-b">
+                      <th className="py-3 px-4 text-left font-medium w-[80px]">SKU</th>
+                      <th className="py-3 px-4 text-left font-medium cursor-pointer" onClick={() => handleSort('name')}>
+                        <div className="flex items-center">
+                          Product Name
+                          {sortBy === 'name' && (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </div>
+                      </th>
+                      <th className="py-3 px-4 text-left font-medium cursor-pointer" onClick={() => handleSort('category')}>
+                        <div className="flex items-center">
+                          Category
+                          {sortBy === 'category' && (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </div>
+                      </th>
+                      <th className="py-3 px-4 text-right font-medium cursor-pointer" onClick={() => handleSort('quantity')}>
+                        <div className="flex items-center justify-end">
+                          Quantity
+                          {sortBy === 'quantity' && (
+                            <ArrowUpDown className="ml-2 h-4 w-4" />
+                          )}
+                        </div>
+                      </th>
+                      <th className="py-3 px-4 text-right font-medium">Unit</th>
+                      <th className="py-3 px-4 text-right font-medium">Price</th>
+                      <th className="py-3 px-4 text-left font-medium">Status</th>
+                      <th className="py-3 px-4 text-left font-medium">Batches</th>
+                      <th className="py-3 px-4 text-center font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
                     {sortedItems.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={9} className="text-center py-8">
+                      <tr>
+                        <td colSpan={9} className="text-center py-8 text-muted-foreground">
                           No inventory items found. Add some items to get started.
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     ) : (
                       sortedItems.map((item) => (
-                        <TableRow key={item._id}>
-                          <TableCell className="font-mono text-xs">{item.sku}</TableCell>
-                          <TableCell className="font-medium">{item.name}</TableCell>
-                      <TableCell>{item.category}</TableCell>
-                      <TableCell className="text-right">{item.quantity}</TableCell>
-                      <TableCell className="text-right">{item.unit}</TableCell>
-                      <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          variant={
-                                item.status === 'In Stock' 
-                                  ? 'outline' 
-                                  : item.status === 'Low Stock' 
-                                    ? 'secondary' 
-                                    : 'destructive'
-                          }
-                        >
-                          {item.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleViewBatches(item)}
-                        >
+                        <tr key={item._id} className="border-b hover:bg-muted/25">
+                          <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{item.sku}</td>
+                          <td className="py-3 px-4 font-medium">{item.name}</td>
+                          <td className="py-3 px-4">{item.category}</td>
+                          <td className="py-3 px-4 text-right font-medium">{item.quantity}</td>
+                          <td className="py-3 px-4 text-right">{item.unit}</td>
+                          <td className="py-3 px-4 text-right font-medium">₹{item.price.toFixed(2)}</td>
+                          <td className="py-3 px-4 flex justify-center">
+                            <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium border text-black dark:text-white ${
+                              item.status === 'Low Stock' 
+                                ? 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/50 dark:border-yellow-800/50'
+                                : item.status === 'Out of Stock' 
+                                  ? 'bg-red-100 border-red-300 dark:bg-red-900/50 dark:border-red-800/50'
+                                  : 'bg-green-100 border-green-300 dark:bg-green-900/50 dark:border-green-800/50'
+                            }`}>
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewBatches(item)}
+                              className="font-medium"
+                            >
                               {item.batches?.length || 0} Batches
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
+                            </Button>
+                          </td>
+                          <td className="py-3 px-4">
+                            <div className="flex justify-center gap-2">
+                              <button 
+                                className="p-1 rounded-md hover:bg-muted"
                                 onClick={() => openBatchModal(item)}
                               >
-                                <Plus className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
+                                <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              </button>
+                              <button 
+                                className="p-1 rounded-md hover:bg-muted"
                                 onClick={() => handleEditItem(item)}
                               >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
+                                <Edit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </button>
+                              <button 
+                                className="p-1 rounded-md hover:bg-muted"
                                 onClick={() => handleDeleteItem(item._id)}
                               >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
                       ))
                     )}
-                </TableBody>
-              </Table>
+                  </tbody>
+                </table>
+              </div>
               )}
             </CardContent>
           </Card>
@@ -598,61 +596,63 @@ const Inventory = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50 dark:bg-gray-800">
-                    <TableHead className="text-gray-900 dark:text-gray-200">Batch ID</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Lot Number</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Product</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Quantity</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Manufacturing Date</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Expiry Date</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Supplier</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Location</TableHead>
-                    <TableHead className="text-gray-900 dark:text-gray-200">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {inventoryItems.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-4 text-gray-500 dark:text-gray-400">
-                        No batches available. Add inventory items with batches to get started.
-                      </TableCell>
-                    </TableRow>
-                  ) : inventoryItems.flatMap(item => item.batches || []).length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-4 text-gray-500 dark:text-gray-400">
-                        No batches found. Add batches to your inventory items.
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    inventoryItems.flatMap(item => 
-                      (item.batches || []).map(batch => (
-                        <TableRow key={`${item._id}-${batch.batchId}`} className="border-t border-gray-200 dark:border-gray-700">
-                          <TableCell className="font-medium text-gray-900 dark:text-gray-200">{batch.batchId}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.lotNumber}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{item.name}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.quantity} {item.unit}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.manufacturingDate).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.expiryDate).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.supplier || item.supplier || '-'}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.locationCode}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">
-                          <div className="flex gap-2">
-                              <Button variant="ghost" size="icon" className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                              <Button variant="ghost" size="icon" className="text-red-700 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300">
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                        </TableRow>
-                      ))
-                    )
-                  )}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto rounded-md border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50 border-b">
+                      <th className="py-3 px-4 text-left font-medium">Batch ID</th>
+                      <th className="py-3 px-4 text-left font-medium">Lot Number</th>
+                      <th className="py-3 px-4 text-left font-medium">Product</th>
+                      <th className="py-3 px-4 text-left font-medium">Quantity</th>
+                      <th className="py-3 px-4 text-left font-medium">Manufacturing Date</th>
+                      <th className="py-3 px-4 text-left font-medium">Expiry Date</th>
+                      <th className="py-3 px-4 text-left font-medium">Supplier</th>
+                      <th className="py-3 px-4 text-left font-medium">Location</th>
+                      <th className="py-3 px-4 text-center font-medium">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventoryItems.length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="text-center py-4 text-muted-foreground">
+                          No batches available. Add inventory items with batches to get started.
+                        </td>
+                      </tr>
+                    ) : inventoryItems.flatMap(item => item.batches || []).length === 0 ? (
+                      <tr>
+                        <td colSpan={9} className="text-center py-4 text-muted-foreground">
+                          No batches found. Add batches to your inventory items.
+                        </td>
+                      </tr>
+                    ) : (
+                      inventoryItems.flatMap(item => 
+                        (item.batches || []).map(batch => (
+                          <tr key={`${item._id}-${batch.batchId}`} className="border-b hover:bg-muted/25">
+                            <td className="py-3 px-4 font-medium">{batch.batchId}</td>
+                            <td className="py-3 px-4">{batch.lotNumber}</td>
+                            <td className="py-3 px-4">{item.name}</td>
+                            <td className="py-3 px-4 font-medium">{batch.quantity} {item.unit}</td>
+                            <td className="py-3 px-4">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4 font-medium">{new Date(batch.expiryDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4">{batch.supplier || item.supplier || '-'}</td>
+                            <td className="py-3 px-4 font-mono text-xs">{batch.locationCode}</td>
+                            <td className="py-3 px-4">
+                              <div className="flex justify-center gap-2">
+                                <button className="p-1 rounded-md hover:bg-muted">
+                                  <Edit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                </button>
+                                <button className="p-1 rounded-md hover:bg-muted">
+                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -934,34 +934,36 @@ const Inventory = () => {
             <TabsContent value="view" className="space-y-4">
               {selectedProduct?.batches?.length > 0 ? (
                 <ScrollArea className="h-[350px] border border-gray-200 dark:border-gray-700 rounded-md">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50 dark:bg-gray-800">
-                        <TableHead className="text-gray-900 dark:text-gray-200">Batch ID</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Lot Number</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Quantity</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Manufacturing Date</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Expiry Date</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Supplier</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Location</TableHead>
-                        <TableHead className="text-gray-900 dark:text-gray-200">Notes</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {selectedProduct?.batches.map((batch) => (
-                        <TableRow key={batch.batchId} className="border-t border-gray-200 dark:border-gray-700">
-                          <TableCell className="font-medium text-gray-900 dark:text-gray-200">{batch.batchId}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.lotNumber}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.quantity} {selectedProduct?.unit}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.manufacturingDate).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{new Date(batch.expiryDate).toLocaleDateString()}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.supplier || selectedProduct?.supplier || '-'}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.locationCode}</TableCell>
-                          <TableCell className="text-gray-900 dark:text-gray-200">{batch.notes || "-"}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50 border-b">
+                          <th className="py-3 px-4 text-left font-medium">Batch ID</th>
+                          <th className="py-3 px-4 text-left font-medium">Lot Number</th>
+                          <th className="py-3 px-4 text-left font-medium">Quantity</th>
+                          <th className="py-3 px-4 text-left font-medium">Manufacturing Date</th>
+                          <th className="py-3 px-4 text-left font-medium">Expiry Date</th>
+                          <th className="py-3 px-4 text-left font-medium">Supplier</th>
+                          <th className="py-3 px-4 text-left font-medium">Location</th>
+                          <th className="py-3 px-4 text-left font-medium">Notes</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {selectedProduct?.batches.map((batch) => (
+                          <tr key={batch.batchId} className="border-b hover:bg-muted/25">
+                            <td className="py-3 px-4 font-medium">{batch.batchId}</td>
+                            <td className="py-3 px-4">{batch.lotNumber}</td>
+                            <td className="py-3 px-4 font-medium">{batch.quantity} {selectedProduct?.unit}</td>
+                            <td className="py-3 px-4">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4 font-medium">{new Date(batch.expiryDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4">{batch.supplier || selectedProduct?.supplier || '-'}</td>
+                            <td className="py-3 px-4 font-mono text-xs">{batch.locationCode}</td>
+                            <td className="py-3 px-4 text-muted-foreground">{batch.notes || "-"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </ScrollArea>
               ) : (
                 <div className="text-center py-8 border border-gray-200 dark:border-gray-700 rounded-md bg-gray-50 dark:bg-gray-800">
