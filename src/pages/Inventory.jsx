@@ -65,6 +65,19 @@ import {
   ResponsiveTableCardActions 
 } from "../components/ui/responsive-table";
 
+// Icon component for better performance
+const ProductIcon = ({ type = "product" }) => {
+  return (
+    <div className="product-image-container">
+      {type === "batch" ? (
+        <Calendar />
+      ) : (
+        <Package />
+      )}
+    </div>
+  );
+};
+
 const Inventory = () => {
   // State for inventory filters and modals
   const [searchQuery, setSearchQuery] = useState('');
@@ -628,9 +641,7 @@ const Inventory = () => {
                           <td className="py-3 px-4 font-mono text-xs text-muted-foreground" data-label="SKU">{item.sku}</td>
                           <td className="py-3 px-4 font-medium image-cell" data-label="Product">
                             <div className="product-info-wrapper">
-                              <div className="product-image-container h-10 w-10 rounded-md overflow-hidden bg-muted/20 flex items-center justify-center">
-                                <Package className="h-5 w-5 text-muted-foreground/70" />
-                              </div>
+                              <ProductIcon type="product" />
                               <div className="product-info">
                                 <p className="font-medium">{item.name}</p>
                                 <p className="text-xs text-muted-foreground">SKU: {item.sku}</p>
@@ -743,9 +754,7 @@ const Inventory = () => {
                             <td className="py-3 px-4 font-medium" data-label="Batch ID">{batch.batchId}</td>
                             <td className="py-3 px-4 image-cell" data-label="Details">
                               <div className="product-info-wrapper">
-                                <div className="product-image-container h-10 w-10 rounded-md overflow-hidden bg-muted/20 flex items-center justify-center">
-                                  <Calendar className="h-5 w-5 text-muted-foreground/70" />
-                                </div>
+                                <ProductIcon type="batch" />
                                 <div className="product-info">
                                   <p className="font-medium">Lot: {batch.lotNumber}</p>
                                   <p className="text-xs text-muted-foreground">{batch.quantity} {item.unit}</p>
@@ -1076,17 +1085,14 @@ const Inventory = () => {
                             <td className="py-3 px-4 font-medium" data-label="Batch ID">{batch.batchId}</td>
                             <td className="py-3 px-4 image-cell" data-label="Details">
                               <div className="product-info-wrapper">
-                                <div className="product-image-container h-10 w-10 rounded-md overflow-hidden bg-muted/20 flex items-center justify-center">
-                                  <Calendar className="h-5 w-5 text-muted-foreground/70" />
-                                </div>
+                                <ProductIcon type="batch" />
                                 <div className="product-info">
                                   <p className="font-medium">Lot: {batch.lotNumber}</p>
                                   <p className="text-xs text-muted-foreground">{batch.quantity} {selectedProduct?.unit}</p>
                                 </div>
                               </div>
                             </td>
-                            <td className="py-3 px-4" data-label="Lot Number">{batch.lotNumber}</td>
-                            <td className="py-3 px-4 font-medium" data-label="Quantity">{batch.quantity} {selectedProduct?.unit}</td>
+                            <td className="py-3 px-4" data-label="Quantity">{batch.quantity} {selectedProduct?.unit}</td>
                             <td className="py-3 px-4" data-label="Manufacturing Date">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
                             <td className="py-3 px-4 font-medium" data-label="Expiry Date">{new Date(batch.expiryDate).toLocaleDateString()}</td>
                             <td className="py-3 px-4" data-label="Supplier">{batch.supplier || selectedProduct?.supplier || '-'}</td>

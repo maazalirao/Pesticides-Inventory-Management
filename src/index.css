@@ -158,9 +158,22 @@
   
   /* Make image container centered */
   .responsive-table tbody td.image-cell .product-image-container {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     margin-bottom: 0.1rem;
+    background-color: rgba(245, 245, 245, 0.7);
+    border-radius: 0.375rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  /* Make icon larger in the container for mobile */
+  .responsive-table tbody td.image-cell .product-image-container svg {
+    width: 32px;
+    height: 32px;
+    color: rgba(75, 85, 99, 0.9);
   }
   
   /* Make product info take remaining space and center text */
@@ -203,12 +216,25 @@
     width: 100%;
   }
   
-  /* Product icon on desktop should be small and on the left */
+  /* Product icon on desktop should be larger and on the left */
   .responsive-table tbody td.image-cell .product-image-container {
+    width: 4.5rem;
+    height: 4.5rem;
+    margin-right: 1rem;
+    flex-shrink: 0;
+    background-color: rgba(245, 245, 245, 0.7);
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  
+  /* Make icon larger in the container */
+  .responsive-table tbody td.image-cell .product-image-container svg {
     width: 2.5rem;
     height: 2.5rem;
-    margin-right: 0.75rem;
-    flex-shrink: 0;
+    color: rgba(75, 85, 99, 0.9);
   }
   
   /* Text should be aligned to the left of icon */
