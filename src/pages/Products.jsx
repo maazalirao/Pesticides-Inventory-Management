@@ -4,6 +4,7 @@ import { Button } from '../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
 import { getProducts, deleteProduct, createProduct, updateProduct } from '../lib/api';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
+import { ResponsiveTable } from "../components/ui/responsive-table";
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -625,7 +626,7 @@ const Products = () => {
           )}
 
           <div className="overflow-x-auto rounded-md border">
-            <table className="w-full text-sm">
+            <ResponsiveTable className="responsive-table">
               <thead>
                 <tr className="bg-muted/50 border-b">
                   <th className="py-3 px-4 text-left font-medium">Product Name</th>
@@ -640,9 +641,9 @@ const Products = () => {
               <tbody>
                 {currentItems.map((product) => (
                   <tr key={product._id} className="border-b hover:bg-muted/25">
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4 image-cell" data-label="Product">
                       <div className="flex items-center space-x-3">
-                        <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group">
+                        <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group product-image-container">
                           <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
                           <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
                           <div className="h-full w-full rounded overflow-hidden relative">
@@ -656,30 +657,30 @@ const Products = () => {
                             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-20"></div>
                           </div>
                         </div>
-                        <div>
+                        <div className="product-info">
                           <p className="font-medium">{product.name}</p>
                           <p className="text-xs text-muted-foreground">{product.description?.substring(0, 60)}...</p>
                         </div>
                       </div>
                     </td>
-                    <td className="py-3 px-4">{product.category}</td>
-                    <td className="py-3 px-4">₹{product.price?.toFixed(2)}</td>
-                    <td className="py-3 px-4">{product.manufacturer}</td>
-                    <td className="py-3 px-4">
+                    <td className="py-3 px-4" data-label="Category">{product.category}</td>
+                    <td className="py-3 px-4" data-label="Price">₹{product.price?.toFixed(2)}</td>
+                    <td className="py-3 px-4" data-label="Manufacturer">{product.manufacturer}</td>
+                    <td className="py-3 px-4" data-label="Toxicity Level">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
                         {product.toxicityLevel}
                       </span>
                     </td>
-                    <td className="py-3 px-4">{product.recommendedUse}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-center gap-2">
+                    <td className="py-3 px-4" data-label="Recommended Use">{product.recommendedUse}</td>
+                    <td className="py-3 px-4 actions-cell" data-label="Actions">
+                      <div className="flex justify-end gap-2">
                         <button 
-                          className="p-1 rounded-md hover:bg-muted"
+                          className="p-1.5 rounded-md hover:bg-muted"
                           onClick={() => handleEditProduct(product)}
                         >
                           <Edit className="h-4 w-4 text-blue-600" />
                         </button>
-                        <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
+                        <button className="p-1.5 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
                           <Trash className="h-4 w-4 text-red-600" />
                         </button>
                       </div>
@@ -687,8 +688,14 @@ const Products = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>
+            </ResponsiveTable>
           </div>
+
+          {currentItems.length === 0 && (
+            <div className="text-center py-6">
+              <p className="text-muted-foreground">No products found</p>
+            </div>
+          )}
 
           <div className="mt-4 flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
             <p>Showing {Math.min(indexOfFirstItem + 1, filteredProducts.length)} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} products</p>

@@ -87,3 +87,135 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+/* Responsive Table Styles - transform tables to card layout on mobile */
+@media (max-width: 768px) {
+  /* Hide table headers */
+  .responsive-table thead {
+    display: none;
+  }
+  
+  /* Convert rows to card-like containers */
+  .responsive-table tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    border: 1px solid hsl(var(--border));
+    background-color: hsl(var(--card));
+  }
+  
+  /* Style table cells as flex rows with label and content */
+  .responsive-table tbody td {
+    display: flex !important;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid hsl(var(--border));
+    text-align: right;
+    min-height: 3rem;
+  }
+  
+  /* Create labels from data-label attributes */
+  .responsive-table tbody td::before {
+    content: attr(data-label);
+    font-weight: 500;
+    color: hsl(var(--muted-foreground));
+    text-align: left;
+    padding-right: 1rem;
+  }
+  
+  /* Remove border from last cell in each row */
+  .responsive-table tbody td:last-child {
+    border-bottom: none;
+  }
+
+  /* Special case for image cells - centered layout on mobile */
+  .responsive-table tbody td.image-cell {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 0.5rem;
+    background-color: hsl(var(--muted) / 0.2);
+  }
+  
+  /* Hide the label for image cells */
+  .responsive-table tbody td.image-cell::before {
+    display: none;
+  }
+  
+  /* Center product info wrapper on mobile */
+  .responsive-table tbody td.image-cell .product-info-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.1rem;
+  }
+  
+  /* Make image container centered */
+  .responsive-table tbody td.image-cell .product-image-container {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 0.1rem;
+  }
+  
+  /* Make product info take remaining space and center text */
+  .responsive-table tbody td.image-cell .product-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 0;
+  }
+  
+  /* Product info text should be more compact */
+  .responsive-table tbody td.image-cell .product-info p {
+    margin: 0;
+    line-height: 1.2;
+  }
+  
+  /* Special case for actions cell */
+  .responsive-table tbody td.actions-cell {
+    justify-content: flex-end;
+    background-color: hsl(var(--muted) / 0.5);
+  }
+  
+  .responsive-table tbody td.actions-cell::before {
+    content: none;
+  }
+}
+
+/* Desktop-specific styles for inventory tables */
+@media (min-width: 769px) {
+  /* Layout for product cells on desktop */
+  .responsive-table tbody td.image-cell {
+    padding: 0.75rem 1rem;
+  }
+  
+  /* Product info wrapper should be flex row on desktop */
+  .responsive-table tbody td.image-cell .product-info-wrapper {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+  
+  /* Product icon on desktop should be small and on the left */
+  .responsive-table tbody td.image-cell .product-image-container {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+  }
+  
+  /* Text should be aligned to the left of icon */
+  .responsive-table tbody td.image-cell .product-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    flex: 1;
+  }
+}
