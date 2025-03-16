@@ -27,7 +27,7 @@ let cachedDb = null;
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    console.log('Connecting to MongoDB...');
+    console.log('Connecting to MongoDB...', new Date().toISOString());
     const mongoUri = process.env.MONGO_URI;
     if (!mongoUri) {
       throw new Error('MONGO_URI environment variable is not defined');
@@ -45,25 +45,34 @@ const connectDB = async () => {
       await mongoose.disconnect();
     }
     
+    // DNS caching - mongoose doesn't do this by default in some environments
+    // This sometimes helps with connection issues in serverless
+    mongoose.set('bufferCommands', false);
+    
     // Enhanced options for serverless environment
     const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Reduced to 5s for faster failure in serverless
-      socketTimeoutMS: 30000, // Reduced to 30s for serverless environment
-      connectTimeoutMS: 10000, // Added explicit connect timeout
-      // The following options help with quick connections
-      // and avoiding ECONNRESET errors in serverless environments
-      maxPoolSize: 10, // Reduced from default 100
+      serverSelectionTimeoutMS: 5000, // Keep low for faster failure/retry
+      connectTimeoutMS: 10000, 
+      socketTimeoutMS: 30000,
+      // The following options help with serverless environments
+      maxPoolSize: 1, // Reduced to minimum for serverless
       minPoolSize: 0, // Start with no connections
-      family: 4 // Force IPv4
+      family: 4, // Force IPv4
+      // Critical option for serverless environments:
+      // Don't wait for secondary servers in replica sets
+      readPreference: 'primary',
+      retryWrites: false, // Disable retry writes for faster connections
+      w: 'majority', // Wait for primary and majority of secondaries
+      wtimeoutMS: 2500 // Reduce write concern timeout
     });
     
     cachedDb = conn;
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    console.log(`MongoDB Connected: ${conn.connection.host} at ${new Date().toISOString()}`);
     return cachedDb;
   } catch (error) {
-    console.error(`MongoDB Connection Error: ${error.message}`);
+    console.error(`MongoDB Connection Error: ${error.message}`, new Date().toISOString());
     
     // In production, don't exit the process as this will terminate the serverless function
     if (process.env.NODE_ENV !== 'production') {
