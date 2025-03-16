@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Use environment variable if available or fallback to relative path
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+// For Vercel deployment, use a simple approach that works reliably
+const API_URL = import.meta.env.PROD ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:5000/api');
 
 console.log('API URL:', API_URL); // Debug log for troubleshooting
 
@@ -11,6 +11,10 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Set reasonable timeouts for API requests
+  timeout: 15000, // 15 seconds
+  // Don't use withCredentials unless specifically needed for cookies
+  // as it can cause CORS issues
 });
 
 // Add a request interceptor to include the auth token in requests
@@ -56,12 +60,28 @@ export const logout = () => {
 };
 
 // Product API calls
-export const getProducts = async () => {
+export const getProducts = async (retryCount = 2) => {
   try {
+    console.log('Fetching products from:', API_URL + '/products');
     const { data } = await api.get('/products');
+    console.log('Products fetched successfully:', data.length);
     return data;
   } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch products';
+    console.error('Product fetch error:', error);
+    
+    // Retry logic for network errors
+    if (retryCount > 0 && (error.code === 'ECONNABORTED' || !error.response)) {
+      console.log(`Retrying product fetch... (${retryCount} attempts left)`);
+      // Wait 1 second before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return getProducts(retryCount - 1);
+    }
+    
+    // Provide more detailed error information
+    const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         'Failed to fetch products';
+    throw new Error(errorMessage);
   }
 };
 
@@ -102,12 +122,28 @@ export const deleteProduct = async (id) => {
 };
 
 // Inventory API calls
-export const getInventoryItems = async () => {
+export const getInventoryItems = async (retryCount = 2) => {
   try {
+    console.log('Fetching inventory from:', API_URL + '/inventory');
     const { data } = await api.get('/inventory');
+    console.log('Inventory items fetched successfully:', data.length);
     return data;
   } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch inventory items';
+    console.error('Inventory fetch error:', error);
+    
+    // Retry logic for network errors
+    if (retryCount > 0 && (error.code === 'ECONNABORTED' || !error.response)) {
+      console.log(`Retrying inventory fetch... (${retryCount} attempts left)`);
+      // Wait 1 second before retrying
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return getInventoryItems(retryCount - 1);
+    }
+    
+    // Provide more detailed error information
+    const errorMessage = error.response?.data?.message || 
+                         error.message || 
+                         'Failed to fetch inventory items';
+    throw new Error(errorMessage);
   }
 };
 
