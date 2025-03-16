@@ -124,14 +124,21 @@ const Inventory = () => {
     const fetchInventoryItems = async () => {
       try {
         setLoading(true);
-        console.log('Attempting to fetch inventory items...');
+        console.log('Fetching inventory items from:', import.meta.env.VITE_API_URL || window.location.origin + '/api');
         const data = await getInventoryItems();
         console.log('Inventory items fetched successfully:', data);
         setInventoryItems(data);
         setError(null);
       } catch (err) {
-        console.error('Detailed error fetching inventory:', err);
+        console.error('Error fetching inventory items:', err);
         setError(`Failed to fetch inventory items: ${err.message || 'Unknown error'}`);
+        
+        // Attempt to show more detailed error information
+        if (err.response) {
+          console.error('Server response:', err.response.status, err.response.data);
+        } else if (err.request) {
+          console.error('No response received from server. Network issue?');
+        }
       } finally {
         setLoading(false);
       }

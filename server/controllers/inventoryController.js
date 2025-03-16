@@ -5,8 +5,16 @@ import Inventory from '../models/inventoryModel.js';
 // @route   GET /api/inventory
 // @access  Private
 const getInventoryItems = asyncHandler(async (req, res) => {
-  const inventoryItems = await Inventory.find({});
-  res.json(inventoryItems);
+  try {
+    console.log('Fetching inventory items from database');
+    const inventoryItems = await Inventory.find({});
+    console.log(`Found ${inventoryItems.length} inventory items`);
+    res.json(inventoryItems);
+  } catch (error) {
+    console.error('Error fetching inventory items:', error);
+    res.status(500);
+    throw new Error(`Failed to fetch inventory items: ${error.message}`);
+  }
 });
 
 // @desc    Fetch single inventory item

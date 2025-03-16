@@ -13,54 +13,34 @@ dotenv.config();
 const app = express();
 
 // Middleware
-app.use(cors({
-  origin: true, // Allow any origin in any environment for simplicity
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors());
 app.use(express.json());
 
 // Routes (will import them later)
 app.get('/api', (req, res) => {
-  res.json({ message: 'API is running...', environment: process.env.NODE_ENV });
-});
-
-// Debug route
-app.get('/api/debug', (req, res) => {
-  res.json({
-    environment: process.env.NODE_ENV,
-    mongoConnected: mongoose.connection.readyState === 1, // 1 = connected
-    headers: req.headers,
-    time: new Date().toISOString()
-  });
+  res.send('API is running...');
 });
 
 // Connect to MongoDB
 const connectDB = async () => {
   try {
-    // If already connected, return
-    if (mongoose.connection.readyState === 1) {
-      console.log('MongoDB already connected');
-      return;
+    console.log('Connecting to MongoDB...');
+    const mongoUri = process.env.MONGO_URI;
+    if (!mongoUri) {
+      throw new Error('MONGO_URI environment variable is not defined');
     }
-
-    // For Vercel serverless functions, use these options
-    const options = {
+    
+    const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of default 30s
-      socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
-    };
-
-    const conn = await mongoose.connect(process.env.MONGO_URI, options);
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
+    });
+    
     console.log(`MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error(`Error: ${error.message}`);
-    
-    // Don't exit the process in production as it would terminate the serverless function
-    if (process.env.NODE_ENV !== 'production') {
-      process.exit(1);
-    }
+    console.error(`MongoDB Connection Error: ${error.message}`);
+    process.exit(1);
   }
 };
 
@@ -82,19 +62,8 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 5000;
-
-// Only start the server if we're not in a serverless environment
-if (process.env.NODE_ENV !== 'production') {
-  connectDB().then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
-    });
+connectDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
   });
-} else {
-  // For production, just connect to MongoDB but don't start a server
-  // (Vercel will handle that)
-  connectDB();
-}
-
-// Export the app for serverless environments
-export default app; 
+}); 

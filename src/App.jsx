@@ -12,6 +12,7 @@ import Store from './pages/Store';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import TestComponent from './components/TestComponent';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -34,6 +35,9 @@ function App() {
       <Routes>
         <Route path="/login" element={!isLoggedIn ? <Login setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} /> : <Navigate to="/" />} />
         <Route path="/register" element={!isLoggedIn ? <Register setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} /> : <Navigate to="/" />} />
+        
+        {/* Test route */}
+        <Route path="/test" element={<TestComponent />} />
         
         {/* Protected routes */}
         <Route
