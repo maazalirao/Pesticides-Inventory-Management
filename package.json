@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "lint": "eslint .",
+    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "server": "nodemon server/server.js",
+    "dev:server": "nodemon server/server.js",
+    "data:import": "node server/utils/seedProducts.js",
     "client": "vite",
     "dev:full": "concurrently \"npm run server\" \"npm run client\""
   },

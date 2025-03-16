@@ -22,6 +22,7 @@ const Products = () => {
     toxicityLevel: 'Low',
     recommendedUse: '',
     sku: '',
+    image: 'https://picsum.photos/seed/pesticide/300/300',
     tags: []
   });
   const [formError, setFormError] = useState('');
@@ -91,6 +92,7 @@ const Products = () => {
         toxicityLevel: 'Low',
         recommendedUse: '',
         sku: '',
+        image: 'https://picsum.photos/seed/pesticide/300/300',
         tags: []
       });
       setIsDialogOpen(false);
@@ -262,6 +264,20 @@ const Products = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
+                <div className="space-y-2">
+                  <label htmlFor="image" className="text-sm font-semibold text-gray-200">
+                    Image URL
+                  </label>
+                  <input
+                    id="image"
+                    name="image"
+                    type="text"
+                    value={newProduct.image}
+                    onChange={handleInputChange}
+                    placeholder="https://picsum.photos/seed/pesticide/300/300"
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <label htmlFor="description" className="text-sm font-semibold text-gray-200">
@@ -359,15 +375,25 @@ const Products = () => {
               </thead>
               <tbody>
                 {filteredProducts.map((product) => (
-                  <tr key={product.id} className="border-b hover:bg-muted/25">
+                  <tr key={product._id} className="border-b hover:bg-muted/25">
                     <td className="py-3 px-4">
-                      <div>
-                        <p className="font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.description}</p>
+                      <div className="flex items-center space-x-3">
+                        <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
+                          <img 
+                            src={product.image || 'https://picsum.photos/seed/pesticide/300/300'} 
+                            alt={product.name}
+                            className="h-full w-full object-cover"
+                            onError={(e) => {e.target.src = 'https://picsum.photos/seed/default/300/300'}}
+                          />
+                        </div>
+                        <div>
+                          <p className="font-medium">{product.name}</p>
+                          <p className="text-xs text-muted-foreground">{product.description.substring(0, 60)}...</p>
+                        </div>
                       </div>
                     </td>
                     <td className="py-3 px-4">{product.category}</td>
-                    <td className="py-3 px-4">${product.price.toFixed(2)}</td>
+                    <td className="py-3 px-4">₹{product.price?.toFixed(2)}</td>
                     <td className="py-3 px-4">{product.manufacturer}</td>
                     <td className="py-3 px-4">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
