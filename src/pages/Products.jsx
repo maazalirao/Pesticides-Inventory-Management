@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
@@ -29,6 +29,12 @@ const Products = () => {
   });
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+  
+  const fileInputRef = useRef(null);
+  const [importError, setImportError] = useState('');
+  const [importSuccess, setImportSuccess] = useState('');
   
   useEffect(() => {
     const fetchProducts = async () => {
@@ -153,13 +159,59 @@ const Products = () => {
     }
   };
 
-  // Filter products based on search term and category
+  // Update the filtered products logic to include pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
+  
+  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+
+  // Add pagination handlers
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const goToPreviousPage = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const goToNextPage = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  // Create a function to generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxPagesToShow = 3; // Show max 3 page numbers
+    
+    if (totalPages <= maxPagesToShow) {
+      // If we have 3 or fewer pages, show all of them
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Show current page, plus one on each side if possible
+      let startPage = Math.max(1, currentPage - 1);
+      let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      
+      // Adjust if we're near the end
+      if (endPage - startPage < maxPagesToShow - 1) {
+        startPage = Math.max(1, endPage - maxPagesToShow + 1);
+      }
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i);
+      }
+    }
+    
+    return pageNumbers;
+  };
 
   // Get unique categories for filter dropdown
   const categories = ['All', ...new Set(products.map(product => product.category).filter(Boolean))];
@@ -178,6 +230,142 @@ const Products = () => {
     }
   };
 
+  // Export products to CSV
+  const exportProducts = () => {
+    // Get the products to export (either filtered or all)
+    const productsToExport = filteredProducts.length > 0 ? filteredProducts : products;
+    
+    if (productsToExport.length === 0) {
+      alert('No products to export');
+      return;
+    }
+    
+    // Define the fields to export
+    const fields = [
+      'name', 'description', 'category', 'price', 'stockQuantity',
+      'manufacturer', 'toxicityLevel', 'recommendedUse', 'sku', 'image'
+    ];
+    
+    // Create CSV header
+    let csv = fields.join(',') + '\n';
+    
+    // Add data rows
+    productsToExport.forEach(product => {
+      const row = fields.map(field => {
+        // Format the value, wrap in quotes, and escape quotes inside
+        let value = product[field] !== undefined ? product[field] : '';
+        // Convert to string and handle quotes
+        value = String(value).replace(/"/g, '""');
+        return `"${value}"`;
+      });
+      csv += row.join(',') + '\n';
+    });
+    
+    // Create blob and download link
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `pesticide-products-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
+  // Trigger file input click when Import button is clicked
+  const handleImportClick = () => {
+    fileInputRef.current.click();
+  };
+  
+  // Handle file selection for import
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    setImportError('');
+    setImportSuccess('');
+    
+    if (!file) return;
+    
+    // Check file extension
+    if (!file.name.endsWith('.csv')) {
+      setImportError('Only CSV files are supported');
+      return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const csv = event.target.result;
+        const lines = csv.split('\n');
+        
+        // Get headers
+        const headers = lines[0].split(',').map(header => 
+          header.trim().replace(/^"(.*)"$/, '$1')
+        );
+        
+        // Parse products
+        const newProducts = [];
+        for (let i = 1; i < lines.length; i++) {
+          if (!lines[i].trim()) continue; // Skip empty lines
+          
+          const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
+          if (!values) continue;
+          
+          const product = {};
+          headers.forEach((header, index) => {
+            // Extract value, remove quotes
+            let value = values[index]?.trim().replace(/^"(.*)"$/, '$1').replace(/""/g, '"') || '';
+            
+            // Convert numeric fields
+            if (header === 'price' || header === 'stockQuantity') {
+              value = value === '' ? 0 : parseFloat(value);
+            }
+            
+            product[header] = value;
+          });
+          
+          // Validate required fields
+          if (product.name && product.category && product.price !== undefined) {
+            newProducts.push(product);
+          }
+        }
+        
+        if (newProducts.length === 0) {
+          setImportError('No valid products found in the file');
+          return;
+        }
+        
+        // Create products in database
+        let successCount = 0;
+        for (const product of newProducts) {
+          try {
+            const result = await createProduct(product);
+            if (result && result._id) {
+              successCount++;
+              setProducts(prevProducts => [...prevProducts, result]);
+            }
+          } catch (error) {
+            console.error('Failed to import product:', error);
+          }
+        }
+        
+        setImportSuccess(`Successfully imported ${successCount} of ${newProducts.length} products`);
+        
+        // Reset file input
+        e.target.value = null;
+      } catch (error) {
+        setImportError('Failed to parse the file: ' + error.message);
+        console.error(error);
+      }
+    };
+    
+    reader.onerror = () => {
+      setImportError('Failed to read the file');
+    };
+    
+    reader.readAsText(file);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -194,7 +382,7 @@ const Products = () => {
               Add New Product
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <DialogHeader className="border-b border-gray-700 pb-4">
               <DialogTitle className="text-xl font-bold text-primary">
                 {isEditMode ? 'Edit Product' : 'Add New Product'}
@@ -394,27 +582,47 @@ const Products = () => {
                   <select
                     value={filterCategory}
                     onChange={(e) => setFilterCategory(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-md border border-input bg-background py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
                   >
                     {categories.map((category) => (
                       <option key={category} value={category}>{category}</option>
                     ))}
                   </select>
-                  <ChevronDown className="absolute right-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                  </div>
                 </div>
               </div>
 
-              <Button variant="outline" className="flex items-center gap-2">
+              <Button variant="outline" className="flex items-center gap-2" onClick={exportProducts}>
                 <Download className="h-4 w-4" />
                 Export
               </Button>
               
-              <Button variant="outline" className="flex items-center gap-2">
+              <input
+                type="file"
+                accept=".csv"
+                ref={fileInputRef}
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button variant="outline" className="flex items-center gap-2" onClick={handleImportClick}>
                 <Upload className="h-4 w-4" />
                 Import
               </Button>
             </div>
           </div>
+
+          {importError && (
+            <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+              {importError}
+            </div>
+          )}
+          {importSuccess && (
+            <div className="bg-green-900/30 border border-green-500 text-green-200 px-4 py-3 rounded mb-4">
+              {importSuccess}
+            </div>
+          )}
 
           <div className="overflow-x-auto rounded-md border">
             <table className="w-full text-sm">
@@ -430,21 +638,27 @@ const Products = () => {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((product) => (
+                {currentItems.map((product) => (
                   <tr key={product._id} className="border-b hover:bg-muted/25">
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-3">
-                        <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-                          <img 
-                            src={product.image || 'https://picsum.photos/seed/pesticide/300/300'} 
-                            alt={product.name}
-                            className="h-full w-full object-cover"
-                            onError={(e) => {e.target.src = 'https://picsum.photos/seed/default/300/300'}}
-                          />
+                        <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group">
+                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
+                          <div className="h-full w-full rounded overflow-hidden relative">
+                            <img 
+                              src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
+                              alt={product.name}
+                              className="h-full w-full object-cover z-0"
+                              onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
+                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-20"></div>
+                          </div>
                         </div>
                         <div>
                           <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.description.substring(0, 60)}...</p>
+                          <p className="text-xs text-muted-foreground">{product.description?.substring(0, 60)}...</p>
                         </div>
                       </div>
                     </td>
@@ -477,12 +691,37 @@ const Products = () => {
           </div>
 
           <div className="mt-4 flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
-            <p>Showing {filteredProducts.length} of {products.length} products</p>
+            <p>Showing {Math.min(indexOfFirstItem + 1, filteredProducts.length)} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} products</p>
             <div className="flex gap-1 mt-3 sm:mt-0">
-              <Button variant="outline" size="sm" disabled>Previous</Button>
-              <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">1</Button>
-              <Button variant="outline" size="sm">2</Button>
-              <Button variant="outline" size="sm">Next</Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={goToPreviousPage}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              
+              {getPageNumbers().map(number => (
+                <Button 
+                  key={number}
+                  variant="outline" 
+                  size="sm" 
+                  className={currentPage === number ? "bg-primary text-primary-foreground" : ""}
+                  onClick={() => handlePageChange(number)}
+                >
+                  {number}
+                </Button>
+              ))}
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={goToNextPage}
+                disabled={currentPage === totalPages || totalPages === 0}
+              >
+                Next
+              </Button>
             </div>
           </div>
         </CardContent>
