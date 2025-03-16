@@ -642,9 +642,11 @@ const Products = () => {
                   <tr key={product._id} className="border-b hover:bg-muted/25">
                     <td className="py-3 px-4">
                       <div className="flex items-center space-x-3">
-                        <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
+                        <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-slate-900 to-indigo-950 flex-shrink-0 p-[1.5px] shadow-lg shadow-blue-500/20 relative group">
+                          {/* Hover effect glow */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/40 to-violet-500/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 backdrop-blur-sm"></div>
+                          {/* Subtle pulse animation */}
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-indigo-600/10 animate-[pulse_3s_ease-in-out_infinite] z-5"></div>
                           <div className="h-full w-full rounded overflow-hidden relative">
                             <img 
                               src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
@@ -652,8 +654,13 @@ const Products = () => {
                               className="h-full w-full object-cover z-0"
                               onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
-                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-20"></div>
+                            {/* Image gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
+                            {/* Edge highlight */}
+                            <div className="absolute bottom-0 left-0 right-0 h-[1.5px] bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 z-20"></div>
+                            {/* Corner accents */}
+                            <div className="absolute top-0 left-0 w-[4px] h-[4px] bg-cyan-400 z-20"></div>
+                            <div className="absolute top-0 right-0 w-[4px] h-[4px] bg-blue-400 z-20"></div>
                           </div>
                         </div>
                         <div>
