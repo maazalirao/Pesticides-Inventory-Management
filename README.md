@@ -13,6 +13,15 @@ A full-stack web application for managing pesticide inventory, suppliers, custom
 - Reports and analytics
 - Responsive design
 
+## Environment Setup
+
+1. Copy `.env.example` to `.env`:
+   ```
+   cp .env.example .env
+   ```
+2. Update the values in `.env` with your actual configuration
+3. For production deployment, configure environment variables in your hosting platform (Vercel, etc.)
+
 ## Tech Stack
 
 ### Frontend
