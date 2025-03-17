@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 
   (window.location.hostname === 'localhost' 
     ? 'http://localhost:5000/api'
-    : '/api');
+    : `${window.location.origin}/api`);
 
 console.log('API URL:', API_URL);
 
@@ -14,6 +14,8 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  // Add a longer timeout for Railway deployment
+  timeout: 15000,
 });
 
 // Add a request interceptor
@@ -122,10 +124,15 @@ export const getProducts = async () => {
   try {
     console.log('Fetching products...');
     const { data } = await api.get('/products');
-    console.log('Products fetched:', data.length);
+    console.log('Products fetched:', data?.length || 'No data returned');
     return data;
   } catch (error) {
     console.error('Error fetching products:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     throw error;
   }
 };
@@ -171,10 +178,15 @@ export const getInventoryItems = async () => {
   try {
     console.log('Fetching inventory items...');
     const { data } = await api.get('/inventory');
-    console.log('Inventory items fetched:', data.length);
+    console.log('Inventory items fetched:', data?.length || 'No data returned');
     return data;
   } catch (error) {
     console.error('Error fetching inventory:', error);
+    console.error('Error details:', {
+      message: error.message,
+      status: error.response?.status,
+      data: error.response?.data
+    });
     throw error;
   }
 };

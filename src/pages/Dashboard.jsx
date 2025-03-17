@@ -55,7 +55,7 @@ const Dashboard = () => {
   const statistics = [
     {
       title: "Inventory Items",
-      value: "250",
+      value: "240",
       description: "Total pesticide products in stock",
       icon: <Package className="h-5 w-5" />,
       iconClass: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
