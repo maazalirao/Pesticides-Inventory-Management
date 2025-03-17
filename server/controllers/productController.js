@@ -5,12 +5,23 @@ import Product from '../models/productModel.js';
 // @route   GET /api/products
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
-  // Use lean() for faster queries and select only needed fields
-  const products = await Product.find({})
-    .select('name description category price stockQuantity sku image manufacturer toxicityLevel recommendedUse tags')
-    .lean()
-    .exec();
-  res.json(products);
+  try {
+    // Use lean() for faster queries and select only needed fields
+    const products = await Product.find({})
+      .select('name description category price stockQuantity sku image manufacturer toxicityLevel recommendedUse tags')
+      .lean()
+      .exec();
+    
+    console.log(`Found ${products.length} products`);
+    
+    // Ensure we're sending JSON
+    res.setHeader('Content-Type', 'application/json');
+    res.json(products);
+  } catch (error) {
+    console.error('Error fetching products:', error);
+    res.status(500);
+    throw new Error(`Failed to fetch products: ${error.message}`);
+  }
 });
 
 // @desc    Fetch single product

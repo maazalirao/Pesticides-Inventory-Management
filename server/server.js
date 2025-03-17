@@ -86,6 +86,11 @@ app.use('/api/products', productRoutes);
 app.use('/api/inventory', inventoryRoutes);
 // Add more routes as needed
 
+// API fallback for any unhandled API routes
+app.all('/api/*', (req, res) => {
+  res.status(404).json({ message: `API endpoint not found: ${req.path}` });
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
@@ -104,10 +109,13 @@ if (process.env.NODE_ENV === 'production') {
   
   app.use(express.static(buildPath));
   
-  // Any route that is not api will be redirected to index.html
+  // Any non-api route will be redirected to index.html
   app.get('*', (req, res) => {
     if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
       res.sendFile(path.resolve(buildPath, 'index.html'));
+    } else {
+      // This should not be reached due to the API fallback above, but just in case
+      res.status(404).json({ message: 'Not found' });
     }
   });
 } else {

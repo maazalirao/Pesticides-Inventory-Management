@@ -37,12 +37,28 @@ api.interceptors.request.use(
 
 // Add a response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Check if the response is HTML when we expect JSON
+    const contentType = response.headers['content-type'];
+    if (contentType && contentType.includes('text/html') && !response.config.url.endsWith('.html')) {
+      console.error('Received HTML when expecting JSON:', response.config.url);
+      return Promise.reject(new Error('Received HTML instead of JSON. This likely indicates a server routing issue.'));
+    }
+    return response;
+  },
   (error) => {
     console.error('Response error:', error);
     if (!error.response) {
       throw new Error('Network error. Please check your connection.');
     }
+    
+    // Check if the error response is HTML
+    const contentType = error.response.headers && error.response.headers['content-type'];
+    if (contentType && contentType.includes('text/html')) {
+      console.error('Received HTML error response:', error.response.data);
+      throw new Error('Server returned HTML instead of JSON. This indicates a server configuration issue.');
+    }
+    
     throw error.response.data?.message || 'An error occurred. Please try again.';
   }
 );
