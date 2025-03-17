@@ -14,9 +14,7 @@ const app = express();
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? [process.env.FRONTEND_URL || 'https://pesticidesss40.vercel.app']
-    : 'http://localhost:5173',
+  origin: true, // Allow requests from the same domain
   credentials: true
 }));
 app.use(express.json());
