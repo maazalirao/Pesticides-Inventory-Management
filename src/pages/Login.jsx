@@ -61,7 +61,7 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
         <Card>
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credentials to access your account</CardDescription>
+            <CardDescription>Enter your credential to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (

@@ -9,14 +9,14 @@
       }
     },
     {
-      "src": "server/server.js",
+      "src": "server/index.js",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server/server.js"
+      "dest": "server/index.js"
     },
     {
       "src": "/(.*\\.(js|css|svg|png|jpg|jpeg|gif|webp|ico)$)",
@@ -26,5 +26,10 @@
       "src": "/(.*)",
       "dest": "/dist/index.html"
     }
-  ]
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "JWT_SECRET": "@jwt_secret",
+    "MONGO_URI": "@mongo_uri"
+  }
 } 

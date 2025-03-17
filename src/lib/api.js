@@ -1,11 +1,11 @@
 import axios from 'axios';
 
-// For local development, explicitly use the local development URL if available
-// For production, fallback to relative path
+// API URL configuration
 const API_URL = import.meta.env.VITE_API_URL || 
-  (window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : `${window.location.origin}/api`);
+  (window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api'
+    : '/api'); // For Vercel serverless functions, use relative path
 
-// Log the API URL being used (helpful for debugging)
 console.log('API URL:', API_URL);
 
 // Create axios instance
@@ -14,6 +14,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // Enable credentials for CORS
 });
 
 // Add a request interceptor to include the auth token in requests
@@ -43,17 +44,29 @@ api.interceptors.request.use(
   }
 );
 
-// Add a response interceptor to handle token expiration
+// Add a response interceptor to handle token expiration and errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    console.error('API Error:', error);
+    
+    // Handle network errors
+    if (!error.response) {
+      console.error('Network error - no response received');
+      return Promise.reject(new Error('Network error. Please check your connection.'));
+    }
+
+    // Handle 401 errors (unauthorized)
     if (error.response?.status === 401) {
-      // Clear auth data and redirect to login
+      console.error('Authentication error - clearing token');
       localStorage.removeItem('userToken');
       localStorage.removeItem('userInfo');
       window.location.href = '/login';
     }
-    return Promise.reject(error);
+
+    // Handle other errors
+    const errorMessage = error.response?.data?.message || 'An error occurred. Please try again.';
+    return Promise.reject(new Error(errorMessage));
   }
 );
 
