@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 // API URL configuration
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+const API_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname === 'localhost' 
+    ? 'http://localhost:5000/api'
+    : '/api');
 
 console.log('API URL:', API_URL);
 
@@ -118,7 +121,7 @@ export const logout = () => {
 export const getProducts = async () => {
   try {
     console.log('Fetching products...');
-    const { data } = await api.get('/api/products');
+    const { data } = await api.get('/products');
     console.log('Products fetched:', data.length);
     return data;
   } catch (error) {
@@ -129,7 +132,7 @@ export const getProducts = async () => {
 
 export const getProductById = async (id) => {
   try {
-    const { data } = await api.get(`/api/products/${id}`);
+    const { data } = await api.get(`/products/${id}`);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to fetch product';
@@ -138,7 +141,7 @@ export const getProductById = async (id) => {
 
 export const createProduct = async (productData) => {
   try {
-    const { data } = await api.post('/api/products', productData);
+    const { data } = await api.post('/products', productData);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to create product';
@@ -147,7 +150,7 @@ export const createProduct = async (productData) => {
 
 export const updateProduct = async (id, productData) => {
   try {
-    const { data } = await api.put(`/api/products/${id}`, productData);
+    const { data } = await api.put(`/products/${id}`, productData);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to update product';
@@ -156,7 +159,7 @@ export const updateProduct = async (id, productData) => {
 
 export const deleteProduct = async (id) => {
   try {
-    const { data } = await api.delete(`/api/products/${id}`);
+    const { data } = await api.delete(`/products/${id}`);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to delete product';
@@ -167,7 +170,7 @@ export const deleteProduct = async (id) => {
 export const getInventoryItems = async () => {
   try {
     console.log('Fetching inventory items...');
-    const { data } = await api.get('/api/inventory');
+    const { data } = await api.get('/inventory');
     console.log('Inventory items fetched:', data.length);
     return data;
   } catch (error) {
@@ -178,7 +181,7 @@ export const getInventoryItems = async () => {
 
 export const getInventoryItemById = async (id) => {
   try {
-    const { data } = await api.get(`/api/inventory/${id}`);
+    const { data } = await api.get(`/inventory/${id}`);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to fetch inventory item';
@@ -187,7 +190,7 @@ export const getInventoryItemById = async (id) => {
 
 export const createInventoryItem = async (inventoryData) => {
   try {
-    const { data } = await api.post('/api/inventory', inventoryData);
+    const { data } = await api.post('/inventory', inventoryData);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to create inventory item';
@@ -196,7 +199,7 @@ export const createInventoryItem = async (inventoryData) => {
 
 export const updateInventoryItem = async (id, inventoryData) => {
   try {
-    const { data } = await api.put(`/api/inventory/${id}`, inventoryData);
+    const { data } = await api.put(`/inventory/${id}`, inventoryData);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to update inventory item';
@@ -205,7 +208,7 @@ export const updateInventoryItem = async (id, inventoryData) => {
 
 export const deleteInventoryItem = async (id) => {
   try {
-    const { data } = await api.delete(`/api/inventory/${id}`);
+    const { data } = await api.delete(`/inventory/${id}`);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to delete inventory item';
@@ -214,7 +217,7 @@ export const deleteInventoryItem = async (id) => {
 
 export const addBatchToInventoryItem = async (id, batchData) => {
   try {
-    const { data } = await api.post(`/api/inventory/${id}/batches`, batchData);
+    const { data } = await api.post(`/inventory/${id}/batches`, batchData);
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to add batch to inventory item';

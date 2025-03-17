@@ -13,8 +13,7 @@
     "data:import": "node server/utils/seedProducts.js",
     "data:import:inventory": "node server/utils/seedInventory.js",
     "client": "vite",
-    "dev:full": "concurrently \"npm run server\" \"npm run client\"",
-    "vercel-build": "vite build"
+    "dev:full": "concurrently \"npm run server\" \"npm run client\""
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
