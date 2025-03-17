@@ -53,7 +53,8 @@ import {
   createInventoryItem, 
   updateInventoryItem, 
   deleteInventoryItem,
-  addBatchToInventoryItem
+  addBatchToInventoryItem,
+  clearCache
 } from '../lib/api';
 
 const Inventory = () => {
@@ -99,21 +100,38 @@ const Inventory = () => {
 
   // Fetch inventory items on component mount
   useEffect(() => {
+    let isMounted = true;
+
     const fetchInventoryItems = async () => {
       try {
         setLoading(true);
         const data = await getInventoryItems();
-        setInventoryItems(data);
-        setError(null);
+        
+        if (isMounted) {
+          setInventoryItems(data);
+          setError(null);
+        }
       } catch (err) {
-        setError('Failed to fetch inventory items. Please try again later.');
-        console.error(err);
+        if (isMounted) {
+          console.error('Inventory fetch error in component:', err);
+          if (err.includes('Not authorized') || err.includes('token')) {
+            setError('Authentication error. Please log out and log in again.');
+          } else {
+            setError('Failed to fetch inventory items. Please try again later.');
+          }
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchInventoryItems();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Handle form input changes
@@ -160,6 +178,9 @@ const Inventory = () => {
         // Add to UI
         setInventoryItems([...inventoryItems, createdItem]);
       }
+      
+      // Clear cache after successful operation
+      clearCache('inventory');
       
       // Reset form and close modal
       resetForm();
@@ -222,6 +243,10 @@ const Inventory = () => {
         
         // Update UI
         setInventoryItems(inventoryItems.filter(item => item._id !== id));
+        
+        // Clear cache after successful deletion
+        clearCache('inventory');
+        
         setError(null);
       } catch (err) {
         setError('Failed to delete inventory item. Please try again.');

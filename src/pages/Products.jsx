@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Button } from '../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
@@ -36,22 +36,60 @@ const Products = () => {
   const [importError, setImportError] = useState('');
   const [importSuccess, setImportSuccess] = useState('');
   
+  // Fetch products on component mount with cleanup
   useEffect(() => {
+    let isMounted = true;
+
     const fetchProducts = async () => {
       try {
         setLoading(true);
         const data = await getProducts();
-        setProducts(data);
-      } catch (error) {
-        setError('Failed to fetch products');
-        console.error(error);
+        
+        if (isMounted) {
+          setProducts(data);
+          setError(null);
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error('Products fetch error in component:', err);
+          setError('Failed to fetch products. Please try again later.');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
     
     fetchProducts();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
+
+  // Optimize filtered products calculation with useMemo
+  const filteredProducts = useMemo(() => {
+    return products.filter(product => {
+      const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [products, searchTerm, filterCategory]);
+
+  // Optimize pagination calculations with useMemo
+  const { currentItems, totalPages } = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const items = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
+    const total = Math.ceil(filteredProducts.length / itemsPerPage);
+    return { currentItems: items, totalPages: total };
+  }, [filteredProducts, currentPage, itemsPerPage]);
+
+  // Calculate pagination indices for display
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const handleDeleteProduct = async (id) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
@@ -158,19 +196,6 @@ const Products = () => {
       setIsSubmitting(false);
     }
   };
-
-  // Update the filtered products logic to include pagination
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
-    return matchesSearch && matchesCategory;
-  });
-  
-  const currentItems = filteredProducts.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
 
   // Add pagination handlers
   const handlePageChange = (pageNumber) => {

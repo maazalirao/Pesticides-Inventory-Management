@@ -5,7 +5,11 @@ import Product from '../models/productModel.js';
 // @route   GET /api/products
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({}).populate('supplier', 'name');
+  // Use lean() for faster queries and select only needed fields
+  const products = await Product.find({})
+    .select('name description category price stockQuantity sku image manufacturer toxicityLevel recommendedUse tags')
+    .lean()
+    .exec();
   res.json(products);
 });
 

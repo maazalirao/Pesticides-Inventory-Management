@@ -5,7 +5,12 @@ import Inventory from '../models/inventoryModel.js';
 // @route   GET /api/inventory
 // @access  Private
 const getInventoryItems = asyncHandler(async (req, res) => {
-  const inventoryItems = await Inventory.find({});
+  // Use lean() for faster queries and select only needed fields
+  const inventoryItems = await Inventory.find({})
+    .select('name sku category quantity unit price threshold status supplier batches')
+    .lean()
+    .exec();
+  
   res.json(inventoryItems);
 });
 

@@ -24,9 +24,21 @@ function App() {
       ? JSON.parse(localStorage.getItem('userInfo'))
       : null;
     
-    if (userInfoFromStorage) {
+    const userToken = localStorage.getItem('userToken');
+    
+    console.log('App startup - User info available:', !!userInfoFromStorage);
+    console.log('App startup - Token available:', !!userToken);
+    
+    if (userInfoFromStorage && userToken) {
       setIsLoggedIn(true);
       setUserInfo(userInfoFromStorage);
+    } else {
+      // If we're missing either the token or user info, clear both for consistency
+      if (userInfoFromStorage || userToken) {
+        console.log('Inconsistent auth state, clearing localStorage');
+        localStorage.removeItem('userInfo');
+        localStorage.removeItem('userToken');
+      }
     }
   }, []);
 
