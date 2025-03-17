@@ -59,6 +59,10 @@ const cache = {
   suppliers: {
     data: null,
     timestamp: 0
+  },
+  customers: {
+    data: null,
+    timestamp: 0
   }
 };
 
@@ -277,6 +281,64 @@ export const deleteSupplier = async (id) => {
   try {
     const { data } = await api.delete(`/suppliers/${id}`);
     cache.suppliers.timestamp = 0; // Invalidate cache
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Customer API calls
+export const getCustomers = async () => {
+  try {
+    if (isCacheValid('customers')) {
+      return cache.customers.data;
+    }
+    
+    const { data } = await api.get('/customers');
+    cache.customers.data = data;
+    cache.customers.timestamp = Date.now();
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getCustomerById = async (id) => {
+  try {
+    const { data } = await api.get(`/customers/${id}`);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createCustomer = async (customerData) => {
+  try {
+    const { data } = await api.post('/customers', customerData);
+    // Invalidate cache
+    cache.customers.timestamp = 0;
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateCustomer = async (id, customerData) => {
+  try {
+    const { data } = await api.put(`/customers/${id}`, customerData);
+    // Invalidate cache
+    cache.customers.timestamp = 0;
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteCustomer = async (id) => {
+  try {
+    const { data } = await api.delete(`/customers/${id}`);
+    // Invalidate cache
+    cache.customers.timestamp = 0;
     return data;
   } catch (error) {
     throw error;

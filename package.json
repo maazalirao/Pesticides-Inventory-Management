@@ -10,11 +10,13 @@
     "preview": "vite preview",
     "server": "nodemon server/server.js",
     "dev:server": "nodemon server/server.js",
-    "data:import": "node server/utils/seedProducts.js",
-    "data:import:inventory": "node server/utils/seedInventory.js",
+    "seed:products": "node scripts/seedProducts.js",
+    "seed:inventory": "node scripts/seedInventory.js",
+    "seed:customers": "node scripts/seedCustomers.js",
     "client": "vite",
     "dev:full": "concurrently \"npm run server\" \"npm run client\"",
-    "seed:suppliers": "node scripts/seedSuppliers.js"
+    "seed:suppliers": "node scripts/seedSuppliers.js",
+    "seed:all": "node scripts/seedSuppliers.js && node scripts/seedCustomers.js && node scripts/seedProducts.js && node scripts/seedInventory.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

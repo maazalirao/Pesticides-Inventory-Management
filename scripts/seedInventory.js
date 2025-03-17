@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Inventory from '../models/inventoryModel.js';
-import connectDB from '../config/db.js';
+import Inventory from '../server/models/inventoryModel.js';
+import connectDB from '../server/config/db.js';
 
 dotenv.config();
 
@@ -221,6 +221,62 @@ const sampleInventory = [
     ]
   },
   {
+    name: 'AquaShield Fish Safe',
+    sku: 'AFS-INV-009',
+    category: 'Aquatic Herbicide',
+    quantity: 35,
+    unit: 'Bottles',
+    price: 1950.75,
+    threshold: 10,
+    status: 'In Stock',
+    supplier: 'AquaCare Products',
+    batches: [
+      {
+        batchId: 'AFS-B001',
+        lotNumber: 'AQUA-222-33',
+        quantity: 35,
+        manufacturingDate: new Date('2023-10-12'),
+        expiryDate: new Date('2025-10-12'),
+        supplier: 'AquaCare Products',
+        locationCode: 'W2-D1-S1',
+        notes: 'Special aquatic formulation'
+      }
+    ]
+  },
+  {
+    name: 'MosquitoGuard 365',
+    sku: 'MGD-INV-010',
+    category: 'Larvicide',
+    quantity: 65,
+    unit: 'Packets',
+    price: 1750.25,
+    threshold: 20,
+    status: 'In Stock',
+    supplier: 'Vector Control Systems',
+    batches: [
+      {
+        batchId: 'MGD-B001',
+        lotNumber: 'MOS-512-78',
+        quantity: 40,
+        manufacturingDate: new Date('2023-07-20'),
+        expiryDate: new Date('2026-07-20'),
+        supplier: 'Vector Control Systems',
+        locationCode: 'W3-A1-S5',
+        notes: 'Long-lasting formula'
+      },
+      {
+        batchId: 'MGD-B002',
+        lotNumber: 'MOS-514-80',
+        quantity: 25,
+        manufacturingDate: new Date('2023-09-10'),
+        expiryDate: new Date('2026-09-10'),
+        supplier: 'Vector Control Systems',
+        locationCode: 'W3-A1-S6',
+        notes: 'Enhanced effectiveness'
+      }
+    ]
+  },
+  {
     name: 'RodentStop Bait Blocks',
     sku: 'RSB-INV-011',
     category: 'Rodenticide',
@@ -249,7 +305,30 @@ const sampleInventory = [
         expiryDate: new Date('2025-08-25'),
         supplier: 'PestAway Solutions',
         locationCode: 'W3-B1-S5',
-        notes: 'New formula'
+        notes: 'Enhanced formula'
+      }
+    ]
+  },
+  {
+    name: 'GreenGuard Nematicide',
+    sku: 'GGN-INV-012',
+    category: 'Nematicide',
+    quantity: 30,
+    unit: 'Bags',
+    price: 2850.50,
+    threshold: 10,
+    status: 'In Stock',
+    supplier: 'Soil Health Experts',
+    batches: [
+      {
+        batchId: 'GGN-B001',
+        lotNumber: 'NEM-777-88',
+        quantity: 30,
+        manufacturingDate: new Date('2023-11-15'),
+        expiryDate: new Date('2025-11-15'),
+        supplier: 'Soil Health Experts',
+        locationCode: 'W2-E2-S1',
+        notes: 'Soil-friendly formulation'
       }
     ]
   },
@@ -257,56 +336,117 @@ const sampleInventory = [
     name: 'HarvestSafe Residue Free',
     sku: 'HSR-INV-013',
     category: 'Insecticide',
-    quantity: 0,
+    quantity: 50,
     unit: 'Bottles',
     price: 2100.25,
-    threshold: 12,
-    status: 'Out of Stock',
+    threshold: 15,
+    status: 'In Stock',
     supplier: 'CleanCrop Technologies',
-    batches: []
+    batches: [
+      {
+        batchId: 'HSR-B001',
+        lotNumber: 'HARV-333-44',
+        quantity: 30,
+        manufacturingDate: new Date('2023-10-20'),
+        expiryDate: new Date('2024-10-20'),
+        supplier: 'CleanCrop Technologies',
+        locationCode: 'W1-D3-S2',
+        notes: 'Short PHI formulation'
+      },
+      {
+        batchId: 'HSR-B002',
+        lotNumber: 'HARV-335-46',
+        quantity: 20,
+        manufacturingDate: new Date('2023-11-25'),
+        expiryDate: new Date('2024-11-25'),
+        supplier: 'CleanCrop Technologies',
+        locationCode: 'W1-D3-S3',
+        notes: 'For export crops'
+      }
+    ]
+  },
+  {
+    name: 'StorageGuard Fumigant',
+    sku: 'SGF-INV-014',
+    category: 'Fumigant',
+    quantity: 25,
+    unit: 'Canisters',
+    price: 3500.75,
+    threshold: 8,
+    status: 'In Stock',
+    supplier: 'StoreSafe Products',
+    batches: [
+      {
+        batchId: 'SGF-B001',
+        lotNumber: 'FUM-888-99',
+        quantity: 25,
+        manufacturingDate: new Date('2023-09-05'),
+        expiryDate: new Date('2026-09-05'),
+        supplier: 'StoreSafe Products',
+        locationCode: 'W3-C2-S1',
+        notes: 'Handle with care - high toxicity'
+      }
+    ]
+  },
+  {
+    name: 'CitrusShield EC',
+    sku: 'CSE-INV-015',
+    category: 'Insecticide',
+    quantity: 35,
+    unit: 'Bottles',
+    price: 2750.00,
+    threshold: 12,
+    status: 'In Stock',
+    supplier: 'Citrus Crop Solutions',
+    batches: [
+      {
+        batchId: 'CSE-B001',
+        lotNumber: 'CIT-123-45',
+        quantity: 20,
+        manufacturingDate: new Date('2023-08-30'),
+        expiryDate: new Date('2025-08-30'),
+        supplier: 'Citrus Crop Solutions',
+        locationCode: 'W1-E1-S1',
+        notes: 'Specialized for citrus'
+      },
+      {
+        batchId: 'CSE-B002',
+        lotNumber: 'CIT-125-47',
+        quantity: 15,
+        manufacturingDate: new Date('2023-10-12'),
+        expiryDate: new Date('2025-10-12'),
+        supplier: 'Citrus Crop Solutions',
+        locationCode: 'W1-E1-S2',
+        notes: 'New improved formula'
+      }
+    ]
   }
 ];
 
-// Connect to MongoDB and seed data
 const importInventory = async () => {
   try {
-    // Connect to the database
+    // Connect to MongoDB using the existing configuration
     await connectDB();
+    console.log('MongoDB Connected');
     
-    // Drop the collection to reset any indexes
-    console.log('Dropping existing inventory collection...');
-    await mongoose.connection.dropCollection('inventories').catch(err => {
-      // It's okay if the collection doesn't exist yet
-      if (err.code !== 26) {
-        console.log(`Warning: ${err.message}`);
-      }
-    });
+    // Clear existing inventory
+    await Inventory.deleteMany({});
+    console.log('Cleared existing inventory');
     
-    // Separate items with batches from items without batches
-    const itemsWithBatches = sampleInventory.filter(item => item.batches && item.batches.length > 0);
-    const itemsWithoutBatches = sampleInventory.filter(item => !item.batches || item.batches.length === 0);
+    // Insert sample inventory
+    const createdInventory = await Inventory.insertMany(sampleInventory);
+    console.log(`${createdInventory.length} inventory items created`);
     
-    // Insert items with batches first
-    console.log('Inserting inventory items with batches...');
-    for (const item of itemsWithBatches) {
-      await Inventory.create(item);
-    }
+    // Close the connection
+    await mongoose.connection.close();
+    console.log('Database connection closed');
     
-    // Set a placeholder batch for items without batches to avoid null batches
-    console.log('Inserting inventory items without batches...');
-    for (const item of itemsWithoutBatches) {
-      // Explicitly set batches to an empty array to avoid any schema defaults
-      const itemToInsert = { ...item, batches: [] };
-      await Inventory.create(itemToInsert);
-    }
-    
-    console.log('Inventory data imported successfully!');
-    process.exit();
+    process.exit(0);
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    console.error(`Error importing inventory: ${error.message}`);
     process.exit(1);
   }
 };
 
-// Run the script
+// Run the import function
 importInventory(); 

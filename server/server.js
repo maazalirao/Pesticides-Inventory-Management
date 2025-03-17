@@ -6,6 +6,7 @@ import userRoutes from './routes/userRoutes.js';
 import productRoutes from './routes/productRoutes.js';
 import inventoryRoutes from './routes/inventoryRoutes.js';
 import supplierRoutes from './routes/supplierRoutes.js';
+import customerRoutes from './routes/customerRoutes.js';
 
 // Load environment variables
 dotenv.config();
@@ -38,6 +39,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/suppliers', supplierRoutes);
+app.use('/api/customers', customerRoutes);
 // Add more routes as needed
 
 // Error handling middleware
