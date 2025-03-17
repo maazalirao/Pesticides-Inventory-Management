@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 
   (window.location.hostname === 'localhost' 
     ? 'http://localhost:5000/api'
-    : `${window.location.origin}/apiserver`);
+    : '/api');
 
 console.log('API URL:', API_URL);
 
@@ -14,8 +14,6 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  // Add a longer timeout for Railway deployment
-  timeout: 15000,
 });
 
 // Add a request interceptor
@@ -37,28 +35,12 @@ api.interceptors.request.use(
 
 // Add a response interceptor
 api.interceptors.response.use(
-  (response) => {
-    // Check if the response is HTML when we expect JSON
-    const contentType = response.headers['content-type'];
-    if (contentType && contentType.includes('text/html') && !response.config.url.endsWith('.html')) {
-      console.error('Received HTML when expecting JSON:', response.config.url);
-      return Promise.reject(new Error('Received HTML instead of JSON. This likely indicates a server routing issue.'));
-    }
-    return response;
-  },
+  (response) => response,
   (error) => {
     console.error('Response error:', error);
     if (!error.response) {
       throw new Error('Network error. Please check your connection.');
     }
-    
-    // Check if the error response is HTML
-    const contentType = error.response.headers && error.response.headers['content-type'];
-    if (contentType && contentType.includes('text/html')) {
-      console.error('Received HTML error response:', error.response.data);
-      throw new Error('Server returned HTML instead of JSON. This indicates a server configuration issue.');
-    }
-    
     throw error.response.data?.message || 'An error occurred. Please try again.';
   }
 );
@@ -71,6 +53,10 @@ const cache = {
     timestamp: 0
   },
   products: {
+    data: null,
+    timestamp: 0
+  },
+  suppliers: {
     data: null,
     timestamp: 0
   }
@@ -140,15 +126,10 @@ export const getProducts = async () => {
   try {
     console.log('Fetching products...');
     const { data } = await api.get('/products');
-    console.log('Products fetched:', data?.length || 'No data returned');
+    console.log('Products fetched:', data.length);
     return data;
   } catch (error) {
     console.error('Error fetching products:', error);
-    console.error('Error details:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
     throw error;
   }
 };
@@ -194,15 +175,10 @@ export const getInventoryItems = async () => {
   try {
     console.log('Fetching inventory items...');
     const { data } = await api.get('/inventory');
-    console.log('Inventory items fetched:', data?.length || 'No data returned');
+    console.log('Inventory items fetched:', data.length);
     return data;
   } catch (error) {
     console.error('Error fetching inventory:', error);
-    console.error('Error details:', {
-      message: error.message,
-      status: error.response?.status,
-      data: error.response?.data
-    });
     throw error;
   }
 };
@@ -249,6 +225,61 @@ export const addBatchToInventoryItem = async (id, batchData) => {
     return data;
   } catch (error) {
     throw error.response?.data?.message || 'Failed to add batch to inventory item';
+  }
+};
+
+// Supplier API calls
+export const getSuppliers = async () => {
+  try {
+    if (isCacheValid('suppliers')) {
+      return cache.suppliers.data;
+    }
+    
+    const { data } = await api.get('/suppliers');
+    cache.suppliers.data = data;
+    cache.suppliers.timestamp = Date.now();
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getSupplierById = async (id) => {
+  try {
+    const { data } = await api.get(`/suppliers/${id}`);
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createSupplier = async (supplierData) => {
+  try {
+    const { data } = await api.post('/suppliers', supplierData);
+    cache.suppliers.timestamp = 0; // Invalidate cache
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateSupplier = async (id, supplierData) => {
+  try {
+    const { data } = await api.put(`/suppliers/${id}`, supplierData);
+    cache.suppliers.timestamp = 0; // Invalidate cache
+    return data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteSupplier = async (id) => {
+  try {
+    const { data } = await api.delete(`/suppliers/${id}`);
+    cache.suppliers.timestamp = 0; // Invalidate cache
+    return data;
+  } catch (error) {
+    throw error;
   }
 };
 

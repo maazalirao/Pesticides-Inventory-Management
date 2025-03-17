@@ -5,23 +5,13 @@ import Inventory from '../models/inventoryModel.js';
 // @route   GET /api/inventory
 // @access  Private
 const getInventoryItems = asyncHandler(async (req, res) => {
-  try {
-    // Use lean() for faster queries and select only needed fields
-    const inventoryItems = await Inventory.find({})
-      .select('name sku category quantity unit price threshold status supplier batches')
-      .lean()
-      .exec();
-    
-    console.log(`Found ${inventoryItems.length} inventory items`);
-    
-    // Ensure we're sending JSON
-    res.setHeader('Content-Type', 'application/json');
-    res.json(inventoryItems);
-  } catch (error) {
-    console.error('Error fetching inventory items:', error);
-    res.status(500);
-    throw new Error(`Failed to fetch inventory items: ${error.message}`);
-  }
+  // Use lean() for faster queries and select only needed fields
+  const inventoryItems = await Inventory.find({})
+    .select('name sku category quantity unit price threshold status supplier batches')
+    .lean()
+    .exec();
+  
+  res.json(inventoryItems);
 });
 
 // @desc    Fetch single inventory item

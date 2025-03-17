@@ -4,21 +4,17 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "nodemon server/server.js",
+    "dev": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "server": "nodemon server/server.js",
     "dev:server": "nodemon server/server.js",
-    "data:import": "node server/utils/seeder.js",
-    "data:destroy": "node server/utils/seeder.js -d",
-    "data:import:products": "node server/utils/seedProducts.js",
+    "data:import": "node server/utils/seedProducts.js",
     "data:import:inventory": "node server/utils/seedInventory.js",
     "client": "vite",
     "dev:full": "concurrently \"npm run server\" \"npm run client\"",
-    "start": "node server/server.js",
-    "railway": "npm run build && npm start",
-    "test:api": "node server/utils/testApi.js"
+    "seed:suppliers": "node scripts/seedSuppliers.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

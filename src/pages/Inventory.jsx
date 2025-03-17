@@ -108,24 +108,17 @@ const Inventory = () => {
         const data = await getInventoryItems();
         
         if (isMounted) {
-          // Ensure data is always an array
-          if (Array.isArray(data)) {
-            setInventoryItems(data);
-          } else {
-            console.error('Expected array but got:', typeof data, data);
-            setInventoryItems([]);
-            setError('Received invalid data format from server');
-          }
+          setInventoryItems(data);
+          setError(null);
         }
       } catch (err) {
         if (isMounted) {
           console.error('Inventory fetch error in component:', err);
-          if (typeof err === 'string' && (err.includes('Not authorized') || err.includes('token'))) {
+          if (err.includes('Not authorized') || err.includes('token')) {
             setError('Authentication error. Please log out and log in again.');
           } else {
             setError('Failed to fetch inventory items. Please try again later.');
           }
-          setInventoryItems([]);
         }
       } finally {
         if (isMounted) {
@@ -248,10 +241,8 @@ const Inventory = () => {
         // Delete via API
         await deleteInventoryItem(id);
         
-        // Update UI safely
-        if (Array.isArray(inventoryItems)) {
-          setInventoryItems(inventoryItems.filter(item => item && item._id !== id));
-        }
+        // Update UI
+        setInventoryItems(inventoryItems.filter(item => item._id !== id));
         
         // Clear cache after successful deletion
         clearCache('inventory');
@@ -326,67 +317,46 @@ const Inventory = () => {
   };
 
   // Filter inventory items based on search query and filters
-  const filteredItems = Array.isArray(inventoryItems) ? inventoryItems.filter(item => {
-    if (!item) return false;
+  const filteredItems = inventoryItems.filter(item => {
+    // Search query filter
+    const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          item.sku.toLowerCase().includes(searchQuery.toLowerCase());
     
-    try {
-      // Search query filter
-      const matchesSearch = 
-        (typeof item.name === 'string' && item.name.toLowerCase().includes(searchQuery.toLowerCase())) || 
-        (typeof item.sku === 'string' && item.sku.toLowerCase().includes(searchQuery.toLowerCase()));
-      
-      // Category filter
-      const matchesCategory = 
-        categoryFilter === 'all' || 
-        (typeof item.category === 'string' && item.category.toLowerCase() === categoryFilter.toLowerCase());
-      
-      // Status filter
-      const matchesStatus = 
-        statusFilter === 'all' || 
-        (typeof item.status === 'string' && item.status.toLowerCase() === statusFilter.toLowerCase());
-      
-      return matchesSearch && matchesCategory && matchesStatus;
-    } catch (err) {
-      console.error('Error filtering item:', err, item);
-      return false;
-    }
-  }) : [];
+    // Category filter
+    const matchesCategory = categoryFilter === 'all' || item.category.toLowerCase() === categoryFilter.toLowerCase();
+    
+    // Status filter
+    const matchesStatus = statusFilter === 'all' || item.status.toLowerCase() === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
 
   // Sort filtered items
   const sortedItems = [...filteredItems].sort((a, b) => {
-    try {
-      let aValue = a[sortBy];
-      let bValue = b[sortBy];
-      
-      // Handle numeric sorting
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
-      }
-      
-      // Handle string sorting
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' 
-          ? aValue.localeCompare(bValue) 
-          : bValue.localeCompare(aValue);
-      }
-      
-      return 0;
-    } catch (err) {
-      console.error('Error sorting items:', err);
-      return 0;
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    
+    // Handle numeric sorting
+    if (typeof aValue === 'number' && typeof bValue === 'number') {
+      return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     }
+    
+    // Handle string sorting
+    if (typeof aValue === 'string' && typeof bValue === 'string') {
+      return sortDirection === 'asc' 
+        ? aValue.localeCompare(bValue) 
+        : bValue.localeCompare(aValue);
+    }
+    
+    return 0;
   });
 
   // Calculate total items and batches
-  const totalItems = Array.isArray(inventoryItems) ? inventoryItems.length : 0;
-  const totalBatches = Array.isArray(inventoryItems) ? 
-    inventoryItems.reduce((total, item) => total + (Array.isArray(item?.batches) ? item.batches.length : 0), 0) : 0;
-  const totalQuantity = Array.isArray(inventoryItems) ? 
-    inventoryItems.reduce((total, item) => total + (typeof item?.quantity === 'number' ? item.quantity : 0), 0) : 0;
-  const lowStockItems = Array.isArray(inventoryItems) ? 
-    inventoryItems.filter(item => item?.status === "Low Stock").length : 0;
-  const outOfStockItems = Array.isArray(inventoryItems) ? 
-    inventoryItems.filter(item => item?.status === "Out of Stock").length : 0;
+  const totalItems = inventoryItems.length;
+  const totalBatches = inventoryItems.reduce((total, item) => total + item.batches.length, 0);
+  const totalQuantity = inventoryItems.reduce((total, item) => total + item.quantity, 0);
+  const lowStockItems = inventoryItems.filter(item => item.status === "Low Stock").length;
+  const outOfStockItems = inventoryItems.filter(item => item.status === "Out of Stock").length;
 
   return (
     <div className="container mx-auto py-6 space-y-6">

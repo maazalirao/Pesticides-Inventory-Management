@@ -46,21 +46,13 @@ const Products = () => {
         const data = await getProducts();
         
         if (isMounted) {
-          // Ensure data is always an array
-          if (Array.isArray(data)) {
-            setProducts(data);
-            setError(null);
-          } else {
-            console.error('Expected array but got:', typeof data, data);
-            setProducts([]);
-            setError('Received invalid data format from server');
-          }
+          setProducts(data);
+          setError(null);
         }
       } catch (err) {
         if (isMounted) {
-          console.error('Error fetching products:', err);
-          setError('Failed to fetch products. Please try again.');
-          setProducts([]);
+          console.error('Products fetch error in component:', err);
+          setError('Failed to fetch products. Please try again later.');
         }
       } finally {
         if (isMounted) {
@@ -76,49 +68,13 @@ const Products = () => {
     };
   }, []);
 
-  // Handle delete product with safe array operations
-  const handleDeleteProduct = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-
-    try {
-      setLoading(true);
-      await deleteProduct(id);
-      // Safe filtering
-      if (Array.isArray(products)) {
-        setProducts(products.filter(product => product && product._id !== id));
-      }
-      setError(null);
-    } catch (err) {
-      setError('Failed to delete product');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filter products based on search & category
+  // Optimize filtered products calculation with useMemo
   const filteredProducts = useMemo(() => {
-    if (!Array.isArray(products)) return [];
-    
     return products.filter(product => {
-      try {
-        if (!product) return false;
-        
-        // Handle search term
-        const matchesSearch = searchTerm.trim() === '' || 
-          (typeof product.name === 'string' && product.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (typeof product.description === 'string' && product.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
-          (typeof product.sku === 'string' && product.sku.toLowerCase().includes(searchTerm.toLowerCase()));
-        
-        // Handle category filter
-        const matchesCategory = filterCategory === 'All' || 
-          (typeof product.category === 'string' && product.category === filterCategory);
-        
-        return matchesSearch && matchesCategory;
-      } catch (err) {
-        console.error('Error filtering product:', err, product);
-        return false;
-      }
+      const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
+      return matchesSearch && matchesCategory;
     });
   }, [products, searchTerm, filterCategory]);
 
@@ -134,6 +90,18 @@ const Products = () => {
   // Calculate pagination indices for display
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+
+  const handleDeleteProduct = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      try {
+        await deleteProduct(id);
+        setProducts(products.filter(product => product._id !== id));
+      } catch (error) {
+        setError('Failed to delete product');
+        console.error(error);
+      }
+    }
+  };
 
   const handleEditProduct = (product) => {
     setIsEditMode(true);
@@ -270,22 +238,8 @@ const Products = () => {
     return pageNumbers;
   };
 
-  // Generate unique categories safely
-  const categories = useMemo(() => {
-    if (!Array.isArray(products)) return ['All'];
-    
-    try {
-      const uniqueCategories = new Set(
-        products
-          .filter(product => product && typeof product.category === 'string')
-          .map(product => product.category)
-      );
-      return ['All', ...uniqueCategories];
-    } catch (err) {
-      console.error('Error generating categories:', err);
-      return ['All'];
-    }
-  }, [products]);
+  // Get unique categories for filter dropdown
+  const categories = ['All', ...new Set(products.map(product => product.category).filter(Boolean))];
 
   // Toxicity level badge color
   const getToxicityColor = (level) => {
