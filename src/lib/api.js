@@ -43,6 +43,20 @@ api.interceptors.request.use(
   }
 );
 
+// Add a response interceptor to handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear auth data and redirect to login
+      localStorage.removeItem('userToken');
+      localStorage.removeItem('userInfo');
+      window.location.href = '/login';
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Cache configuration
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 const cache = {
@@ -76,29 +90,43 @@ export const login = async (email, password) => {
       console.log('Token stored:', !!localStorage.getItem('userToken'));
     } else {
       console.error('Login response missing token:', data);
+      throw new Error('Invalid login response');
     }
     
     return data;
   } catch (error) {
     console.error('Login error:', error);
-    throw error.response?.data?.message || 'Login failed';
+    if (error.response?.status === 401) {
+      throw new Error('Invalid email or password');
+    }
+    throw error.response?.data?.message || 'Login failed. Please try again.';
   }
 };
 
 export const register = async (name, email, password) => {
   try {
     const { data } = await api.post('/users', { name, email, password });
-    localStorage.setItem('userInfo', JSON.stringify(data));
-    localStorage.setItem('userToken', data.token);
-    return data;
+    
+    if (data && data.token) {
+      localStorage.setItem('userInfo', JSON.stringify(data));
+      localStorage.setItem('userToken', data.token);
+      return data;
+    } else {
+      throw new Error('Invalid registration response');
+    }
   } catch (error) {
-    throw error.response?.data?.message || 'Registration failed';
+    console.error('Registration error:', error);
+    if (error.response?.status === 400) {
+      throw new Error('Email already registered');
+    }
+    throw error.response?.data?.message || 'Registration failed. Please try again.';
   }
 };
 
 export const logout = () => {
   localStorage.removeItem('userInfo');
   localStorage.removeItem('userToken');
+  window.location.href = '/login';
 };
 
 // Product API calls

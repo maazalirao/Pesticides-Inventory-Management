@@ -18,19 +18,48 @@ const Register = ({ setIsLoggedIn, setUserInfo }) => {
     setIsLoading(true);
     setError('');
     
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      setIsLoading(false);
-      return;
-    }
-    
     try {
+      // Basic validation
+      if (!name || !email || !password || !confirmPassword) {
+        setError('Please fill in all fields');
+        setIsLoading(false);
+        return;
+      }
+
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError('Please enter a valid email address');
+        setIsLoading(false);
+        return;
+      }
+
+      // Password validation
+      if (password.length < 6) {
+        setError('Password must be at least 6 characters long');
+        setIsLoading(false);
+        return;
+      }
+
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        setIsLoading(false);
+        return;
+      }
+      
       const userData = await register(name, email, password);
+      
+      // Verify we got valid data back
+      if (!userData || !userData.token) {
+        throw new Error('Invalid response from server');
+      }
+
       setIsLoggedIn(true);
       setUserInfo(userData);
       navigate('/');
     } catch (error) {
-      setError(error.toString());
+      console.error('Registration error:', error);
+      setError(error.message || 'An error occurred during registration. Please try again.');
     } finally {
       setIsLoading(false);
     }

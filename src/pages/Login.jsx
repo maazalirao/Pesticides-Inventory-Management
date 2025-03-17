@@ -17,12 +17,34 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
     setError('');
     
     try {
+      // Basic validation
+      if (!email || !password) {
+        setError('Please fill in all fields');
+        setIsLoading(false);
+        return;
+      }
+
+      // Email format validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        setError('Please enter a valid email address');
+        setIsLoading(false);
+        return;
+      }
+
       const userData = await login(email, password);
+      
+      // Verify we got valid data back
+      if (!userData || !userData.token) {
+        throw new Error('Invalid response from server');
+      }
+
       setIsLoggedIn(true);
       setUserInfo(userData);
       navigate('/');
     } catch (error) {
-      setError(error.toString());
+      console.error('Login error:', error);
+      setError(error.message || 'An error occurred during login. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -39,7 +61,7 @@ const Login = ({ setIsLoggedIn, setUserInfo }) => {
         <Card>
           <CardHeader>
             <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your credential to access your account</CardDescription>
+            <CardDescription>Enter your credentials to access your account</CardDescription>
           </CardHeader>
           <CardContent>
             {error && (
