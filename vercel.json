@@ -26,10 +26,5 @@
       "src": "/(.*)",
       "dest": "/dist/index.html"
     }
-  ],
-  "env": {
-    "NODE_ENV": "production",
-    "JWT_SECRET": "@jwt_secret",
-    "MONGO_URI": "@mongo_uri"
-  }
+  ]
 } 
