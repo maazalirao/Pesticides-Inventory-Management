@@ -10,12 +10,15 @@
     "preview": "vite preview",
     "server": "nodemon server/server.js",
     "dev:server": "nodemon server/server.js",
-    "data:import": "node server/utils/seedProducts.js",
+    "data:import": "node server/utils/seeder.js",
+    "data:destroy": "node server/utils/seeder.js -d",
+    "data:import:products": "node server/utils/seedProducts.js",
     "data:import:inventory": "node server/utils/seedInventory.js",
     "client": "vite",
     "dev:full": "concurrently \"npm run server\" \"npm run client\"",
     "start": "node server/server.js",
-    "railway": "npm run build && npm start"
+    "railway": "npm run build && npm start",
+    "test:api": "node server/utils/testApi.js"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

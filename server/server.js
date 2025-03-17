@@ -69,6 +69,17 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Test API endpoints
+app.get('/apiserver/test', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json({ message: 'API server test endpoint is working', timestamp: new Date().toISOString() });
+});
+
+app.get('/api/test', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.json({ message: 'API test endpoint is working', timestamp: new Date().toISOString() });
+});
+
 // Connect to MongoDB
 const connectDB = async () => {
   try {
@@ -80,13 +91,26 @@ const connectDB = async () => {
   }
 };
 
-// Routes import
-app.use('/api/users', userRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/inventory', inventoryRoutes);
-// Add more routes as needed
+// Define API route prefixes based on environment
+const apiPrefix = process.env.NODE_ENV === 'production' ? '/apiserver' : '/api';
+
+// Routes import with environment-specific prefixes
+app.use(`${apiPrefix}/users`, userRoutes);
+app.use(`${apiPrefix}/products`, productRoutes);
+app.use(`${apiPrefix}/inventory`, inventoryRoutes);
+
+// Legacy routes support for development
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api/users', userRoutes);
+  app.use('/api/products', productRoutes);
+  app.use('/api/inventory', inventoryRoutes);
+}
 
 // API fallback for any unhandled API routes
+app.all('/apiserver/*', (req, res) => {
+  res.status(404).json({ message: `API endpoint not found: ${req.path}` });
+});
+
 app.all('/api/*', (req, res) => {
   res.status(404).json({ message: `API endpoint not found: ${req.path}` });
 });
@@ -101,7 +125,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Serve static assets in production
+// Serve static assets in production AFTER all API routes
 if (process.env.NODE_ENV === 'production') {
   // Set build folder as static
   const buildPath = path.resolve(__dirname, '../dist');
@@ -111,7 +135,9 @@ if (process.env.NODE_ENV === 'production') {
   
   // Any non-api route will be redirected to index.html
   app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api') && !req.path.startsWith('/health')) {
+    if (!req.path.startsWith('/apiserver') && 
+        !req.path.startsWith('/api') && 
+        !req.path.startsWith('/health')) {
       res.sendFile(path.resolve(buildPath, 'index.html'));
     } else {
       // This should not be reached due to the API fallback above, but just in case
