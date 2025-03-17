@@ -649,106 +649,119 @@ const Products = () => {
             </div>
           )}
 
-          <div className="overflow-x-auto rounded-md border">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-muted/50 border-b">
-                  <th className="py-3 px-4 text-left font-medium">Product Name</th>
-                  <th className="py-3 px-4 text-left font-medium">Category</th>
-                  <th className="py-3 px-4 text-left font-medium">Price</th>
-                  <th className="py-3 px-4 text-left font-medium">Manufacturer</th>
-                  <th className="py-3 px-4 text-left font-medium">Toxicity Level</th>
-                  <th className="py-3 px-4 text-left font-medium">Recommended Use</th>
-                  <th className="py-3 px-4 text-center font-medium">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {currentItems.map((product) => (
-                  <tr key={product._id} className="border-b hover:bg-muted/25">
-                    <td className="py-3 px-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group">
-                          <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
-                          <div className="h-full w-full rounded overflow-hidden relative">
-                            <img 
-                              src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
-                              alt={product.name}
-                              className="h-full w-full object-cover z-0"
-                              onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
-                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-20"></div>
+          {loading ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4"></div>
+              <p className="text-muted-foreground">Loading products...</p>
+            </div>
+          ) : error ? (
+            <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+              {error}
+            </div>
+          ) : (
+            <div className="overflow-x-auto rounded-md border">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-muted/50 border-b">
+                    <th className="py-3 px-4 text-left font-medium">Product Name</th>
+                    <th className="py-3 px-4 text-left font-medium">Category</th>
+                    <th className="py-3 px-4 text-left font-medium">Price</th>
+                    <th className="py-3 px-4 text-left font-medium">Manufacturer</th>
+                    <th className="py-3 px-4 text-left font-medium">Toxicity Level</th>
+                    <th className="py-3 px-4 text-left font-medium">Recommended Use</th>
+                    <th className="py-3 px-4 text-center font-medium">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {currentItems.map((product) => (
+                    <tr key={product._id} className="border-b hover:bg-muted/25">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group">
+                            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
+                            <div className="h-full w-full rounded overflow-hidden relative">
+                              <img 
+                                src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
+                                alt={product.name}
+                                className="h-full w-full object-cover z-0"
+                                onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
+                              />
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
+                              <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-20"></div>
+                            </div>
+                          </div>
+                          <div>
+                            <p className="font-medium">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.description?.substring(0, 60)}...</p>
                           </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.description?.substring(0, 60)}...</p>
+                      </td>
+                      <td className="py-3 px-4">{product.category}</td>
+                      <td className="py-3 px-4">₹{product.price?.toFixed(2)}</td>
+                      <td className="py-3 px-4">{product.manufacturer}</td>
+                      <td className="py-3 px-4">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
+                          {product.toxicityLevel}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">{product.recommendedUse}</td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-center gap-2">
+                          <button 
+                            className="p-1 rounded-md hover:bg-muted"
+                            onClick={() => handleEditProduct(product)}
+                          >
+                            <Edit className="h-4 w-4 text-blue-600" />
+                          </button>
+                          <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
+                            <Trash className="h-4 w-4 text-red-600" />
+                          </button>
                         </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">{product.category}</td>
-                    <td className="py-3 px-4">₹{product.price?.toFixed(2)}</td>
-                    <td className="py-3 px-4">{product.manufacturer}</td>
-                    <td className="py-3 px-4">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
-                        {product.toxicityLevel}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">{product.recommendedUse}</td>
-                    <td className="py-3 px-4">
-                      <div className="flex justify-center gap-2">
-                        <button 
-                          className="p-1 rounded-md hover:bg-muted"
-                          onClick={() => handleEditProduct(product)}
-                        >
-                          <Edit className="h-4 w-4 text-blue-600" />
-                        </button>
-                        <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
-                          <Trash className="h-4 w-4 text-red-600" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
-          <div className="mt-4 flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
-            <p>Showing {Math.min(indexOfFirstItem + 1, filteredProducts.length)} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} products</p>
-            <div className="flex gap-1 mt-3 sm:mt-0">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={goToPreviousPage}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              
-              {getPageNumbers().map(number => (
+          {!loading && !error && (
+            <div className="mt-4 flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
+              <p>Showing {Math.min(indexOfFirstItem + 1, filteredProducts.length)} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} products</p>
+              <div className="flex gap-1 mt-3 sm:mt-0">
                 <Button 
-                  key={number}
                   variant="outline" 
                   size="sm" 
-                  className={currentPage === number ? "bg-primary text-primary-foreground" : ""}
-                  onClick={() => handlePageChange(number)}
+                  onClick={goToPreviousPage}
+                  disabled={currentPage === 1}
                 >
-                  {number}
+                  Previous
                 </Button>
-              ))}
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={goToNextPage}
-                disabled={currentPage === totalPages || totalPages === 0}
-              >
-                Next
-              </Button>
+                
+                {getPageNumbers().map(number => (
+                  <Button 
+                    key={number}
+                    variant="outline" 
+                    size="sm" 
+                    className={currentPage === number ? "bg-primary text-primary-foreground" : ""}
+                    onClick={() => handlePageChange(number)}
+                  >
+                    {number}
+                  </Button>
+                ))}
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={goToNextPage}
+                  disabled={currentPage === totalPages || totalPages === 0}
+                >
+                  Next
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
     </div>

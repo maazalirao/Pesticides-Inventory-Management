@@ -3,11 +3,36 @@ import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card'
 import { Button } from '../components/ui/button';
 import { Search, Plus, Edit, Download, Eye, Trash, Filter, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription, 
+  DialogFooter,
+  DialogTrigger 
+} from '../components/ui/dialog';
+import { Input } from '../components/ui/input';
+import { Select } from '../components/ui/select';
+import { Label } from '../components/ui/label';
 
 const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [activeTab, setActiveTab] = useState('invoices');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newInvoice, setNewInvoice] = useState({
+    customer: '',
+    customerType: 'Business',
+    dueDate: '',
+    items: [{ product: '', quantity: 1, unitPrice: 0, total: 0 }],
+    subtotal: 0,
+    tax: 0,
+    total: 0,
+    notes: ''
+  });
+  const [formError, setFormError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Mock data for invoices
   const invoices = [
@@ -212,6 +237,120 @@ const Invoices = () => {
     return format(new Date(dateString), 'MMM dd, yyyy');
   };
 
+  // Handle item change
+  const handleItemChange = (index, field, value) => {
+    const updatedItems = [...newInvoice.items];
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
+    
+    // Recalculate total for this item
+    if (field === 'quantity' || field === 'unitPrice') {
+      const quantity = field === 'quantity' ? parseFloat(value) || 0 : parseFloat(updatedItems[index].quantity) || 0;
+      const unitPrice = field === 'unitPrice' ? parseFloat(value) || 0 : parseFloat(updatedItems[index].unitPrice) || 0;
+      updatedItems[index].total = quantity * unitPrice;
+    }
+    
+    // Recalculate invoice totals
+    const subtotal = updatedItems.reduce((sum, item) => sum + (item.total || 0), 0);
+    const tax = subtotal * 0.17; // 17% GST for example
+    const total = subtotal + tax;
+    
+    setNewInvoice({
+      ...newInvoice,
+      items: updatedItems,
+      subtotal,
+      tax,
+      total
+    });
+  };
+  
+  // Add new item
+  const handleAddItem = () => {
+    setNewInvoice({
+      ...newInvoice,
+      items: [...newInvoice.items, { product: '', quantity: 1, unitPrice: 0, total: 0 }]
+    });
+  };
+  
+  // Remove item
+  const handleRemoveItem = (index) => {
+    if (newInvoice.items.length === 1) return; // Keep at least one item
+    
+    const updatedItems = newInvoice.items.filter((_, i) => i !== index);
+    
+    // Recalculate invoice totals
+    const subtotal = updatedItems.reduce((sum, item) => sum + (item.total || 0), 0);
+    const tax = subtotal * 0.17; // 17% GST
+    const total = subtotal + tax;
+    
+    setNewInvoice({
+      ...newInvoice,
+      items: updatedItems,
+      subtotal,
+      tax,
+      total
+    });
+  };
+  
+  // Handle invoice submission
+  const handleSubmitInvoice = async (e) => {
+    e.preventDefault();
+    setFormError('');
+    setIsSubmitting(true);
+    
+    try {
+      // Validate required fields
+      if (!newInvoice.customer || !newInvoice.dueDate) {
+        setFormError('Please fill in all required fields');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      const response = await fetch('/api/invoices', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customer: {
+            name: newInvoice.customer,
+            email: newInvoice.email || 'customer@example.com', // You may want to add an email field
+            address: newInvoice.address || 'Customer Address' // You may want to add an address field
+          },
+          items: newInvoice.items,
+          subtotal: newInvoice.subtotal,
+          tax: newInvoice.tax,
+          total: newInvoice.total,
+          dueDate: newInvoice.dueDate,
+          notes: newInvoice.notes,
+          status: 'draft'
+        }),
+      });
+      
+      if (response.ok) {
+        // Reset form and close dialog
+        setNewInvoice({
+          customer: '',
+          customerType: 'Business',
+          dueDate: '',
+          items: [{ product: '', quantity: 1, unitPrice: 0, total: 0 }],
+          subtotal: 0,
+          tax: 0,
+          total: 0,
+          notes: ''
+        });
+        setIsDialogOpen(false);
+        // You might want to refresh the invoices list here
+      } else {
+        throw new Error('Failed to create invoice');
+      }
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      setFormError(error.toString());
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -221,10 +360,196 @@ const Invoices = () => {
             Manage your invoices, bills, and financial transactions
           </p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          {activeTab === 'invoices' ? 'Create New Invoice' : 'Add New Bill'}
-        </Button>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
+            <Button 
+              className="flex items-center gap-2"
+              onClick={() => activeTab === 'invoices' ? setIsDialogOpen(true) : null}
+            >
+              <Plus className="h-4 w-4" />
+              {activeTab === 'invoices' ? 'Create New Invoice' : 'Add New Bill'}
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+            <DialogHeader className="border-b border-gray-700 pb-4">
+              <DialogTitle className="text-xl font-bold text-primary">
+                Create New Invoice
+              </DialogTitle>
+              <DialogDescription className="text-gray-300 text-sm mt-1">
+                Fill in the details below to create a new invoice.
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmitInvoice} className="space-y-5 py-5">
+              {formError && (
+                <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+                  {formError}
+                </div>
+              )}
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="space-y-2">
+                  <label htmlFor="customer" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Customer Name <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    id="customer"
+                    name="customer"
+                    value={newInvoice.customer}
+                    onChange={(e) => setNewInvoice({...newInvoice, customer: e.target.value})}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="customerType" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Customer Type
+                  </label>
+                  <select 
+                    id="customerType"
+                    name="customerType"
+                    value={newInvoice.customerType}
+                    onChange={(e) => setNewInvoice({...newInvoice, customerType: e.target.value})}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="Business">Business</option>
+                    <option value="Individual">Individual</option>
+                    <option value="Government">Government</option>
+                    <option value="Educational">Educational</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="dueDate" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Due Date <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    id="dueDate"
+                    name="dueDate"
+                    type="date"
+                    value={newInvoice.dueDate}
+                    onChange={(e) => setNewInvoice({...newInvoice, dueDate: e.target.value})}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4 mt-6">
+                <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                  <h3 className="text-sm font-semibold text-gray-200">Invoice Items</h3>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleAddItem}
+                    className="bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700 hover:text-white text-xs px-2 py-1 h-7"
+                  >
+                    Add Item
+                  </Button>
+                </div>
+                
+                {newInvoice.items.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-center">
+                    <div className="col-span-5">
+                      <input 
+                        placeholder="Product name"
+                        value={item.product}
+                        onChange={(e) => handleItemChange(index, 'product', e.target.value)}
+                        className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input 
+                        type="number"
+                        placeholder="Qty"
+                        value={item.quantity}
+                        onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                        min="1"
+                        className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <input 
+                        type="number"
+                        placeholder="Price"
+                        value={item.unitPrice}
+                        onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+                        min="0"
+                        className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <div className="flex items-center h-10 border border-gray-700 bg-gray-800 px-3 rounded-md text-gray-300">
+                        {formatCurrency(item.total || 0)}
+                      </div>
+                    </div>
+                    <div className="col-span-1">
+                      <Button 
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleRemoveItem(index)}
+                        disabled={newInvoice.items.length === 1}
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-400 hover:bg-gray-800"
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
+                <div className="space-y-2">
+                  <label htmlFor="notes" className="text-sm font-semibold text-gray-200">
+                    Notes
+                  </label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    placeholder="Additional notes for this invoice"
+                    value={newInvoice.notes}
+                    onChange={(e) => setNewInvoice({...newInvoice, notes: e.target.value})}
+                    rows="3"
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  ></textarea>
+                </div>
+                
+                <div className="space-y-2 border-t border-gray-700 pt-4 md:pt-0 md:border-0">
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-gray-300">Subtotal:</span>
+                    <span className="text-white">{formatCurrency(newInvoice.subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-sm py-1">
+                    <span className="text-gray-300">Tax (17%):</span>
+                    <span className="text-white">{formatCurrency(newInvoice.tax)}</span>
+                  </div>
+                  <div className="flex justify-between font-medium py-2 border-t border-gray-700 mt-2">
+                    <span className="text-gray-200">Total:</span>
+                    <span className="text-primary text-lg">{formatCurrency(newInvoice.total)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-3 border-t border-gray-700 mt-6">
+                <p className="text-xs text-gray-400 mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white">
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={isSubmitting}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                  >
+                    {isSubmitting ? 'Creating...' : 'Create Invoice'}
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <div className="flex border-b">
