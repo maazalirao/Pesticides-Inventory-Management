@@ -19,11 +19,6 @@ app.use(cors({
 }));
 app.use(express.json());
 
-// Routes
-app.use('/api/users', userRoutes);
-app.use('/api/products', productRoutes);
-app.use('/api/inventory', inventoryRoutes);
-
 // Connect to MongoDB
 const connectDB = async () => {
   try {
@@ -43,6 +38,11 @@ const connectDB = async () => {
 
 // Connect to MongoDB
 connectDB();
+
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/inventory', inventoryRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
