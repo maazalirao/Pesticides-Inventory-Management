@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { 
   ChevronDown, 
   Menu, 
@@ -24,7 +24,7 @@ import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
 import { logout } from '../lib/api';
 
-const MainLayout = ({ children, userInfo, setIsLoggedIn, setUserInfo }) => {
+const MainLayout = ({ isLoggedIn, userInfo, setIsLoggedIn, setUserInfo }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
@@ -357,7 +357,7 @@ const MainLayout = ({ children, userInfo, setIsLoggedIn, setUserInfo }) => {
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-slate-900/10 scrollbar-hide">
           <div className="container mx-auto p-4 md:p-6 max-w-7xl">
-            {children}
+            <Outlet />
           </div>
         </main>
       </div>

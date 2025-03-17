@@ -1,7 +1,7 @@
 import express from 'express';
 import {
-  authUser,
   registerUser,
+  authUser,
   getUserProfile,
   updateUserProfile,
   getUsers,
@@ -11,14 +11,14 @@ import { protect, admin } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Public routes
-router.post('/login', authUser);
-router.post('/', registerUser);
+// Register new user / Login user
+router.route('/register').post(registerUser);
+router.route('/login').post(authUser);
 
-// Protected routes
+// Get/Update user profile
 router.route('/profile')
-  .get(protect, getUserProfile)
-  .put(protect, updateUserProfile);
+  .get(getUserProfile)
+  .put(updateUserProfile);
 
 // Admin routes
 router.route('/')

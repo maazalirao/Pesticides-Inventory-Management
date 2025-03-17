@@ -7,21 +7,19 @@ import {
   deleteInventoryItem,
   addBatchToInventoryItem
 } from '../controllers/inventoryController.js';
-import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all inventory items / Create new inventory item
-router.route('/').get(protect, getInventoryItems).post(protect, createInventoryItem);
+router.route('/').get(getInventoryItems).post(createInventoryItem);
 
-// Get, update, delete inventory item by ID
-router
-  .route('/:id')
-  .get(protect, getInventoryItemById)
-  .put(protect, updateInventoryItem)
-  .delete(protect, deleteInventoryItem);
+// Get/Update/Delete specific inventory item
+router.route('/:id')
+  .get(getInventoryItemById)
+  .put(updateInventoryItem)
+  .delete(deleteInventoryItem);
 
-// Add a batch to an inventory item
-router.route('/:id/batches').post(protect, addBatchToInventoryItem);
+// Add batch to inventory item
+router.route('/:id/batches').post(addBatchToInventoryItem);
 
 export default router; 

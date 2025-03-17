@@ -4,7 +4,7 @@ import axios from 'axios';
 const API_URL = import.meta.env.VITE_API_URL || 
   (window.location.hostname === 'localhost' 
     ? 'http://localhost:5000/api'
-    : '/api'); // For Vercel serverless functions, use relative path
+    : '/api');
 
 console.log('API URL:', API_URL);
 
@@ -14,59 +14,34 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // Enable credentials for CORS
 });
 
-// Add a request interceptor to include the auth token in requests
+// Add a request interceptor
 api.interceptors.request.use(
   (config) => {
     // Get token from localStorage
-    const token = localStorage.getItem('userToken');
-    
-    // Debug token
-    console.log('Request to:', config.url);
-    console.log('Token available:', !!token);
-    
-    // Only add the token if it exists
-    if (token) {
-      // Ensure the headers object exists
-      config.headers = config.headers || {};
-      
-      // Set the Authorization header with the Bearer token
-      config.headers.Authorization = `Bearer ${token}`;
+    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+    if (userInfo?.token) {
+      config.headers.Authorization = `Bearer ${userInfo.token}`;
     }
-    
+    console.log('Request to:', config.url);
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
+    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
 
-// Add a response interceptor to handle token expiration and errors
+// Add a response interceptor
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error:', error);
-    
-    // Handle network errors
+    console.error('Response error:', error);
     if (!error.response) {
-      console.error('Network error - no response received');
-      return Promise.reject(new Error('Network error. Please check your connection.'));
+      throw new Error('Network error. Please check your connection.');
     }
-
-    // Handle 401 errors (unauthorized)
-    if (error.response?.status === 401) {
-      console.error('Authentication error - clearing token');
-      localStorage.removeItem('userToken');
-      localStorage.removeItem('userInfo');
-      window.location.href = '/login';
-    }
-
-    // Handle other errors
-    const errorMessage = error.response?.data?.message || 'An error occurred. Please try again.';
-    return Promise.reject(new Error(errorMessage));
+    throw error.response.data?.message || 'An error occurred. Please try again.';
   }
 );
 
@@ -145,25 +120,13 @@ export const logout = () => {
 // Product API calls
 export const getProducts = async () => {
   try {
-    // Check cache first
-    if (isCacheValid('products')) {
-      console.log('Returning cached products data');
-      return cache.products.data;
-    }
-
-    console.log('Fetching fresh products data...');
-    const response = await api.get('/products');
-    
-    // Update cache
-    cache.products = {
-      data: response.data,
-      timestamp: Date.now()
-    };
-    
-    return response.data;
+    console.log('Fetching products...');
+    const { data } = await api.get('/products');
+    console.log('Products fetched:', data.length);
+    return data;
   } catch (error) {
-    console.error('Products fetch error:', error);
-    throw error.response?.data?.message || 'Failed to fetch products';
+    console.error('Error fetching products:', error);
+    throw error;
   }
 };
 
@@ -206,25 +169,13 @@ export const deleteProduct = async (id) => {
 // Inventory API calls
 export const getInventoryItems = async () => {
   try {
-    // Check cache first
-    if (isCacheValid('inventory')) {
-      console.log('Returning cached inventory data');
-      return cache.inventory.data;
-    }
-
-    console.log('Fetching fresh inventory data...');
-    const response = await api.get('/inventory');
-    
-    // Update cache
-    cache.inventory = {
-      data: response.data,
-      timestamp: Date.now()
-    };
-    
-    return response.data;
+    console.log('Fetching inventory items...');
+    const { data } = await api.get('/inventory');
+    console.log('Inventory items fetched:', data.length);
+    return data;
   } catch (error) {
-    console.error('Inventory fetch error:', error);
-    throw error.response?.data?.message || 'Failed to fetch inventory items';
+    console.error('Error fetching inventory:', error);
+    throw error;
   }
 };
 
