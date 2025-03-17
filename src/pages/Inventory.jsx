@@ -11,7 +11,7 @@ import {
   Search, 
   Filter, 
   Plus, 
-  Trash, 
+  Trash2, 
   Edit, 
   ArrowUpDown, 
   CheckCircle2, 
@@ -55,28 +55,6 @@ import {
   deleteInventoryItem,
   addBatchToInventoryItem
 } from '../lib/api';
-import { 
-  ResponsiveTable, 
-  ResponsiveTableHeader, 
-  ResponsiveTableBody,
-  ResponsiveTableCardContainer,
-  ResponsiveTableCard,
-  ResponsiveTableCardRow,
-  ResponsiveTableCardActions 
-} from "../components/ui/responsive-table";
-
-// Icon component for better performance
-const ProductIcon = ({ type = "product" }) => {
-  return (
-    <div className="product-image-container">
-      {type === "batch" ? (
-        <Calendar />
-      ) : (
-        <Package />
-      )}
-    </div>
-  );
-};
 
 const Inventory = () => {
   // State for inventory filters and modals
@@ -355,109 +333,6 @@ const Inventory = () => {
   const lowStockItems = inventoryItems.filter(item => item.status === "Low Stock").length;
   const outOfStockItems = inventoryItems.filter(item => item.status === "Out of Stock").length;
 
-  // Export inventory to CSV
-  const exportInventory = () => {
-    // Get the items to export (either filtered or all)
-    const itemsToExport = filteredItems.length > 0 ? filteredItems : inventoryItems;
-    
-    if (itemsToExport.length === 0) {
-      alert('No inventory items to export');
-      return;
-    }
-    
-    // Define the fields to export
-    const fields = [
-      'sku', 'name', 'category', 'quantity', 'unit', 'price', 'status', 'supplier', 'threshold'
-    ];
-    
-    // Create CSV header
-    let csv = fields.join(',') + '\n';
-    
-    // Add data rows
-    itemsToExport.forEach(item => {
-      const row = fields.map(field => {
-        // Format the value, wrap in quotes, and escape quotes inside
-        let value = item[field] !== undefined ? item[field] : '';
-        // Convert to string and handle quotes
-        value = String(value).replace(/"/g, '""');
-        return `"${value}"`;
-      });
-      csv += row.join(',') + '\n';
-    });
-    
-    // Create blob and download link
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `inventory-export-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  // Export batches to CSV
-  const exportBatches = () => {
-    // Get all batches from all inventory items
-    const allBatches = [];
-    
-    inventoryItems.forEach(item => {
-      if (item.batches && item.batches.length > 0) {
-        item.batches.forEach(batch => {
-          allBatches.push({
-            ...batch,
-            productName: item.name,
-            productSku: item.sku,
-            unit: item.unit
-          });
-        });
-      }
-    });
-    
-    if (allBatches.length === 0) {
-      alert('No batches to export');
-      return;
-    }
-    
-    // Define the fields to export
-    const fields = [
-      'batchId', 'lotNumber', 'productName', 'productSku', 'quantity', 'unit',
-      'manufacturingDate', 'expiryDate', 'supplier', 'locationCode', 'notes'
-    ];
-    
-    // Create CSV header
-    let csv = fields.join(',') + '\n';
-    
-    // Add data rows
-    allBatches.forEach(batch => {
-      const row = fields.map(field => {
-        // Handle dates
-        if (field === 'manufacturingDate' || field === 'expiryDate') {
-          return `"${new Date(batch[field]).toLocaleDateString()}"`;
-        }
-        
-        // Format the value, wrap in quotes, and escape quotes inside
-        let value = batch[field] !== undefined ? batch[field] : '';
-        // Convert to string and handle quotes
-        value = String(value).replace(/"/g, '""');
-        return `"${value}"`;
-      });
-      csv += row.join(',') + '\n';
-    });
-    
-    // Create blob and download link
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `batch-export-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
@@ -478,9 +353,8 @@ const Inventory = () => {
             <Plus className="mr-2 h-4 w-4" /> Add Item
           </Button>
           
-          <Button variant="outline" className="flex items-center gap-2" onClick={exportInventory}>
-            <Download className="h-4 w-4" />
-            Export
+          <Button variant="outline">
+            <Download className="mr-2 h-4 w-4" /> Export
           </Button>
         </div>
       </div>
@@ -567,15 +441,30 @@ const Inventory = () => {
           </div>
           
           <div className="flex gap-2">
-            <Button onClick={() => setIsAddModalOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Item
-            </Button>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <SelectValue placeholder="Category" className="text-gray-500 dark:text-gray-400" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">All Categories</SelectItem>
+                <SelectItem value="insecticide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Insecticide</SelectItem>
+                <SelectItem value="herbicide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Herbicide</SelectItem>
+                <SelectItem value="fungicide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Fungicide</SelectItem>
+                <SelectItem value="rodenticide" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Rodenticide</SelectItem>
+              </SelectContent>
+            </Select>
             
-            <Button variant="outline" className="flex items-center gap-2" onClick={exportInventory}>
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[160px] border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                <SelectValue placeholder="Status" className="text-gray-500 dark:text-gray-400" />
+              </SelectTrigger>
+              <SelectContent className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 [&_[data-radix-select-item-indicator]]:text-gray-900 dark:[&_[data-radix-select-item-indicator]]:text-gray-200">
+                <SelectItem value="all" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">All Status</SelectItem>
+                <SelectItem value="in stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">In Stock</SelectItem>
+                <SelectItem value="low stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Low Stock</SelectItem>
+                <SelectItem value="out of stock" className="text-gray-900 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-200 active:bg-gray-100 dark:active:bg-gray-700 active:text-gray-900 dark:active:text-gray-200 data-[highlighted]:text-gray-900 dark:data-[highlighted]:text-gray-200 data-[highlighted]:bg-gray-100 dark:data-[highlighted]:bg-gray-700 focus:text-gray-900 dark:focus:text-gray-200">Out of Stock</SelectItem>
+              </SelectContent>
+            </Select>
             
             <Button variant="outline" size="icon">
               <RefreshCw className="h-4 w-4" />
@@ -593,7 +482,7 @@ const Inventory = () => {
                 </div>
               ) : (
               <div className="overflow-x-auto rounded-md border">
-                <ResponsiveTable className="responsive-table">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/50 border-b">
                       <th className="py-3 px-4 text-left font-medium w-[80px]">SKU</th>
@@ -638,21 +527,13 @@ const Inventory = () => {
                     ) : (
                       sortedItems.map((item) => (
                         <tr key={item._id} className="border-b hover:bg-muted/25">
-                          <td className="py-3 px-4 font-mono text-xs text-muted-foreground" data-label="SKU">{item.sku}</td>
-                          <td className="py-3 px-4 font-medium image-cell" data-label="Product">
-                            <div className="product-info-wrapper">
-                              <ProductIcon type="product" />
-                              <div className="product-info">
-                                <p className="font-medium">{item.name}</p>
-                                <p className="text-xs text-muted-foreground">SKU: {item.sku}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-3 px-4" data-label="Category">{item.category}</td>
-                          <td className="py-3 px-4 text-right font-medium" data-label="Quantity">{item.quantity}</td>
-                          <td className="py-3 px-4 text-right" data-label="Unit">{item.unit}</td>
-                          <td className="py-3 px-4 text-right font-medium" data-label="Price">₹{item.price.toFixed(2)}</td>
-                          <td className="py-3 px-4" data-label="Status">
+                          <td className="py-3 px-4 font-mono text-xs text-muted-foreground">{item.sku}</td>
+                          <td className="py-3 px-4 font-medium">{item.name}</td>
+                          <td className="py-3 px-4">{item.category}</td>
+                          <td className="py-3 px-4 text-right font-medium">{item.quantity}</td>
+                          <td className="py-3 px-4 text-right">{item.unit}</td>
+                          <td className="py-3 px-4 text-right font-medium">₹{item.price.toFixed(2)}</td>
+                          <td className="py-3 px-4 flex justify-center">
                             <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium border text-black dark:text-white ${
                               item.status === 'Low Stock' 
                                 ? 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/50 dark:border-yellow-800/50'
@@ -663,33 +544,35 @@ const Inventory = () => {
                               {item.status}
                             </span>
                           </td>
-                          <td className="py-3 px-4" data-label="Batches">
-                            <button 
-                              className="inline-flex items-center justify-center px-3 py-1.5 rounded-md text-xs font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400 hover:dark:bg-blue-900/50 transition-colors"
+                          <td className="py-3 px-4">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
                               onClick={() => handleViewBatches(item)}
+                              className="font-medium"
                             >
-                              View {item.batches ? item.batches.length : 0}
-                            </button>
+                              {item.batches?.length || 0} Batches
+                            </Button>
                           </td>
-                          <td className="py-3 px-4 actions-cell" data-label="Actions">
-                            <div className="flex justify-end gap-2">
+                          <td className="py-3 px-4">
+                            <div className="flex justify-center gap-2">
                               <button 
-                                className="p-1.5 rounded-md hover:bg-muted"
-                                onClick={() => handleEditItem(item)}
-                              >
-                                <Edit className="h-4 w-4 text-blue-600" />
-                              </button>
-                              <button 
-                                className="p-1.5 rounded-md hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                className="p-1 rounded-md hover:bg-muted"
                                 onClick={() => openBatchModal(item)}
                               >
-                                <Plus className="h-4 w-4 text-blue-600" />
+                                <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
                               </button>
                               <button 
-                                className="p-1.5 rounded-md hover:bg-muted"
+                                className="p-1 rounded-md hover:bg-muted"
+                                onClick={() => handleEditItem(item)}
+                              >
+                                <Edit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </button>
+                              <button 
+                                className="p-1 rounded-md hover:bg-muted"
                                 onClick={() => handleDeleteItem(item._id)}
                               >
-                                <Trash className="h-4 w-4 text-red-600" />
+                                <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                               </button>
                             </div>
                           </td>
@@ -697,7 +580,7 @@ const Inventory = () => {
                       ))
                     )}
                   </tbody>
-                </ResponsiveTable>
+                </table>
               </div>
               )}
             </CardContent>
@@ -706,21 +589,15 @@ const Inventory = () => {
         
         <TabsContent value="batches" className="space-y-4">
           <Card>
-            <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-2">
-              <div>
+            <CardHeader>
               <CardTitle className="text-gray-900 dark:text-gray-100">Batch Tracking</CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
                 Track all batches and lot numbers across your inventory
               </CardDescription>
-              </div>
-              <Button variant="outline" className="mt-2 sm:mt-0 flex items-center gap-2" onClick={exportBatches}>
-                <Download className="h-4 w-4" />
-                Export Batches
-              </Button>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto rounded-md border">
-                <ResponsiveTable className="responsive-table">
+                <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted/50 border-b">
                       <th className="py-3 px-4 text-left font-medium">Batch ID</th>
@@ -751,29 +628,21 @@ const Inventory = () => {
                       inventoryItems.flatMap(item => 
                         (item.batches || []).map(batch => (
                           <tr key={`${item._id}-${batch.batchId}`} className="border-b hover:bg-muted/25">
-                            <td className="py-3 px-4 font-medium" data-label="Batch ID">{batch.batchId}</td>
-                            <td className="py-3 px-4 image-cell" data-label="Details">
-                              <div className="product-info-wrapper">
-                                <ProductIcon type="batch" />
-                                <div className="product-info">
-                                  <p className="font-medium">Lot: {batch.lotNumber}</p>
-                                  <p className="text-xs text-muted-foreground">{batch.quantity} {item.unit}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4" data-label="Lot Number">{batch.lotNumber}</td>
-                            <td className="py-3 px-4 font-medium" data-label="Quantity">{batch.quantity} {item.unit}</td>
-                            <td className="py-3 px-4" data-label="Manufacturing Date">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
-                            <td className="py-3 px-4 font-medium" data-label="Expiry Date">{new Date(batch.expiryDate).toLocaleDateString()}</td>
-                            <td className="py-3 px-4" data-label="Supplier">{batch.supplier || item.supplier || '-'}</td>
-                            <td className="py-3 px-4 font-mono text-xs" data-label="Location">{batch.locationCode}</td>
-                            <td className="py-3 px-4 actions-cell" data-label="Actions">
-                              <div className="flex justify-end gap-2">
-                                <button className="p-1.5 rounded-md hover:bg-muted">
+                            <td className="py-3 px-4 font-medium">{batch.batchId}</td>
+                            <td className="py-3 px-4">{batch.lotNumber}</td>
+                            <td className="py-3 px-4">{item.name}</td>
+                            <td className="py-3 px-4 font-medium">{batch.quantity} {item.unit}</td>
+                            <td className="py-3 px-4">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4 font-medium">{new Date(batch.expiryDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4">{batch.supplier || item.supplier || '-'}</td>
+                            <td className="py-3 px-4 font-mono text-xs">{batch.locationCode}</td>
+                            <td className="py-3 px-4">
+                              <div className="flex justify-center gap-2">
+                                <button className="p-1 rounded-md hover:bg-muted">
                                   <Edit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </button>
-                                <button className="p-1.5 rounded-md hover:bg-muted">
-                                  <Trash className="h-4 w-4 text-red-600 dark:text-red-400" />
+                                <button className="p-1 rounded-md hover:bg-muted">
+                                  <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
                                 </button>
                               </div>
                             </td>
@@ -782,7 +651,7 @@ const Inventory = () => {
                       )
                     )}
                   </tbody>
-                </ResponsiveTable>
+                </table>
               </div>
             </CardContent>
           </Card>
@@ -1066,7 +935,7 @@ const Inventory = () => {
               {selectedProduct?.batches?.length > 0 ? (
                 <ScrollArea className="h-[350px] border border-gray-200 dark:border-gray-700 rounded-md">
                   <div className="overflow-x-auto">
-                    <ResponsiveTable className="responsive-table">
+                    <table className="w-full text-sm">
                       <thead>
                         <tr className="bg-muted/50 border-b">
                           <th className="py-3 px-4 text-left font-medium">Batch ID</th>
@@ -1082,26 +951,18 @@ const Inventory = () => {
                       <tbody>
                         {selectedProduct?.batches.map((batch) => (
                           <tr key={batch.batchId} className="border-b hover:bg-muted/25">
-                            <td className="py-3 px-4 font-medium" data-label="Batch ID">{batch.batchId}</td>
-                            <td className="py-3 px-4 image-cell" data-label="Details">
-                              <div className="product-info-wrapper">
-                                <ProductIcon type="batch" />
-                                <div className="product-info">
-                                  <p className="font-medium">Lot: {batch.lotNumber}</p>
-                                  <p className="text-xs text-muted-foreground">{batch.quantity} {selectedProduct?.unit}</p>
-                                </div>
-                              </div>
-                            </td>
-                            <td className="py-3 px-4" data-label="Quantity">{batch.quantity} {selectedProduct?.unit}</td>
-                            <td className="py-3 px-4" data-label="Manufacturing Date">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
-                            <td className="py-3 px-4 font-medium" data-label="Expiry Date">{new Date(batch.expiryDate).toLocaleDateString()}</td>
-                            <td className="py-3 px-4" data-label="Supplier">{batch.supplier || selectedProduct?.supplier || '-'}</td>
-                            <td className="py-3 px-4 font-mono text-xs" data-label="Location">{batch.locationCode}</td>
-                            <td className="py-3 px-4 text-muted-foreground" data-label="Notes">{batch.notes || "-"}</td>
+                            <td className="py-3 px-4 font-medium">{batch.batchId}</td>
+                            <td className="py-3 px-4">{batch.lotNumber}</td>
+                            <td className="py-3 px-4 font-medium">{batch.quantity} {selectedProduct?.unit}</td>
+                            <td className="py-3 px-4">{new Date(batch.manufacturingDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4 font-medium">{new Date(batch.expiryDate).toLocaleDateString()}</td>
+                            <td className="py-3 px-4">{batch.supplier || selectedProduct?.supplier || '-'}</td>
+                            <td className="py-3 px-4 font-mono text-xs">{batch.locationCode}</td>
+                            <td className="py-3 px-4 text-muted-foreground">{batch.notes || "-"}</td>
                           </tr>
                         ))}
                       </tbody>
-                    </ResponsiveTable>
+                    </table>
                   </div>
                 </ScrollArea>
               ) : (
