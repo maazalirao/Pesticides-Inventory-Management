@@ -1,10 +1,7 @@
 import axios from 'axios';
 
 // API URL configuration
-const API_URL = import.meta.env.VITE_API_URL || 
-  (window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api'
-    : '/api');
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 console.log('API URL:', API_URL);
 
