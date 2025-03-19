@@ -1,10 +1,7 @@
 import axios from 'axios';
 
 // API URL configuration
-const API_URL = import.meta.env.VITE_API_URL || 
-  (window.location.hostname === 'localhost' 
-    ? 'http://localhost:5000/api'
-    : '/api');
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 console.log('API URL:', API_URL);
 
@@ -20,7 +17,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     // Get token from localStorage
-    const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+    const userInfo = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null;
     if (userInfo?.token) {
       config.headers.Authorization = `Bearer ${userInfo.token}`;
     }
@@ -101,7 +98,7 @@ export const login = async (email, password) => {
 
 export const register = async (name, email, password) => {
   try {
-    const { data } = await api.post('/users', { name, email, password });
+    const { data } = await api.post('/users/register', { name, email, password });
     
     if (data && data.token) {
       localStorage.setItem('userInfo', JSON.stringify(data));
