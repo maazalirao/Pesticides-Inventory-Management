@@ -1006,8 +1006,8 @@ const Inventory = () => {
           </DialogHeader>
           
           <form onSubmit={handleSubmitInventoryItem} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="name" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Item Name <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1022,7 +1022,7 @@ const Inventory = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="sku" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   SKU <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1037,7 +1037,7 @@ const Inventory = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="category" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Category <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1060,7 +1060,7 @@ const Inventory = () => {
                 </Select>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="price" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Price (₹) <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1078,7 +1078,7 @@ const Inventory = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="quantity" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Quantity <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1095,7 +1095,7 @@ const Inventory = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="unit" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Unit <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1118,7 +1118,7 @@ const Inventory = () => {
                 </Select>
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="threshold" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Low Stock Threshold <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1135,7 +1135,7 @@ const Inventory = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="supplier" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Supplier
                 </Label>
@@ -1149,7 +1149,7 @@ const Inventory = () => {
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <Label htmlFor="status" className="text-sm font-medium text-gray-900 dark:text-gray-200 flex items-center">
                   Status <span className="text-red-500 ml-1">*</span>
                 </Label>
@@ -1171,14 +1171,14 @@ const Inventory = () => {
               </div>
             </div>
             
-            <DialogFooter className="mt-6">
+            <DialogFooter className="mt-5 sm:mt-6">
               <Button type="button" variant="outline" 
-                className="border border-gray-300 dark:border-gray-700 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white"
+                className="border border-gray-300 dark:border-gray-700 bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white w-full sm:w-auto"
                 onClick={() => setIsAddModalOpen(false)}>
                 Cancel
               </Button>
               <Button type="submit" disabled={loading}
-                className="bg-primary hover:bg-primary/90 text-white">
+                className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto">
                 {loading ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-b-2 border-white"></div>

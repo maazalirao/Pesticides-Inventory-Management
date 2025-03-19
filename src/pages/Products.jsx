@@ -418,14 +418,14 @@ const Products = () => {
                   : 'Fill in the details below to add a new product to your inventory.'}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-5 py-5">
+            <form onSubmit={handleSubmit} className="space-y-5 py-4 sm:py-5">
               {formError && (
-                <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+                <div className="bg-red-900/30 border border-red-500 text-red-200 px-3 py-2 sm:px-4 sm:py-3 rounded mb-3 sm:mb-4 text-sm">
                   {formError}
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
                     Product Name <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -438,7 +438,7 @@ const Products = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="category" className="text-sm font-semibold text-gray-200 flex items-center">
                     Category <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -451,7 +451,7 @@ const Products = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="price" className="text-sm font-semibold text-gray-200 flex items-center">
                     Price <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -466,7 +466,7 @@ const Products = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="stockQuantity" className="text-sm font-semibold text-gray-200">
                     Stock Quantity
                   </label>
@@ -479,7 +479,7 @@ const Products = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="sku" className="text-sm font-semibold text-gray-200">
                     SKU
                   </label>
@@ -491,7 +491,7 @@ const Products = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="manufacturer" className="text-sm font-semibold text-gray-200">
                     Manufacturer
                   </label>
@@ -503,7 +503,7 @@ const Products = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="toxicityLevel" className="text-sm font-semibold text-gray-200">
                     Toxicity Level
                   </label>
@@ -519,7 +519,7 @@ const Products = () => {
                     <option value="High">High</option>
                   </select>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="recommendedUse" className="text-sm font-semibold text-gray-200">
                     Recommended Use
                   </label>
@@ -531,7 +531,7 @@ const Products = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="image" className="text-sm font-semibold text-gray-200">
                     Image URL
                   </label>
@@ -546,7 +546,7 @@ const Products = () => {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1 sm:space-y-2">
                 <label htmlFor="description" className="text-sm font-semibold text-gray-200">
                   Description
                 </label>
@@ -559,16 +559,16 @@ const Products = () => {
                   className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                 ></textarea>
               </div>
-              <div className="pt-3 border-t border-gray-700 mt-4">
-                <p className="text-xs text-gray-400 mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+              <div className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
+                <p className="text-xs text-gray-400 mb-3 sm:mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium w-full sm:w-auto"
                   >
                     {isSubmitting 
                       ? (isEditMode ? 'Updating...' : 'Creating...') 

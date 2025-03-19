@@ -229,19 +229,19 @@ const Suppliers = () => {
               <DialogDescription className="text-gray-300 text-sm mt-1">
                 {isEditMode 
                   ? 'Update the details of this supplier.' 
-                  : 'Fill in the details below to add a new supplier.'}
+                  : 'Fill in the details below to add a new supplier to your system.'}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-5 py-5">
+            <form onSubmit={handleSubmit} className="space-y-5 py-4 sm:py-5">
               {formError && (
-                <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+                <div className="bg-red-900/30 border border-red-500 text-red-200 px-3 py-2 sm:px-4 sm:py-3 rounded mb-3 sm:mb-4 text-sm">
                   {formError}
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
-                    Company Name <span className="text-red-400 ml-1">*</span>
+                    Supplier Name <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
                     id="name"
@@ -252,9 +252,9 @@ const Suppliers = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="contactPerson" className="text-sm font-semibold text-gray-200 flex items-center">
-                    Contact Person <span className="text-red-400 ml-1">*</span>
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="contactPerson" className="text-sm font-semibold text-gray-200">
+                    Contact Person
                   </label>
                   <input
                     id="contactPerson"
@@ -262,10 +262,9 @@ const Suppliers = () => {
                     value={newSupplier.contactPerson}
                     onChange={handleInputChange}
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                    required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="email" className="text-sm font-semibold text-gray-200 flex items-center">
                     Email <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -279,7 +278,7 @@ const Suppliers = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="phone" className="text-sm font-semibold text-gray-200 flex items-center">
                     Phone <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -292,69 +291,57 @@ const Suppliers = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.street" className="text-sm font-semibold text-gray-200">
-                    Street Address
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="address" className="text-sm font-semibold text-gray-200">
+                    Address
                   </label>
                   <input
-                    id="address.street"
-                    name="address.street"
-                    value={newSupplier.address.street}
+                    id="address"
+                    name="address"
+                    value={newSupplier.address}
                     onChange={handleInputChange}
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.city" className="text-sm font-semibold text-gray-200">
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="city" className="text-sm font-semibold text-gray-200">
                     City
                   </label>
                   <input
-                    id="address.city"
-                    name="address.city"
-                    value={newSupplier.address.city}
+                    id="city"
+                    name="city"
+                    value={newSupplier.city}
                     onChange={handleInputChange}
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.state" className="text-sm font-semibold text-gray-200">
-                    State/Province
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="state" className="text-sm font-semibold text-gray-200">
+                    State
                   </label>
                   <input
-                    id="address.state"
-                    name="address.state"
-                    value={newSupplier.address.state}
+                    id="state"
+                    name="state"
+                    value={newSupplier.state}
                     onChange={handleInputChange}
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.zipCode" className="text-sm font-semibold text-gray-200">
-                    Zip/Postal Code
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="zipCode" className="text-sm font-semibold text-gray-200">
+                    Zip Code
                   </label>
                   <input
-                    id="address.zipCode"
-                    name="address.zipCode"
-                    value={newSupplier.address.zipCode}
+                    id="zipCode"
+                    name="zipCode"
+                    value={newSupplier.zipCode}
                     onChange={handleInputChange}
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.country" className="text-sm font-semibold text-gray-200">
-                    Country
-                  </label>
-                  <input
-                    id="address.country"
-                    name="address.country"
-                    value={newSupplier.address.country}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="taxId" className="text-sm font-semibold text-gray-200">
-                    Tax ID
+                    Tax ID / GST
                   </label>
                   <input
                     id="taxId"
@@ -364,57 +351,43 @@ const Suppliers = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="paymentTerms" className="text-sm font-semibold text-gray-200">
-                    Payment Terms
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="productCategories" className="text-sm font-semibold text-gray-200">
+                    Product Categories
                   </label>
                   <input
-                    id="paymentTerms"
-                    name="paymentTerms"
-                    value={newSupplier.paymentTerms}
+                    id="productCategories"
+                    name="productCategories"
+                    value={newSupplier.productCategories}
                     onChange={handleInputChange}
+                    placeholder="e.g. Insecticides, Herbicides"
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label htmlFor="notes" className="text-sm font-semibold text-gray-200">
-                    Notes
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={newSupplier.notes}
-                    onChange={handleInputChange}
-                    rows="3"
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  ></textarea>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <input
-                      id="isActive"
-                      name="isActive"
-                      type="checkbox"
-                      checked={newSupplier.isActive}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label htmlFor="isActive" className="ml-2 text-sm font-semibold text-gray-200">
-                      Active Supplier
-                    </label>
-                  </div>
-                </div>
               </div>
-              <div className="pt-3 border-t border-gray-700 mt-4">
-                <p className="text-xs text-gray-400 mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+              <div className="space-y-1 sm:space-y-2">
+                <label htmlFor="notes" className="text-sm font-semibold text-gray-200">
+                  Notes
+                </label>
+                <textarea
+                  id="notes"
+                  name="notes"
+                  value={newSupplier.notes}
+                  onChange={handleInputChange}
+                  rows="3"
+                  className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                ></textarea>
+              </div>
+              <div className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
+                <p className="text-xs text-gray-400 mb-3 sm:mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium w-full sm:w-auto"
                   >
                     {isSubmitting 
                       ? (isEditMode ? 'Updating...' : 'Creating...') 

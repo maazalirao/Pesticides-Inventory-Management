@@ -4,6 +4,9 @@ import { Button } from '../components/ui/button';
 import { Search, Plus, Edit, Trash, Phone, Mail, MapPin, User, Calendar } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
 import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '../lib/api';
+import { Label } from '../components/ui/label';
+import { Input } from '../components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
 
 const Customers = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -237,28 +240,25 @@ const Customers = () => {
               <span>Add Customer</span>
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <DialogContent className="max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <DialogHeader className="border-b border-gray-700 pb-4">
               <DialogTitle className="text-xl font-bold text-primary">
                 {isEditMode ? 'Edit Customer' : 'Add New Customer'}
               </DialogTitle>
               <DialogDescription className="text-gray-300 text-sm mt-1">
-                {isEditMode 
-                  ? 'Update the details of this customer.' 
-                  : 'Fill in the details below to add a new customer.'}
+                {isEditMode ? 'Update customer information below.' : 'Fill in the customer information below.'}
               </DialogDescription>
             </DialogHeader>
-            
-            <form onSubmit={handleSubmit}>
-              {formError && (
-                <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
-                  {formError}
+            <form onSubmit={handleSubmit} className="space-y-5 py-4 sm:py-5">
+              {error && (
+                <div className="bg-red-900/30 border border-red-500 text-red-200 px-3 py-2 sm:px-4 sm:py-3 rounded mb-3 sm:mb-4 text-sm">
+                  {error}
                 </div>
               )}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
-                    Name <span className="text-red-400 ml-1">*</span>
+                    Customer Name <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
                     id="name"
@@ -269,7 +269,7 @@ const Customers = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="email" className="text-sm font-semibold text-gray-200 flex items-center">
                     Email <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -283,7 +283,7 @@ const Customers = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="phone" className="text-sm font-semibold text-gray-200 flex items-center">
                     Phone <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -296,19 +296,7 @@ const Customers = () => {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="paymentMethod" className="text-sm font-semibold text-gray-200">
-                    Payment Method
-                  </label>
-                  <input
-                    id="paymentMethod"
-                    name="paymentMethod"
-                    value={newCustomer.paymentMethod}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="address.street" className="text-sm font-semibold text-gray-200">
                     Street Address
                   </label>
@@ -320,7 +308,7 @@ const Customers = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="address.city" className="text-sm font-semibold text-gray-200">
                     City
                   </label>
@@ -332,97 +320,38 @@ const Customers = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.state" className="text-sm font-semibold text-gray-200">
-                    State/Province
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="customerType" className="text-sm font-semibold text-gray-200">
+                    Customer Type
                   </label>
-                  <input
-                    id="address.state"
-                    name="address.state"
-                    value={newCustomer.address.state}
+                  <select
+                    id="customerType"
+                    name="customerType"
+                    value={newCustomer.customerType || ""}
                     onChange={handleInputChange}
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.zipCode" className="text-sm font-semibold text-gray-200">
-                    Postal/Zip Code
-                  </label>
-                  <input
-                    id="address.zipCode"
-                    name="address.zipCode"
-                    value={newCustomer.address.zipCode}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="address.country" className="text-sm font-semibold text-gray-200">
-                    Country
-                  </label>
-                  <input
-                    id="address.country"
-                    name="address.country"
-                    value={newCustomer.address.country}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="taxId" className="text-sm font-semibold text-gray-200">
-                    Tax ID
-                  </label>
-                  <input
-                    id="taxId"
-                    name="taxId"
-                    value={newCustomer.taxId}
-                    onChange={handleInputChange}
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                </div>
-                <div className="space-y-2 md:col-span-2">
-                  <label htmlFor="notes" className="text-sm font-semibold text-gray-200">
-                    Notes
-                  </label>
-                  <textarea
-                    id="notes"
-                    name="notes"
-                    value={newCustomer.notes}
-                    onChange={handleInputChange}
-                    rows="3"
-                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  ></textarea>
-                </div>
-                <div className="space-y-2">
-                  <div className="flex items-center">
-                    <input
-                      id="isActive"
-                      name="isActive"
-                      type="checkbox"
-                      checked={newCustomer.isActive}
-                      onChange={handleInputChange}
-                      className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label htmlFor="isActive" className="ml-2 text-sm font-semibold text-gray-200">
-                      Active Customer
-                    </label>
-                  </div>
+                  >
+                    <option value="" disabled>Select customer type</option>
+                    <option value="retail">Retail</option>
+                    <option value="wholesale">Wholesale</option>
+                    <option value="distributor">Distributor</option>
+                  </select>
                 </div>
               </div>
-              <div className="pt-3 border-t border-gray-700 mt-4">
-                <p className="text-xs text-gray-400 mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+              <div className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
+                <p className="text-xs text-gray-400 mb-3 sm:mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white">
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium w-full sm:w-auto"
                   >
                     {isSubmitting 
                       ? (isEditMode ? 'Updating...' : 'Creating...') 
-                      : (isEditMode ? 'Update Customer' : 'Create Customer')}
+                      : (isEditMode ? 'Update Customer' : 'Add Customer')}
                   </Button>
                 </DialogFooter>
               </div>
