@@ -507,7 +507,7 @@ const Inventory = () => {
                 </div>
               ) : (
               <div className="overflow-x-auto rounded-md border">
-                <table className="w-full text-sm">
+                <table className="w-full text-sm hidden md:table">
                   <thead>
                     <tr className="bg-muted/50 border-b">
                       <th className="py-3 px-4 text-left font-medium w-[80px]">SKU</th>
@@ -606,6 +606,82 @@ const Inventory = () => {
                     )}
                   </tbody>
                 </table>
+
+                {/* Mobile Card View */}
+                <div className="md:hidden grid grid-cols-1 gap-4 p-4">
+                  {sortedItems.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No inventory items found. Add some items to get started.
+                    </div>
+                  ) : (
+                    sortedItems.map((item) => (
+                      <div key={item._id} className="border rounded-md p-4 bg-card hover:bg-muted/25 shadow-sm">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold text-lg">{item.name}</h3>
+                            <p className="text-xs text-muted-foreground mb-1">{item.sku}</p>
+                          </div>
+                          <span className={`inline-flex items-center justify-center px-3 py-1.5 rounded-full text-xs font-medium border text-black dark:text-white ${
+                            item.status === 'Low Stock' 
+                              ? 'bg-yellow-100 border-yellow-300 dark:bg-yellow-900/50 dark:border-yellow-800/50'
+                              : item.status === 'Out of Stock' 
+                                ? 'bg-red-100 border-red-300 dark:bg-red-900/50 dark:border-red-800/50'
+                                : 'bg-green-100 border-green-300 dark:bg-green-900/50 dark:border-green-800/50'
+                          }`}>
+                            {item.status}
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-2 my-3">
+                          <div>
+                            <p className="text-xs text-muted-foreground">Category</p>
+                            <p className="text-sm">{item.category}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Price</p>
+                            <p className="text-sm font-medium">₹{item.price.toFixed(2)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Quantity</p>
+                            <p className="text-sm font-medium">{item.quantity} {item.unit}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-muted-foreground">Batches</p>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewBatches(item)}
+                              className="font-medium p-0 h-auto"
+                            >
+                              {item.batches?.length || 0} Batches
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-end gap-2 mt-2 border-t pt-3">
+                          <button 
+                            className="p-1.5 rounded-md hover:bg-muted"
+                            onClick={() => openBatchModal(item)}
+                          >
+                            <Plus className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          </button>
+                          <button 
+                            className="p-1.5 rounded-md hover:bg-muted"
+                            onClick={() => handleEditItem(item)}
+                          >
+                            <Edit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                          </button>
+                          <button 
+                            className="p-1.5 rounded-md hover:bg-muted"
+                            onClick={() => handleDeleteItem(item._id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
               )}
             </CardContent>

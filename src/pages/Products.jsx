@@ -660,7 +660,7 @@ const Products = () => {
             </div>
           ) : (
             <div className="overflow-x-auto rounded-md border">
-              <table className="w-full text-sm">
+              <table className="w-full text-sm hidden md:table">
                 <thead>
                   <tr className="bg-muted/50 border-b">
                     <th className="py-3 px-4 text-left font-medium">Product Name</th>
@@ -723,6 +723,79 @@ const Products = () => {
                   ))}
                 </tbody>
               </table>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden">
+                {currentItems.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No products found. Add some products to get started.
+                  </div>
+                ) : (
+                  <div className="px-3 py-4 space-y-4">
+                    {currentItems.map((product) => (
+                      <div key={product._id} className="border rounded-lg bg-card shadow-sm overflow-hidden">
+                        <div className="flex flex-col">
+                          <div className="relative h-40 w-full bg-gradient-to-br from-indigo-900 to-purple-900">
+                            <img 
+                              src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
+                              alt={product.name}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                            <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500"></div>
+                          </div>
+                          
+                          <div className="p-4">
+                            <div className="flex justify-between items-start mb-2">
+                              <h3 className="font-semibold text-lg">{product.name}</h3>
+                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
+                                {product.toxicityLevel}
+                              </span>
+                            </div>
+                            
+                            <p className="text-xs text-muted-foreground mb-3">{product.description?.substring(0, 80)}...</p>
+                            
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-3">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Category</p>
+                                <p className="text-sm font-medium">{product.category}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Price</p>
+                                <p className="text-sm font-medium">{product.price?.toFixed(2)} Rs</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Manufacturer</p>
+                                <p className="text-sm">{product.manufacturer || '-'}</p>
+                              </div>
+                              <div>
+                                <p className="text-xs text-muted-foreground">Recommended Use</p>
+                                <p className="text-sm">{product.recommendedUse || '-'}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex justify-end gap-3 pt-3 border-t">
+                              <button 
+                                className="p-2 rounded-md bg-blue-500/10 hover:bg-blue-500/20"
+                                onClick={() => handleEditProduct(product)}
+                              >
+                                <Edit className="h-4 w-4 text-blue-600" />
+                              </button>
+                              <button 
+                                className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20" 
+                                onClick={() => handleDeleteProduct(product._id)}
+                              >
+                                <Trash className="h-4 w-4 text-red-600" />
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
