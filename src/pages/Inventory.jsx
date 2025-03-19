@@ -316,6 +316,151 @@ const Inventory = () => {
     }
   };
 
+  // Handle export inventory data
+  const handleExport = () => {
+    try {
+      // Define CSV headers for regular inventory
+      const headers = [
+        'Name', 'SKU', 'Category', 'Quantity', 'Unit', 
+        'Price', 'Threshold', 'Status', 'Supplier'
+      ];
+      
+      // Convert inventory items to CSV format
+      const csvData = inventoryItems.map(item => [
+        escapeCsvValue(item.name),
+        escapeCsvValue(item.sku),
+        escapeCsvValue(item.category),
+        item.quantity,
+        escapeCsvValue(item.unit),
+        item.price,
+        item.threshold,
+        escapeCsvValue(item.status),
+        escapeCsvValue(item.supplier)
+      ]);
+      
+      // Add headers to the beginning
+      csvData.unshift(headers);
+      
+      // Convert array to CSV string
+      const csvString = csvData.map(row => row.join(',')).join('\n');
+      
+      // Create blob and download link
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      // Set link properties
+      link.setAttribute('href', url);
+      link.setAttribute('download', `inventory_export_${new Date().toISOString().slice(0,10)}.csv`);
+      link.style.visibility = 'hidden';
+      
+      // Append to document, click and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      setError('Failed to export inventory data. Please try again.');
+      console.error(err);
+    }
+  };
+
+  // Handle detailed export including batches
+  const handleDetailedExport = () => {
+    try {
+      let csvRows = [];
+      
+      // Add header row
+      csvRows.push([
+        'Product Name', 'SKU', 'Category', 'Total Quantity', 'Unit', 'Price', 'Status',
+        'Batch ID', 'Lot Number', 'Batch Quantity', 'Manufacturing Date', 'Expiry Date',
+        'Supplier', 'Location Code', 'Notes'
+      ].join(','));
+      
+      // Process each inventory item and its batches
+      inventoryItems.forEach(item => {
+        if (item.batches && item.batches.length > 0) {
+          // Add rows for each batch
+          item.batches.forEach(batch => {
+            // Format dates safely
+            const manufacturingDate = batch.manufacturingDate 
+              ? new Date(batch.manufacturingDate).toISOString().split('T')[0] 
+              : '';
+            
+            const expiryDate = batch.expiryDate 
+              ? new Date(batch.expiryDate).toISOString().split('T')[0] 
+              : '';
+            
+            const row = [
+              escapeCsvValue(item.name),
+              escapeCsvValue(item.sku),
+              escapeCsvValue(item.category),
+              item.quantity,
+              escapeCsvValue(item.unit),
+              item.price,
+              escapeCsvValue(item.status),
+              escapeCsvValue(batch.batchId),
+              escapeCsvValue(batch.lotNumber),
+              batch.quantity,
+              manufacturingDate,
+              expiryDate,
+              escapeCsvValue(batch.supplier || item.supplier),
+              escapeCsvValue(batch.locationCode),
+              escapeCsvValue(batch.notes)
+            ];
+            csvRows.push(row.join(','));
+          });
+        } else {
+          // Add a row for items without batches
+          const row = [
+            escapeCsvValue(item.name),
+            escapeCsvValue(item.sku),
+            escapeCsvValue(item.category),
+            item.quantity,
+            escapeCsvValue(item.unit),
+            item.price,
+            escapeCsvValue(item.status),
+            '', '', '', '', '', escapeCsvValue(item.supplier), '', ''
+          ];
+          csvRows.push(row.join(','));
+        }
+      });
+      
+      // Convert to CSV string
+      const csvString = csvRows.join('\n');
+      
+      // Create blob and download link
+      const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      
+      // Set link properties
+      link.setAttribute('href', url);
+      link.setAttribute('download', `inventory_detailed_export_${new Date().toISOString().slice(0,10)}.csv`);
+      link.style.visibility = 'hidden';
+      
+      // Append to document, click and remove
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      setError('Failed to export detailed inventory data. Please try again.');
+      console.error(err);
+    }
+  };
+
+  // Helper function to escape CSV values properly
+  const escapeCsvValue = (value) => {
+    if (value === null || value === undefined) return '';
+    
+    // Convert to string and check if it needs quoting
+    const stringValue = String(value);
+    if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+      // Escape double quotes by doubling them and wrap in quotes
+      return `"${stringValue.replace(/"/g, '""')}"`;
+    }
+    return stringValue;
+  };
+
   // Filter inventory items based on search query and filters
   const filteredItems = inventoryItems.filter(item => {
     // Search query filter
@@ -378,9 +523,39 @@ const Inventory = () => {
             <Plus className="mr-2 h-4 w-4" /> Add Item
           </Button>
           
-          <Button variant="outline">
-            <Download className="mr-2 h-4 w-4" /> Export
-          </Button>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Download className="mr-2 h-4 w-4" /> Export
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Export Inventory Data</DialogTitle>
+                <DialogDescription>
+                  Choose the type of export you want to generate.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="flex flex-col gap-2">
+                  <Button onClick={handleExport}>
+                    <Download className="mr-2 h-4 w-4" /> Standard Export
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Basic inventory information without batch details.
+                  </p>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <Button onClick={handleDetailedExport}>
+                    <Download className="mr-2 h-4 w-4" /> Detailed Export
+                  </Button>
+                  <p className="text-xs text-muted-foreground">
+                    Comprehensive export with batch details and tracking information.
+                  </p>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
 
