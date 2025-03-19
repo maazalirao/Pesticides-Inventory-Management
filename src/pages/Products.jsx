@@ -698,7 +698,7 @@ const Products = () => {
                         </div>
                       </td>
                       <td className="py-3 px-4">{product.category}</td>
-                      <td className="py-3 px-4">₹{product.price?.toFixed(2)}</td>
+                      <td className="py-3 px-4">{product.price?.toFixed(2)} Rs</td>
                       <td className="py-3 px-4">{product.manufacturer}</td>
                       <td className="py-3 px-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>

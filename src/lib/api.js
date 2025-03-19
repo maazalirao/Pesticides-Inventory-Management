@@ -356,4 +356,109 @@ export const clearCache = (key) => {
   }
 };
 
+// Invoice API functions
+export const getInvoices = async () => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoices');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching invoices:', error);
+    throw error;
+  }
+};
+
+export const getInvoice = async (id) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch invoice');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error fetching invoice:', error);
+    throw error;
+  }
+};
+
+export const createInvoice = async (invoiceData) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invoiceData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to create invoice');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error creating invoice:', error);
+    throw error;
+  }
+};
+
+export const updateInvoice = async (id, invoiceData) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(invoiceData),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update invoice');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error updating invoice:', error);
+    throw error;
+  }
+};
+
+export const deleteInvoice = async (id) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
+      method: 'DELETE',
+    });
+    if (!response.ok) {
+      throw new Error('Failed to delete invoice');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error deleting invoice:', error);
+    throw error;
+  }
+};
+
+export const updateInvoiceStatus = async (id, status) => {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    if (!response.ok) {
+      throw new Error('Failed to update invoice status');
+    }
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('Error updating invoice status:', error);
+    throw error;
+  }
+};
+
 export default api; 

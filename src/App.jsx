@@ -1,5 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import MainLayout from './layouts/MainLayout';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
@@ -15,17 +15,57 @@ import Register from './pages/Register';
 import TestComponent from './components/TestComponent';
 
 function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(true);
-  const [userInfo, setUserInfo] = useState({
-    name: 'Admin',
-    email: 'admin@example.com',
-    role: 'admin'
-  });
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userInfo, setUserInfo] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // Check if user is already logged in from local storage
+    const storedUserInfo = localStorage.getItem('userInfo');
+    
+    if (storedUserInfo) {
+      try {
+        const parsedUserInfo = JSON.parse(storedUserInfo);
+        
+        if (parsedUserInfo && parsedUserInfo.token) {
+          setUserInfo(parsedUserInfo);
+          setIsLoggedIn(true);
+        }
+      } catch (error) {
+        console.error('Error parsing stored user info:', error);
+        localStorage.removeItem('userInfo');
+      }
+    }
+    
+    setIsLoading(false);
+  }, []);
+
+  // Protected route component
+  const ProtectedRoute = ({ children }) => {
+    if (isLoading) return <div>Loading...</div>;
+    if (!isLoggedIn) return <Navigate to="/login" />;
+    return children;
+  };
 
   return (
     <Router>
       <Routes>
-        <Route element={<MainLayout isLoggedIn={isLoggedIn} userInfo={userInfo} setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} />}>
+        <Route 
+          path="/login" 
+          element={isLoggedIn ? <Navigate to="/" /> : <Login setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} />} 
+        />
+        <Route 
+          path="/register" 
+          element={isLoggedIn ? <Navigate to="/" /> : <Register setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} />} 
+        />
+        
+        <Route 
+          element={
+            <ProtectedRoute>
+              <MainLayout isLoggedIn={isLoggedIn} userInfo={userInfo} setIsLoggedIn={setIsLoggedIn} setUserInfo={setUserInfo} />
+            </ProtectedRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
           <Route path="inventory" element={<Inventory />} />
           <Route path="products" element={<Products />} />
@@ -36,8 +76,9 @@ function App() {
           <Route path="store" element={<Store />} />
           <Route path="settings" element={<Settings />} />
         </Route>
-        <Route path="/login" element={<Navigate to="/" />} />
-        <Route path="/register" element={<Navigate to="/" />} />
+
+        {/* Redirect any unknown routes to dashboard if logged in, otherwise to login */}
+        <Route path="*" element={isLoggedIn ? <Navigate to="/" /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   );

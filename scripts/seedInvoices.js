@@ -27,7 +27,7 @@ const invoices = [
     subtotal: 120680,
     tax: 4395,
     total: 125075,
-    status: "Paid",
+    status: "paid",
     dueDate: formatDate("2023-12-15"),
     notes: "Payment received via bank transfer",
     createdAt: formatDate("2023-11-15")
@@ -47,7 +47,7 @@ const invoices = [
     subtotal: 358905,
     tax: 16320,
     total: 375225,
-    status: "Paid",
+    status: "paid",
     dueDate: formatDate("2023-12-20"),
     notes: "Government purchase order #PK-2023-45678",
     createdAt: formatDate("2023-11-20")
@@ -67,7 +67,7 @@ const invoices = [
     subtotal: 96985,
     tax: 1065,
     total: 98050,
-    status: "Pending",
+    status: "sent",
     dueDate: formatDate("2023-12-28"),
     notes: "Net 30 payment terms",
     createdAt: formatDate("2023-11-28")
@@ -86,7 +86,7 @@ const invoices = [
     subtotal: 12395,
     tax: 203,
     total: 12598,
-    status: "Overdue",
+    status: "overdue",
     dueDate: formatDate("2024-01-05"),
     notes: "Second reminder sent",
     createdAt: formatDate("2023-12-05")
@@ -106,7 +106,7 @@ const invoices = [
     subtotal: 155890,
     tax: 185,
     total: 156075,
-    status: "Pending",
+    status: "sent",
     dueDate: formatDate("2024-01-10"),
     notes: "Academic discount applied",
     createdAt: formatDate("2023-12-10")
@@ -126,7 +126,7 @@ const invoices = [
     subtotal: 284038,
     tax: 987,
     total: 285025,
-    status: "Pending",
+    status: "draft",
     dueDate: formatDate("2024-01-15"),
     notes: "Bulk order for commercial project",
     createdAt: formatDate("2023-12-15")
