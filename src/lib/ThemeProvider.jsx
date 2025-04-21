@@ -3,34 +3,23 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
-  // Check if user has theme preference in localStorage or default to light theme
-  const [theme, setTheme] = useState(() => {
-    const storedTheme = localStorage.getItem('pesttrack-theme');
-    if (storedTheme) {
-      return storedTheme;
-    }
-    
-    // Always default to light theme regardless of system preference
-    return 'light';
-  });
+  // Always use light theme
+  const [theme, setTheme] = useState('light');
 
+  // Disabled toggle function - always keeps light theme
   const toggleTheme = () => {
-    setTheme(prevTheme => {
-      const newTheme = prevTheme === 'light' ? 'dark' : 'light';
-      localStorage.setItem('pesttrack-theme', newTheme);
-      return newTheme;
-    });
+    // Do nothing - dark theme disabled
+    return;
   };
 
   useEffect(() => {
-    // Update the HTML element with the current theme
+    // Update the HTML element to always use light theme
     const htmlElement = document.documentElement;
-    if (theme === 'dark') {
-      htmlElement.classList.add('dark');
-    } else {
-      htmlElement.classList.remove('dark');
-    }
-  }, [theme]);
+    htmlElement.classList.remove('dark');
+    
+    // Clear any stored theme preference
+    localStorage.removeItem('pesttrack-theme');
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>

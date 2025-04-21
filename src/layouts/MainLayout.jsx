@@ -225,23 +225,6 @@ const MainLayout = () => {
           {/* Footer section */}
           <div className="px-6 pt-2 pb-6 border-t border-white/5 mt-2">
             <div className="flex flex-col space-y-4">
-              <button 
-                onClick={toggleTheme}
-                className="flex items-center space-x-2 text-sm text-slate-400 hover:text-white transition-colors"
-              >
-                {theme === 'dark' ? (
-                  <>
-                    <Sun className="h-4 w-4" />
-                    <span>Light Mode</span>
-                  </>
-                ) : (
-                  <>
-                    <Moon className="h-4 w-4" />
-                    <span>Dark Mode</span>
-                  </>
-                )}
-              </button>
-              
               <Link to="/" className="flex items-center space-x-2 text-sm text-slate-400 hover:text-white transition-colors">
                 <ChevronLeft className="h-4 w-4" />
                 <span>Back to Main Page</span>
@@ -283,20 +266,6 @@ const MainLayout = () => {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              {/* Theme Toggle Button */}
-              <button 
-                onClick={toggleTheme}
-                className="rounded-lg p-2 text-white hover:bg-slate-700 hover:text-orange-300 transition-all"
-                title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-                aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-              >
-                {theme === 'dark' ? (
-                  <Sun className="h-5 w-5" />
-                ) : (
-                  <Moon className="h-5 w-5" />
-                )}
-              </button>
-
               {/* Mobile search button */}
               <button 
                 className="rounded-lg p-2 text-white hover:bg-slate-700 hover:text-orange-300 transition-all md:hidden"

@@ -48,10 +48,10 @@ const Settings = () => {
       ...prev,
       appearance: {
         ...prev.appearance,
-        theme: theme
+        theme: 'light'
       }
     }));
-  }, [theme]);
+  }, []);
   
   // Handle form changes
   const handleChange = (section, field, value) => {
@@ -74,11 +74,6 @@ const Settings = () => {
       hour: '2-digit',
       minute: '2-digit'
     }).format(date);
-  };
-
-  // Toggle between light and dark mode
-  const handleThemeToggle = () => {
-    toggleTheme();
   };
 
   return (
@@ -416,38 +411,22 @@ const Settings = () => {
                   
                   <div className="flex items-center justify-between py-2">
                     <div className="flex items-center gap-2">
-                      {theme === 'dark' 
-                        ? <Moon className="h-5 w-5 text-muted-foreground" /> 
-                        : <Sun className="h-5 w-5 text-muted-foreground" />}
+                      <Sun className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm">Dark Mode</p>
+                        <p className="text-sm">Theme Settings</p>
                         <p className="text-xs text-muted-foreground">
-                          Switch between light and dark themes
+                          Dark mode is currently disabled
                         </p>
                       </div>
                     </div>
-                    <Switch 
-                      id="theme-toggle" 
-                      checked={theme === 'dark'}
-                      onCheckedChange={handleThemeToggle}
-                    />
                   </div>
                   
                   <div className="grid grid-cols-3 gap-4 mt-4">
                     <div 
-                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${theme === 'light' ? 'border-primary bg-muted/50' : ''}`}
-                      onClick={() => toggleTheme('light')}
+                      className="p-4 border rounded-md border-primary bg-muted/50"
                     >
                       <div className="h-20 bg-background border rounded-md mb-2"></div>
                       <p className="text-sm font-medium text-center">Light</p>
-                    </div>
-                    
-                    <div 
-                      className={`p-4 border rounded-md cursor-pointer hover:border-primary transition-colors ${theme === 'dark' ? 'border-primary bg-muted/50' : ''}`}
-                      onClick={() => toggleTheme('dark')}
-                    >
-                      <div className="h-20 bg-zinc-800 border rounded-md mb-2"></div>
-                      <p className="text-sm font-medium text-center">Dark</p>
                     </div>
                   </div>
                 </div>
