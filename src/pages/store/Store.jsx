@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../components/ui/card';
-import { Button } from '../components/ui/button';
-import { Search, Filter, ChevronDown, ShoppingCart, Eye, Tag, AlertTriangle, Star, Package } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
+import { Search, Filter, ChevronDown, ShoppingCart, Eye, Tag, AlertTriangle, Star, Package, ShoppingBag } from 'lucide-react';
 
 const Store = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -110,63 +110,7 @@ const Store = () => {
   ];
 
   // Mock data for orders
-  const orders = [
-    {
-      id: "ORD-2023-001",
-      customer: "Green Farms Ltd",
-      date: "2023-11-15",
-      status: "Delivered",
-      items: [
-        { productId: 1, name: "MaxKill Insecticide", quantity: 5, unitPrice: 49.99 },
-        { productId: 2, name: "HerbControl Plus", quantity: 3, unitPrice: 38.50 }
-      ],
-      total: 365.45
-    },
-    {
-      id: "ORD-2023-002",
-      customer: "Robert Greene",
-      date: "2023-11-28",
-      status: "Processing",
-      items: [
-        { productId: 8, name: "MosquitoKiller", quantity: 2, unitPrice: 32.75 },
-        { productId: 4, name: "RatAway Pellets", quantity: 1, unitPrice: 29.99 }
-      ],
-      total: 95.49
-    },
-    {
-      id: "ORD-2023-003",
-      customer: "Sunrise Orchards",
-      date: "2023-12-05",
-      status: "Shipped",
-      items: [
-        { productId: 3, name: "FungoClear Solution", quantity: 4, unitPrice: 65.00 },
-        { productId: 5, name: "AntiPest Powder", quantity: 2, unitPrice: 42.50 }
-      ],
-      total: 345.00
-    },
-    {
-      id: "ORD-2023-004",
-      customer: "Jennifer Smith",
-      date: "2023-12-10",
-      status: "Processing",
-      items: [
-        { productId: 6, name: "WeedBGone", quantity: 1, unitPrice: 27.99 }
-      ],
-      total: 27.99
-    },
-    {
-      id: "ORD-2023-005",
-      customer: "Community College",
-      date: "2023-12-15",
-      status: "Pending",
-      items: [
-        { productId: 1, name: "MaxKill Insecticide", quantity: 3, unitPrice: 49.99 },
-        { productId: 3, name: "FungoClear Solution", quantity: 2, unitPrice: 65.00 },
-        { productId: 5, name: "AntiPest Powder", quantity: 2, unitPrice: 42.50 }
-      ],
-      total: 314.97
-    }
-  ];
+  const orders = [];
 
   // Filter products based on search term and category
   const filteredProducts = products.filter((product) => {
@@ -398,44 +342,54 @@ const Store = () => {
             <CardDescription>Manage customer orders from your online store</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-md border">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="bg-muted/50 border-b">
-                    <th className="py-3 px-4 text-left font-medium">Order ID</th>
-                    <th className="py-3 px-4 text-left font-medium">Customer</th>
-                    <th className="py-3 px-4 text-left font-medium">Date</th>
-                    <th className="py-3 px-4 text-left font-medium">Items</th>
-                    <th className="py-3 px-4 text-left font-medium">Total</th>
-                    <th className="py-3 px-4 text-left font-medium">Status</th>
-                    <th className="py-3 px-4 text-center font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {orders.map((order) => (
-                    <tr key={order.id} className="border-b hover:bg-muted/25">
-                      <td className="py-3 px-4 font-medium">{order.id}</td>
-                      <td className="py-3 px-4">{order.customer}</td>
-                      <td className="py-3 px-4">{order.date}</td>
-                      <td className="py-3 px-4">
-                        {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
-                      </td>
-                      <td className="py-3 px-4 font-medium">{formatCurrency(order.total)}</td>
-                      <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="flex justify-center">
-                          <Button variant="ghost" size="sm">View Details</Button>
-                        </div>
-                      </td>
+            {orders.length === 0 ? (
+              <div className="text-center py-10">
+                <ShoppingBag className="h-12 w-12 mx-auto text-muted-foreground opacity-50" />
+                <h3 className="mt-4 text-lg font-medium">No Orders Yet</h3>
+                <p className="mt-2 text-muted-foreground">
+                  Orders will appear here after customers complete transactions.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-md border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-muted/50 border-b">
+                      <th className="py-3 px-4 text-left font-medium">Order ID</th>
+                      <th className="py-3 px-4 text-left font-medium">Customer</th>
+                      <th className="py-3 px-4 text-left font-medium">Date</th>
+                      <th className="py-3 px-4 text-left font-medium">Items</th>
+                      <th className="py-3 px-4 text-left font-medium">Total</th>
+                      <th className="py-3 px-4 text-left font-medium">Status</th>
+                      <th className="py-3 px-4 text-center font-medium">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {orders.map((order) => (
+                      <tr key={order.id} className="border-b hover:bg-muted/25">
+                        <td className="py-3 px-4 font-medium">{order.id}</td>
+                        <td className="py-3 px-4">{order.customer}</td>
+                        <td className="py-3 px-4">{order.date}</td>
+                        <td className="py-3 px-4">
+                          {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
+                        </td>
+                        <td className="py-3 px-4 font-medium">{formatCurrency(order.total)}</td>
+                        <td className="py-3 px-4">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getOrderStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex justify-center">
+                            <Button variant="ghost" size="sm">View Details</Button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}

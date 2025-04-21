@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { Search, Plus, Edit, Download, Upload, Eye, Trash, Filter, ChevronDown } from 'lucide-react';
 import { format } from 'date-fns';
 import { 
@@ -11,10 +11,10 @@ import {
   DialogDescription, 
   DialogFooter,
   DialogTrigger 
-} from '../components/ui/dialog';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
-import { getInvoices, createInvoice, updateInvoice, deleteInvoice, updateInvoiceStatus } from '../lib/api';
+} from '../../components/ui/dialog';
+import { Input } from '../../components/ui/input';
+import { Label } from '../../components/ui/label';
+import { getInvoices, createInvoice, updateInvoice, deleteInvoice, updateInvoiceStatus } from '../../lib/api';
 
 const Invoices = () => {
   const [searchTerm, setSearchTerm] = useState('');

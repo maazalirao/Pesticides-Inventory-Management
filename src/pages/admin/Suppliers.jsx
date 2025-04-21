@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
-import { Button } from '../components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { Search, Plus, Edit, Trash, Phone, Mail, MapPin } from 'lucide-react';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../components/ui/dialog';
-import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../lib/api';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../../lib/api';
 
 const Suppliers = () => {
   const [searchTerm, setSearchTerm] = useState('');

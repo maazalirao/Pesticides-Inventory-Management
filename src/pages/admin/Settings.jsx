@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { Button } from '../components/ui/button';
-import { Switch } from '../components/ui/switch';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs';
+import { Button } from '../../components/ui/button';
+import { Switch } from '../../components/ui/switch';
 import { User, Bell, Shield, HardDrive, Palette, Globe, Mail, Key, ChevronRight, Save, AlertTriangle, Sun, Moon } from 'lucide-react';
-import { useTheme } from '../lib/ThemeProvider';
+import { useTheme } from '../../lib/ThemeProvider';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('account');

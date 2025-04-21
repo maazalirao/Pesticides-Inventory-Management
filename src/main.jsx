@@ -5,6 +5,10 @@ import App from './App.jsx'
 import { ThemeProvider } from './lib/ThemeProvider.jsx'
 import { ClerkProvider } from '@clerk/clerk-react'
 
+// Auth and Cart Providers
+import { AuthProvider } from './contexts/AuthContext'
+import { CartProvider } from './contexts/CartContext'
+
 // Import your Publishable Key
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
 
@@ -32,8 +36,8 @@ if (!PUBLISHABLE_KEY) {
     <React.StrictMode>
       <ClerkProvider 
         publishableKey={PUBLISHABLE_KEY} 
-        afterSignInUrl="/"
-        afterSignUpUrl="/"
+        afterSignInUrl="/admin"
+        afterSignUpUrl="/admin"
         afterSignOutUrl="/"
         appearance={{
           elements: {
@@ -48,7 +52,11 @@ if (!PUBLISHABLE_KEY) {
         }}
       >
         <ThemeProvider>
-          <App />
+          <AuthProvider>
+            <CartProvider>
+              <App />
+            </CartProvider>
+          </AuthProvider>
         </ThemeProvider>
       </ClerkProvider>
     </React.StrictMode>

@@ -18,9 +18,23 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      required: true,
-      default: 'user',
-      enum: ['user', 'admin'],
+      enum: ['admin', 'staff', 'customer'],
+      default: 'customer',
+    },
+    address: {
+      street: { type: String },
+      city: { type: String },
+      state: { type: String },
+      postalCode: { type: String },
+      country: { type: String },
+    },
+    phone: {
+      type: String,
+    },
+    clerkId: {
+      type: String,
+      unique: true,
+      sparse: true,
     },
   },
   {
@@ -45,6 +59,16 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
+
+// Check if user has admin permissions
+userSchema.methods.isAdmin = function () {
+  return this.role === 'admin';
+};
+
+// Check if user has staff permissions
+userSchema.methods.isStaff = function () {
+  return this.role === 'admin' || this.role === 'staff';
+};
 
 const User = mongoose.model('User', userSchema);
 

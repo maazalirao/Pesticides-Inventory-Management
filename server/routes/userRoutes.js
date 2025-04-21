@@ -1,30 +1,30 @@
 import express from 'express';
 import {
-  registerUser,
-  authUser,
   getUserProfile,
   updateUserProfile,
   getUsers,
+  getUserById,
+  updateUser,
   deleteUser,
 } from '../controllers/userController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+import { protect, admin, protectWithClerk } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Register new user / Login user
-router.route('/register').post(registerUser);
-router.route('/login').post(authUser);
+// Public routes
 
-// Get/Update user profile
+// Protected customer routes
 router.route('/profile')
-  .get(getUserProfile)
-  .put(updateUserProfile);
+  .get(protectWithClerk, getUserProfile)
+  .put(protectWithClerk, updateUserProfile);
 
 // Admin routes
 router.route('/')
-  .get(protect, admin, getUsers);
+  .get(protectWithClerk, admin, getUsers);
 
 router.route('/:id')
-  .delete(protect, admin, deleteUser);
+  .get(protectWithClerk, admin, getUserById)
+  .put(protectWithClerk, admin, updateUser)
+  .delete(protectWithClerk, admin, deleteUser);
 
 export default router; 

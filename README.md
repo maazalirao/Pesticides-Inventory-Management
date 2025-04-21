@@ -1,17 +1,63 @@
-# Pesticide Inventory Management System
+# AgriStore - Inventory Management & E-commerce Platform
 
-A full-stack web application for managing pesticide inventory, suppliers, customers, and invoices.
+## Overview
+
+AgriStore is a comprehensive solution for agricultural product businesses, combining:
+1. **E-commerce Storefront**: Customer-facing online store 
+2. **Inventory Management**: Robust back-office system
+3. **Admin Dashboard**: Complete business management
 
 ## Features
 
-- User authentication and authorization
-- Product management
-- Supplier management
-- Customer management
-- Invoice generation and tracking
-- Inventory tracking
-- Reports and analytics
-- Responsive design
+### Customer-Facing Storefront
+- Product browsing and searching
+- Category navigation
+- Shopping cart functionality
+- User accounts and order history
+- Secure checkout process
+- Responsive design for all devices
+
+### Admin Dashboard
+- **Inventory Management**: Track stock levels and product locations
+- **Order Processing**: Manage customer orders from receipt to fulfillment
+- **Customer Management**: Store customer information and purchase history
+- **Supplier Management**: Track supplier information and purchase orders
+- **Reporting**: Sales analytics, inventory forecasting, and business insights
+- **User Management**: Role-based access control (Admin, Staff, Customer)
+
+## Architecture
+
+The application uses a modern, scalable architecture:
+
+- **Frontend**: React with TailwindCSS
+- **Backend**: Node.js with Express
+- **Database**: MongoDB
+- **Authentication**: Clerk for secure user management
+- **State Management**: React Context API
+- **Routing**: React Router v7
+
+## Role-Based Access
+
+The system implements role-based access control:
+- **Customers**: Access to the storefront, their orders, and account
+- **Staff**: Access to order management and basic admin functions
+- **Admins**: Full access to all system features
+
+## Data Flow
+
+Orders placed in the storefront automatically:
+1. Update inventory levels
+2. Create order records
+3. Generate notifications for staff
+4. Update sales analytics
+
+## Getting Started
+
+1. Clone the repository
+2. Install dependencies: `npm install`
+3. Set up environment variables (see `.env.example`)
+4. Seed the database: `npm run seed:all`
+5. Start development server: `npm run dev:full`
 
 ## Environment Setup
 
@@ -37,68 +83,6 @@ A full-stack web application for managing pesticide inventory, suppliers, custom
 - MongoDB
 - Mongoose
 - JWT Authentication
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v14 or higher)
-- MongoDB Atlas account or local MongoDB installation
-
-### Installation
-
-1. Clone the repository
-```
-git clone <repository-url>
-cd <repository-folder>
-```
-
-2. Install dependencies
-```
-npm install
-```
-
-3. Set up environment variables
-Create a `.env` file in the root directory with the following variables:
-```
-NODE_ENV=development
-PORT=5000
-MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<database>?retryWrites=true&w=majority
-JWT_SECRET=<your-secret-key>
-```
-
-Replace the placeholders with your actual MongoDB connection string and a secure JWT secret.
-
-### Running the Application
-
-#### Development Mode
-
-To run both frontend and backend concurrently:
-```
-npm run dev:full
-```
-
-To run only the frontend:
-```
-npm run client
-```
-
-To run only the backend:
-```
-npm run server
-```
-
-#### Production Mode
-
-1. Build the frontend
-```
-npm run build
-```
-
-2. Start the server
-```
-npm start
-```
 
 ## API Endpoints
 

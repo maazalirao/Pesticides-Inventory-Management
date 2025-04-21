@@ -10,7 +10,7 @@ import {
   ShoppingCart, 
   FileText, 
   BarChart2, 
-  Store, 
+  Store,
   Settings,
   Bell,
   Search,
@@ -18,7 +18,8 @@ import {
   Sun,
   Moon,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
@@ -29,6 +30,7 @@ const MainLayout = () => {
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
 
   // Check if device is mobile or screen size is small
   useEffect(() => {
@@ -53,51 +55,54 @@ const MainLayout = () => {
     }
   }, [location, isMobile]);
 
+  // Get current path without the /admin prefix
+  const currentPath = location.pathname.replace(/^\/admin/, '');
+
   const navItems = [
     { 
       title: 'Dashboard', 
       icon: <Home className="h-5 w-5" />, 
-      path: '/' 
+      path: '/admin' 
     },
     { 
       title: 'Inventory', 
       icon: <Package className="h-5 w-5" />, 
-      path: '/inventory' 
+      path: '/admin/inventory' 
     },
     { 
       title: 'Products', 
       icon: <ShoppingCart className="h-5 w-5" />, 
-      path: '/products' 
+      path: '/admin/products' 
     },
     { 
       title: 'Suppliers', 
       icon: <Users className="h-5 w-5" />, 
-      path: '/suppliers' 
+      path: '/admin/suppliers' 
     },
     { 
       title: 'Customers', 
       icon: <Users className="h-5 w-5" />, 
-      path: '/customers' 
+      path: '/admin/customers' 
     },
     { 
       title: 'Invoices & Billing', 
       icon: <FileText className="h-5 w-5" />, 
-      path: '/invoices' 
+      path: '/admin/invoices' 
     },
     { 
       title: 'Reports', 
       icon: <BarChart2 className="h-5 w-5" />, 
-      path: '/reports' 
+      path: '/admin/reports' 
     },
     { 
       title: 'Online Store', 
       icon: <Store className="h-5 w-5" />, 
-      path: '/store' 
+      path: '/admin/store' 
     },
     { 
       title: 'Settings', 
       icon: <Settings className="h-5 w-5" />, 
-      path: '/settings' 
+      path: '/admin/settings' 
     }
   ];
 
@@ -131,7 +136,10 @@ const MainLayout = () => {
               <span className="text-2xl font-bold bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500 bg-clip-text text-transparent">
                 Pesticide Inventory
               </span>
-              <div className="text-xs text-slate-400 mt-0.5">Management System</div>
+              <div className="flex items-center text-xs text-slate-400 mt-0.5">
+                <ShieldCheck className="h-3.5 w-3.5 mr-1 text-orange-500" />
+                Admin Dashboard
+              </div>
             </div>
           </div>
           <button
@@ -216,7 +224,7 @@ const MainLayout = () => {
 
           {/* Footer section */}
           <div className="px-6 pt-2 pb-6 border-t border-white/5 mt-2">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col space-y-4">
               <button 
                 onClick={toggleTheme}
                 className="flex items-center space-x-2 text-sm text-slate-400 hover:text-white transition-colors"
@@ -233,6 +241,11 @@ const MainLayout = () => {
                   </>
                 )}
               </button>
+              
+              <Link to="/" className="flex items-center space-x-2 text-sm text-slate-400 hover:text-white transition-colors">
+                <ChevronLeft className="h-4 w-4" />
+                <span>Back to Main Page</span>
+              </Link>
             </div>
           </div>
         </div>
@@ -296,6 +309,12 @@ const MainLayout = () => {
                 <Search className="h-5 w-5" />
               </button>
 
+              {/* Admin indicator badge */}
+              <div className="hidden md:flex items-center px-3 py-1.5 bg-orange-500/20 border border-orange-500/30 rounded-full">
+                <ShieldCheck className="h-4 w-4 text-orange-500 mr-1.5" />
+                <span className="text-xs font-medium text-orange-200">Admin Dashboard</span>
+              </div>
+
               <div className="flex items-center space-x-4">
                 {/* Notification button */}
                 <button className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full transition-colors">
@@ -303,24 +322,23 @@ const MainLayout = () => {
                   <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-orange-500"></span>
                 </button>
                 
-                {/* Clerk Authentication UI */}
-                <SignedOut>
-                  <SignInButton mode="modal">
-                    <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors">
-                      Sign In
-                    </button>
-                  </SignInButton>
-                </SignedOut>
+                {/* Visit Store button */}
+                <Link 
+                  to="/store" 
+                  className="hidden md:flex items-center px-3 py-1.5 text-sm text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                >
+                  <Store className="h-4 w-4 mr-1.5" />
+                  Visit Store
+                </Link>
                 
-                <SignedIn>
-                  <UserButton
-                    appearance={{
-                      elements: {
-                        userButtonAvatarBox: "h-8 w-8"
-                      }
-                    }}
-                  />
-                </SignedIn>
+                {/* User button */}
+                <UserButton
+                  appearance={{
+                    elements: {
+                      userButtonAvatarBox: "h-8 w-8"
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -341,9 +359,9 @@ const MainLayout = () => {
         </header>
 
         {/* Back navigation for mobile */}
-        {isMobile && location.pathname !== '/' && (
+        {isMobile && location.pathname !== '/admin' && (
           <div className="p-3 flex items-center bg-slate-800/10">
-            <Link to="/" className="flex items-center text-sm text-slate-400 hover:text-slate-300 transition-colors">
+            <Link to="/admin" className="flex items-center text-sm text-slate-400 hover:text-slate-300 transition-colors">
               <ChevronLeft className="h-4 w-4 mr-1" />
               Back to Dashboard
             </Link>
