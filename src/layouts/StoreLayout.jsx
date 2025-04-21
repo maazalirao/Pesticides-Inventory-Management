@@ -47,54 +47,54 @@ const StoreLayout = () => {
       {/* Header */}
       <header className={`sticky top-0 z-50 ${scrolled ? 'bg-white/95 shadow-md backdrop-blur-sm' : 'bg-white'} transition-all duration-300`}>
         <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-y-3">
             {/* Logo */}
-            <Link to="/" className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-slate-700 bg-clip-text text-transparent">
-              PestTrack Store
+            <Link to="/" className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-slate-700 bg-clip-text text-transparent">
+              PestTrack
             </Link>
 
-            {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-8">
+            {/* Main Navigation */}
+            <nav className="flex items-center justify-center space-x-1 xs:space-x-2 sm:space-x-6 text-xs xs:text-sm sm:text-base">
               <Link 
                 to="/store" 
-                className={`transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
+                className={`whitespace-nowrap px-1 py-1 transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
               >
                 Home
               </Link>
               <Link 
                 to="/store/products" 
-                className={`transition-colors duration-200 ${isActive('/store/products') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
+                className={`whitespace-nowrap px-1 py-1 transition-colors duration-200 ${isActive('/store/products') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
               >
                 Products
               </Link>
               <Link 
                 to="/store/orders" 
-                className={`transition-colors duration-200 ${isActive('/store/orders') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
+                className={`whitespace-nowrap px-1 py-1 transition-colors duration-200 ${isActive('/store/orders') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
               >
                 Orders
               </Link>
               <Link 
                 to="/store/account" 
-                className={`transition-colors duration-200 ${isActive('/store/account') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
+                className={`whitespace-nowrap px-1 py-1 transition-colors duration-200 ${isActive('/store/account') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
               >
                 Account
               </Link>
             </nav>
 
             {/* Actions */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <motion.button 
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSearchOpen(!searchOpen)} 
-                className="text-slate-600 hover:text-orange-500 transition-colors duration-200"
+                className="text-slate-600 hover:text-orange-500 transition-colors duration-200 p-1"
               >
-                <Search size={20} />
+                <Search size={18} />
               </motion.button>
               
-              <Link to="/store/cart" className="text-slate-600 hover:text-orange-500 transition-colors duration-200 relative">
+              <Link to="/store/cart" className="text-slate-600 hover:text-orange-500 transition-colors duration-200 relative p-1">
                 <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                  <ShoppingCart size={20} />
+                  <ShoppingCart size={18} />
                   {totalItems > 0 && (
                     <motion.span 
                       initial={{ scale: 0 }}
@@ -108,10 +108,7 @@ const StoreLayout = () => {
               </Link>
               
               {isSignedIn ? (
-                <div className="flex items-center space-x-4">
-                  <Link to="/store/account" className="text-slate-600 hover:text-orange-500 transition-colors duration-200">
-                    Account
-                  </Link>
+                <div className="flex items-center space-x-2 sm:space-x-4">
                   <UserButton afterSignOutUrl="/" />
                 </div>
               ) : (
@@ -119,7 +116,7 @@ const StoreLayout = () => {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="text-slate-600 hover:text-orange-500 transition-colors duration-200"
+                    className="text-slate-600 hover:text-orange-500 transition-colors duration-200 text-sm sm:text-base p-1"
                   >
                     Sign In
                   </motion.button>
@@ -132,32 +129,23 @@ const StoreLayout = () => {
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleAdminNav}
-                  className="hidden md:flex items-center text-sm px-3 py-1.5 rounded-lg bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                  className="flex items-center text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
                 >
-                  <ShieldCheck size={16} className="mr-1.5" />
-                  Admin Dashboard
+                  <ShieldCheck size={14} className="mr-1" />
+                  Admin
                 </motion.button>
               ) : (
                 <SignInButton mode="modal">
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="hidden md:flex items-center text-sm px-3 py-1.5 rounded-lg bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
+                    className="flex items-center text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg bg-gradient-to-r from-slate-700 to-slate-800 text-white shadow-sm hover:shadow-md transition-all duration-200"
                   >
-                    <ShieldCheck size={16} className="mr-1.5" />
-                    Admin Login
+                    <ShieldCheck size={14} className="mr-1" />
+                    Admin
                   </motion.button>
                 </SignInButton>
               )}
-              
-              {/* Mobile menu button */}
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                className="md:hidden text-slate-600"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              >
-                {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-              </motion.button>
             </div>
           </div>
           
@@ -179,56 +167,6 @@ const StoreLayout = () => {
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400" 
               />
             </motion.div>
-          )}
-          
-          {/* Mobile Navigation */}
-          {mobileMenuOpen && (
-            <motion.nav 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className="md:hidden mt-4 pb-4 flex flex-col space-y-4"
-            >
-              <Link 
-                to="/store" 
-                className={`transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
-              >
-                Home
-              </Link>
-              <Link 
-                to="/store/products" 
-                className={`transition-colors duration-200 ${isActive('/store/products') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
-              >
-                Products
-              </Link>
-              <Link 
-                to="/store/orders" 
-                className={`transition-colors duration-200 ${isActive('/store/orders') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
-              >
-                Orders
-              </Link>
-              <Link 
-                to="/store/account" 
-                className={`transition-colors duration-200 ${isActive('/store/account') ? 'text-orange-600 font-medium' : 'text-slate-600 hover:text-orange-500'}`}
-              >
-                Account
-              </Link>
-              {isSignedIn ? (
-                <button
-                  onClick={handleAdminNav}
-                  className="text-slate-600 hover:text-orange-500 transition-colors duration-200 flex items-center text-left"
-                >
-                  <ShieldCheck size={16} className="mr-1.5" />
-                  Admin Dashboard
-                </button>
-              ) : (
-                <SignInButton mode="modal">
-                  <button className="text-slate-600 hover:text-orange-500 transition-colors duration-200 flex items-center text-left">
-                    <ShieldCheck size={16} className="mr-1.5" />
-                    Admin Login
-                  </button>
-                </SignInButton>
-              )}
-            </motion.nav>
           )}
         </div>
       </header>
