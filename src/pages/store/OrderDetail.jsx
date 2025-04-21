@@ -31,8 +31,9 @@ const OrderDetail = () => {
         // For now, we're simulating no orders exist yet
         setOrder(null);
         
-        /* 
-        // This mock data should only be used when connected to a real transaction
+        // IMPORTANT: This mock data is commented out to ensure orders only show after transactions
+        // Uncomment and modify this section when connecting to a real API
+        /*
         if (orderId) {
           setOrder({
             id: orderId,
