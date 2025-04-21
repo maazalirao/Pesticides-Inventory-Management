@@ -3,6 +3,18 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Package, ShoppingBag, Users, BarChart2, Lock, ArrowRight, ChevronRight, Check, ShieldCheck } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, useUser } from "@clerk/clerk-react";
 
+// Add custom styles for the landing page
+const landingStyles = {
+  wrapper: {
+    margin: 0,
+    padding: 0,
+    boxSizing: 'border-box',
+    width: '100%',
+    height: '100vh',
+    overflowX: 'hidden'
+  }
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const { user } = useUser();
@@ -23,9 +35,9 @@ const Landing = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
+    <div style={landingStyles.wrapper} className="bg-gradient-to-b from-slate-900 to-slate-800 text-white">
       {/* Header */}
-      <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'py-3 bg-slate-900/90 backdrop-blur-md shadow-lg' : 'py-6'}`}>
+      <header className={`sticky top-0 z-50 transition-all duration-300 w-full ${scrolled ? 'py-3 bg-slate-900/90 backdrop-blur-md shadow-lg' : 'py-6'}`}>
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
