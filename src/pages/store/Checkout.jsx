@@ -46,9 +46,9 @@ const Checkout = () => {
   
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ur-PK', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PKR'
     }).format(amount);
   };
   
@@ -480,7 +480,7 @@ const Checkout = () => {
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <Truck className="h-4 w-4 mr-2 text-primary" />
-                <span>Free shipping on orders over $100</span>
+                <span>Free shipping on orders over PKR 10,000</span>
               </div>
               <div className="flex items-center text-sm text-gray-600">
                 <Check className="h-4 w-4 mr-2 text-primary" />

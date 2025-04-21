@@ -127,9 +127,9 @@ const Store = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('ur-PK', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'PKR'
     }).format(amount);
   };
 
@@ -472,15 +472,15 @@ const Store = () => {
                 <div className="space-y-2">
                   <div className="flex items-center">
                     <input type="checkbox" id="standard" defaultChecked className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                    <label htmlFor="standard" className="ml-2 text-sm text-muted-foreground">Standard Shipping ($5.99)</label>
+                    <label htmlFor="standard" className="ml-2 text-sm text-muted-foreground">Standard Shipping (PKR 599)</label>
                   </div>
                   <div className="flex items-center">
                     <input type="checkbox" id="express" defaultChecked className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                    <label htmlFor="express" className="ml-2 text-sm text-muted-foreground">Express Shipping ($12.99)</label>
+                    <label htmlFor="express" className="ml-2 text-sm text-muted-foreground">Express Shipping (PKR 1,299)</label>
                   </div>
                   <div className="flex items-center">
                     <input type="checkbox" id="free" defaultChecked className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                    <label htmlFor="free" className="ml-2 text-sm text-muted-foreground">Free Shipping (Orders over $100)</label>
+                    <label htmlFor="free" className="ml-2 text-sm text-muted-foreground">Free Shipping (Orders over PKR 10,000)</label>
                   </div>
                 </div>
               </div>
