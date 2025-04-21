@@ -23,6 +23,7 @@ import OrderHistory from './pages/store/OrderHistory';
 import OrderDetail from './pages/store/OrderDetail';
 import OrderConfirmation from './pages/store/OrderConfirmation';
 import UserAccount from './pages/store/UserAccount';
+import PaymentSuccess from './pages/PaymentSuccess';
 
 function App() {
   return (
@@ -65,6 +66,7 @@ function App() {
               <Route path="cart" element={<Cart />} />
               <Route path="checkout" element={<Checkout />} />
               <Route path="order-confirmation" element={<OrderConfirmation />} />
+              <Route path="payment-success" element={<PaymentSuccess />} />
               <Route path="orders" element={<OrderHistory />} />
               <Route path="order/:orderId" element={<OrderDetail />} />
               <Route path="account" element={<UserAccount />} />
