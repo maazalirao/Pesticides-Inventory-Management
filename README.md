@@ -106,3 +106,23 @@ Orders placed in the storefront automatically:
 ## License
 
 This project is licensed under the MIT License.
+
+# Pesticide Inventory Management System
+
+A comprehensive solution for tracking and managing agricultural chemicals.
+
+## Features
+
+- Inventory tracking
+- Online store
+- Admin dashboard
+- Reporting system
+
+## Getting Started
+
+Run the following commands:
+
+```bash
+npm install
+npm run dev
+```
