@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { 
   ChevronDown, 
   Menu, 
@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
+import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -295,20 +296,31 @@ const MainLayout = () => {
                 <Search className="h-5 w-5" />
               </button>
 
-              <button 
-                className="relative text-white hover:text-orange-300 p-2 rounded-lg hover:bg-slate-700 transition-all"
-                aria-label="Notifications"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-orange-500 text-[10px] text-white">
-                  3
-                </span>
-              </button>
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-orange-600 to-orange-400 flex items-center justify-center text-white shadow-lg">
-                  <User className="h-4 w-4" />
-                </div>
-                <span className="hidden text-sm font-medium text-white md:block">Admin</span>
+              <div className="flex items-center space-x-4">
+                {/* Notification button */}
+                <button className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full transition-colors">
+                  <Bell className="h-5 w-5" />
+                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-orange-500"></span>
+                </button>
+                
+                {/* Clerk Authentication UI */}
+                <SignedOut>
+                  <SignInButton mode="modal">
+                    <button className="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg text-sm font-medium transition-colors">
+                      Sign In
+                    </button>
+                  </SignInButton>
+                </SignedOut>
+                
+                <SignedIn>
+                  <UserButton
+                    appearance={{
+                      elements: {
+                        userButtonAvatarBox: "h-8 w-8"
+                      }
+                    }}
+                  />
+                </SignedIn>
               </div>
             </div>
           </div>

@@ -298,8 +298,9 @@ export const clearCache = (key) => {
 // Invoice API calls
 export const getInvoices = async () => {
   try {
-    const { data } = await api.get('/invoices');
-    return data;
+    const response = await api.get('/invoices');
+    // The server returns { success: true, data: [...] } so we need to extract the data property
+    return response.data.data || [];
   } catch (error) {
     console.error('Error fetching invoices:', error);
     throw error.response?.data?.message || 'Failed to fetch invoices';
@@ -308,8 +309,8 @@ export const getInvoices = async () => {
 
 export const getInvoice = async (id) => {
   try {
-    const { data } = await api.get(`/invoices/${id}`);
-    return data;
+    const response = await api.get(`/invoices/${id}`);
+    return response.data.data;
   } catch (error) {
     console.error(`Error fetching invoice ${id}:`, error);
     throw error.response?.data?.message || 'Failed to fetch invoice';
@@ -318,8 +319,8 @@ export const getInvoice = async (id) => {
 
 export const createInvoice = async (invoiceData) => {
   try {
-    const { data } = await api.post('/invoices', invoiceData);
-    return data;
+    const response = await api.post('/invoices', invoiceData);
+    return response.data.data;
   } catch (error) {
     console.error('Error creating invoice:', error);
     throw error.response?.data?.message || 'Failed to create invoice';
@@ -328,8 +329,8 @@ export const createInvoice = async (invoiceData) => {
 
 export const updateInvoice = async (id, invoiceData) => {
   try {
-    const { data } = await api.put(`/invoices/${id}`, invoiceData);
-    return data;
+    const response = await api.put(`/invoices/${id}`, invoiceData);
+    return response.data.data;
   } catch (error) {
     console.error(`Error updating invoice ${id}:`, error);
     throw error.response?.data?.message || 'Failed to update invoice';
@@ -338,8 +339,8 @@ export const updateInvoice = async (id, invoiceData) => {
 
 export const deleteInvoice = async (id) => {
   try {
-    const { data } = await api.delete(`/invoices/${id}`);
-    return data;
+    const response = await api.delete(`/invoices/${id}`);
+    return response.data.data;
   } catch (error) {
     console.error(`Error deleting invoice ${id}:`, error);
     throw error.response?.data?.message || 'Failed to delete invoice';
@@ -348,8 +349,8 @@ export const deleteInvoice = async (id) => {
 
 export const updateInvoiceStatus = async (id, status) => {
   try {
-    const { data } = await api.patch(`/invoices/${id}/status`, { status });
-    return data;
+    const response = await api.patch(`/invoices/${id}/status`, { status });
+    return response.data.data;
   } catch (error) {
     console.error(`Error updating invoice ${id} status:`, error);
     throw error.response?.data?.message || 'Failed to update invoice status';
