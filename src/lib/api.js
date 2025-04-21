@@ -16,11 +16,6 @@ const api = axios.create({
 // Add a request interceptor
 api.interceptors.request.use(
   (config) => {
-    // Get token from localStorage
-    const userInfo = localStorage.getItem('userInfo') ? JSON.parse(localStorage.getItem('userInfo')) : null;
-    if (userInfo?.token) {
-      config.headers.Authorization = `Bearer ${userInfo.token}`;
-    }
     console.log('Request to:', config.url);
     return config;
   },
@@ -66,60 +61,6 @@ const cache = {
 // Helper function to check if cache is valid
 const isCacheValid = (key) => {
   return cache[key]?.data && (Date.now() - cache[key].timestamp < CACHE_DURATION);
-};
-
-// Auth API calls
-export const login = async (email, password) => {
-  try {
-    const { data } = await api.post('/users/login', { email, password });
-    
-    // Ensure we store the token properly
-    if (data && data.token) {
-      console.log('Login successful, storing token');
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      localStorage.setItem('userToken', data.token);
-      
-      // Add a log to confirm token is stored
-      console.log('Token stored:', !!localStorage.getItem('userToken'));
-    } else {
-      console.error('Login response missing token:', data);
-      throw new Error('Invalid login response');
-    }
-    
-    return data;
-  } catch (error) {
-    console.error('Login error:', error);
-    if (error.response?.status === 401) {
-      throw new Error('Invalid email or password');
-    }
-    throw error.response?.data?.message || 'Login failed. Please try again.';
-  }
-};
-
-export const register = async (name, email, password) => {
-  try {
-    const { data } = await api.post('/users/register', { name, email, password });
-    
-    if (data && data.token) {
-      localStorage.setItem('userInfo', JSON.stringify(data));
-      localStorage.setItem('userToken', data.token);
-      return data;
-    } else {
-      throw new Error('Invalid registration response');
-    }
-  } catch (error) {
-    console.error('Registration error:', error);
-    if (error.response?.status === 400) {
-      throw new Error('Email already registered');
-    }
-    throw error.response?.data?.message || 'Registration failed. Please try again.';
-  }
-};
-
-export const logout = () => {
-  localStorage.removeItem('userInfo');
-  localStorage.removeItem('userToken');
-  window.location.href = '/login';
 };
 
 // Product API calls
@@ -250,37 +191,37 @@ export const getSupplierById = async (id) => {
     const { data } = await api.get(`/suppliers/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to fetch supplier';
   }
 };
 
 export const createSupplier = async (supplierData) => {
   try {
     const { data } = await api.post('/suppliers', supplierData);
-    cache.suppliers.timestamp = 0; // Invalidate cache
+    cache.suppliers.data = null; // Invalidate cache
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to create supplier';
   }
 };
 
 export const updateSupplier = async (id, supplierData) => {
   try {
     const { data } = await api.put(`/suppliers/${id}`, supplierData);
-    cache.suppliers.timestamp = 0; // Invalidate cache
+    cache.suppliers.data = null; // Invalidate cache
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to update supplier';
   }
 };
 
 export const deleteSupplier = async (id) => {
   try {
     const { data } = await api.delete(`/suppliers/${id}`);
-    cache.suppliers.timestamp = 0; // Invalidate cache
+    cache.suppliers.data = null; // Invalidate cache
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to delete supplier';
   }
 };
 
@@ -305,156 +246,113 @@ export const getCustomerById = async (id) => {
     const { data } = await api.get(`/customers/${id}`);
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to fetch customer';
   }
 };
 
 export const createCustomer = async (customerData) => {
   try {
     const { data } = await api.post('/customers', customerData);
-    // Invalidate cache
-    cache.customers.timestamp = 0;
+    cache.customers.data = null; // Invalidate cache
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to create customer';
   }
 };
 
 export const updateCustomer = async (id, customerData) => {
   try {
     const { data } = await api.put(`/customers/${id}`, customerData);
-    // Invalidate cache
-    cache.customers.timestamp = 0;
+    cache.customers.data = null; // Invalidate cache
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to update customer';
   }
 };
 
 export const deleteCustomer = async (id) => {
   try {
     const { data } = await api.delete(`/customers/${id}`);
-    // Invalidate cache
-    cache.customers.timestamp = 0;
+    cache.customers.data = null; // Invalidate cache
     return data;
   } catch (error) {
-    throw error;
+    throw error.response?.data?.message || 'Failed to delete customer';
   }
 };
 
-// Clear cache function
+// Cache management
 export const clearCache = (key) => {
   if (key) {
-    cache[key] = { data: null, timestamp: 0 };
+    if (cache[key]) {
+      cache[key].data = null;
+      cache[key].timestamp = 0;
+    }
   } else {
-    Object.keys(cache).forEach(k => {
-      cache[k] = { data: null, timestamp: 0 };
+    Object.keys(cache).forEach(cacheKey => {
+      cache[cacheKey].data = null;
+      cache[cacheKey].timestamp = 0;
     });
   }
 };
 
-// Invoice API functions
+// Invoice API calls
 export const getInvoices = async () => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch invoices');
-    }
-    const data = await response.json();
-    return data.data;
+    const { data } = await api.get('/invoices');
+    return data;
   } catch (error) {
     console.error('Error fetching invoices:', error);
-    throw error;
+    throw error.response?.data?.message || 'Failed to fetch invoices';
   }
 };
 
 export const getInvoice = async (id) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch invoice');
-    }
-    const data = await response.json();
-    return data.data;
+    const { data } = await api.get(`/invoices/${id}`);
+    return data;
   } catch (error) {
-    console.error('Error fetching invoice:', error);
-    throw error;
+    console.error(`Error fetching invoice ${id}:`, error);
+    throw error.response?.data?.message || 'Failed to fetch invoice';
   }
 };
 
 export const createInvoice = async (invoiceData) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(invoiceData),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to create invoice');
-    }
-    const data = await response.json();
-    return data.data;
+    const { data } = await api.post('/invoices', invoiceData);
+    return data;
   } catch (error) {
     console.error('Error creating invoice:', error);
-    throw error;
+    throw error.response?.data?.message || 'Failed to create invoice';
   }
 };
 
 export const updateInvoice = async (id, invoiceData) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(invoiceData),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update invoice');
-    }
-    const data = await response.json();
-    return data.data;
+    const { data } = await api.put(`/invoices/${id}`, invoiceData);
+    return data;
   } catch (error) {
-    console.error('Error updating invoice:', error);
-    throw error;
+    console.error(`Error updating invoice ${id}:`, error);
+    throw error.response?.data?.message || 'Failed to update invoice';
   }
 };
 
 export const deleteInvoice = async (id) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}`, {
-      method: 'DELETE',
-    });
-    if (!response.ok) {
-      throw new Error('Failed to delete invoice');
-    }
-    const data = await response.json();
-    return data.data;
+    const { data } = await api.delete(`/invoices/${id}`);
+    return data;
   } catch (error) {
-    console.error('Error deleting invoice:', error);
-    throw error;
+    console.error(`Error deleting invoice ${id}:`, error);
+    throw error.response?.data?.message || 'Failed to delete invoice';
   }
 };
 
 export const updateInvoiceStatus = async (id, status) => {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/invoices/${id}/status`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ status }),
-    });
-    if (!response.ok) {
-      throw new Error('Failed to update invoice status');
-    }
-    const data = await response.json();
-    return data.data;
+    const { data } = await api.patch(`/invoices/${id}/status`, { status });
+    return data;
   } catch (error) {
-    console.error('Error updating invoice status:', error);
-    throw error;
+    console.error(`Error updating invoice ${id} status:`, error);
+    throw error.response?.data?.message || 'Failed to update invoice status';
   }
 };
 

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import { 
   ChevronDown, 
   Menu, 
@@ -18,17 +18,15 @@ import {
   Sun,
   Moon,
   ChevronLeft,
-  LogOut
+  ChevronRight
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
-import { logout } from '../lib/api';
 
-const MainLayout = ({ isLoggedIn, userInfo, setIsLoggedIn, setUserInfo }) => {
+const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const location = useLocation();
-  const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
 
   // Check if device is mobile or screen size is small
@@ -53,13 +51,6 @@ const MainLayout = ({ isLoggedIn, userInfo, setIsLoggedIn, setUserInfo }) => {
       setSidebarOpen(false);
     }
   }, [location, isMobile]);
-
-  const handleLogout = () => {
-    logout();
-    setIsLoggedIn(false);
-    setUserInfo(null);
-    navigate('/login');
-  };
 
   const navItems = [
     { 
@@ -241,13 +232,6 @@ const MainLayout = ({ isLoggedIn, userInfo, setIsLoggedIn, setUserInfo }) => {
                   </>
                 )}
               </button>
-
-              <button 
-                onClick={handleLogout}
-                className="text-sm text-slate-400 hover:text-white transition-colors"
-              >
-                Logout
-              </button>
             </div>
           </div>
         </div>
@@ -270,15 +254,15 @@ const MainLayout = ({ isLoggedIn, userInfo, setIsLoggedIn, setUserInfo }) => {
               <div className="flex items-center ml-3 md:hidden">
                 <h1 className="text-lg font-medium text-white">{currentPageTitle}</h1>
               </div>
-              
+
               <div className="ml-4 hidden md:block">
                 <div className="relative">
                   <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
                     <Search className="h-4 w-4 text-slate-400" />
                   </div>
-                  <input
+                  <input 
                     type="text"
-                    placeholder="Search..."
+                    placeholder="Search..." 
                     className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-10 text-sm text-white focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
                   />
                 </div>
