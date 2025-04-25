@@ -6,11 +6,14 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import axios from 'axios';
+import { useShoppingAssistant } from '../../contexts/ShoppingAssistantContext';
+import { ProductSuggestions } from '../../components/ShoppingAssistant';
 
 const ProductDetail = () => {
   const { productId } = useParams();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { trackProductView } = useShoppingAssistant();
   
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +28,9 @@ const ProductDetail = () => {
         // Fetch product details
         const response = await axios.get(`/api/products/${productId}`);
         setProduct(response.data);
+        
+        // Track product view for recommendations
+        trackProductView(response.data);
         
         // Fetch related products (products in the same category)
         const relatedResponse = await axios.get('/api/products', {
@@ -48,7 +54,7 @@ const ProductDetail = () => {
     if (productId) {
       fetchProduct();
     }
-  }, [productId]);
+  }, [productId, trackProductView]);
   
   const [activeImage, setActiveImage] = useState(0);
   
@@ -349,6 +355,11 @@ const ProductDetail = () => {
           </div>
         </div>
       )}
+      
+      {/* Add personalized product suggestions */}
+      <div className="mt-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <ProductSuggestions limit={4} />
+      </div>
     </div>
   );
 };

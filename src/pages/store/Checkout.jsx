@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useShoppingAssistant } from '../../contexts/ShoppingAssistantContext';
 import { ChevronRight, CreditCard, Truck, Check, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cart, subtotal, clearCart } = useCart();
+  const { trackPurchase } = useShoppingAssistant();
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -70,7 +72,7 @@ const Checkout = () => {
     window.scrollTo(0, 0);
   };
   
-  const handleSubmit = async (e) => {
+  const handleOrderSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
@@ -78,6 +80,9 @@ const Checkout = () => {
     try {
       // Simulate API call with setTimeout
       await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      // Track purchased products for recommendation engine
+      trackPurchase(cart);
       
       // Clear cart and navigate to success page
       clearCart();
@@ -129,7 +134,7 @@ const Checkout = () => {
               </div>
             </div>
             
-            <form onSubmit={handleSubmit}>
+            <form onSubmit={handleOrderSubmit}>
               {step === 1 ? (
                 <div className="space-y-6">
                   <h2 className="text-lg font-medium flex items-center">

@@ -6,6 +6,8 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import axios from 'axios';
+import { NaturalLanguageSearch } from '../../components/ShoppingAssistant';
+import { useShoppingAssistant } from '../../contexts/ShoppingAssistantContext';
 
 const ProductListing = () => {
   const location = useLocation();
@@ -23,6 +25,7 @@ const ProductListing = () => {
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [sortBy, setSortBy] = useState('featured');
   const [searchTerm, setSearchTerm] = useState('');
+  const { trackProductView } = useShoppingAssistant();
   
   useEffect(() => {
     const fetchProducts = async () => {
@@ -117,6 +120,41 @@ const ProductListing = () => {
     });
     // Show notification (in a real app, you might use a toast notification)
     alert(`${product.name} added to cart!`);
+  };
+  
+  // Handle AI-powered natural language search
+  const handleNaturalLanguageSearch = (query) => {
+    // Extract keywords from natural language query
+    const keywords = query.toLowerCase().split(/\s+/)
+      .filter(word => word.length > 2 && !['the', 'and', 'for', 'that', 'with', 'this'].includes(word));
+    
+    // Set search term to help with highlighting matches
+    setSearchTerm(keywords.join(' '));
+    
+    // Create a regex pattern that will match any of the keywords
+    const pattern = new RegExp(keywords.map(k => `(${k})`).join('|'), 'i');
+    
+    // Filter products based on the keywords
+    const matchingProducts = products.filter(product => {
+      const productText = `${product.name} ${product.description} ${product.category} ${product.recommendedUse || ''} ${product.toxicityLevel || ''}`.toLowerCase();
+      return keywords.some(keyword => productText.includes(keyword));
+    });
+    
+    // Use the results to update the UI
+    if (matchingProducts.length > 0) {
+      // Sort by relevance (number of keyword matches)
+      const sortedProducts = [...matchingProducts].sort((a, b) => {
+        const aText = `${a.name} ${a.description} ${a.category}`.toLowerCase();
+        const bText = `${b.name} ${b.description} ${b.category}`.toLowerCase();
+        
+        const aMatches = keywords.filter(k => aText.includes(k)).length;
+        const bMatches = keywords.filter(k => bText.includes(k)).length;
+        
+        return bMatches - aMatches;
+      });
+      
+      setProducts(sortedProducts);
+    }
   };
   
   return (
@@ -348,6 +386,14 @@ const ProductListing = () => {
               </div>
             </div>
             
+            {/* Replace or add AI-powered search */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+              <NaturalLanguageSearch 
+                onSearch={handleNaturalLanguageSearch}
+                className="mb-6 max-w-3xl mx-auto"
+              />
+            </div>
+            
             {loading ? (
               <div className="flex justify-center items-center py-20">
                 <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
@@ -384,8 +430,12 @@ const ProductListing = () => {
             ) : viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {sortedProducts.map((product) => (
-                  <div key={product._id} className="bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
-                    <Link to={`/store/product/${product._id}`}>
+                  <div key={product._id} className="group relative">
+                    <Link 
+                      to={`/store/product/${product._id}`}
+                      onClick={() => trackProductView(product)}
+                      className="block"
+                    >
                       <div className="h-48 overflow-hidden">
                         <img 
                           src={product.image || "https://placehold.co/300x300/cccccc/FFFFFF/png?text=No+Image"} 
@@ -425,48 +475,56 @@ const ProductListing = () => {
             ) : (
               <div className="space-y-4">
                 {sortedProducts.map((product) => (
-                  <div key={product._id} className="flex bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
-                    <Link to={`/store/product/${product._id}`} className="w-32 sm:w-48 flex-shrink-0">
-                      <img 
-                        src={product.image || "https://placehold.co/300x300/cccccc/FFFFFF/png?text=No+Image"} 
-                        alt={product.name} 
-                        className="w-full h-full object-cover"
-                      />
-                    </Link>
-                    <div className="flex-1 p-4">
-                      <div className="flex justify-between">
-                        <Link to={`/store/product/${product._id}`} className="hover:text-primary">
-                          <h3 className="font-medium">{product.name}</h3>
-                        </Link>
-                        <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
-                          {product.category}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 mt-1 mb-3 line-clamp-2">
-                        {product.description}
-                      </p>
-                      <div className="flex justify-between items-center mt-auto">
-                        <span className="text-lg font-bold text-primary">
-                          {formatCurrency(product.price)}
-                        </span>
-                        <div className="flex items-center gap-2">
-                          <Link 
-                            to={`/store/product/${product._id}`}
-                            className="px-3 py-1 border rounded-md text-sm text-gray-700 hover:bg-gray-50"
-                          >
-                            Details
-                          </Link>
-                          <button
-                            onClick={() => handleAddToCart(product)}
-                            className="px-3 py-1 bg-primary text-white rounded-md text-sm hover:bg-primary/90 transition-colors flex items-center gap-1"
-                            disabled={product.stockQuantity <= 0}
-                          >
-                            <ShoppingCart size={14} />
-                            Add to Cart
-                          </button>
+                  <div key={product._id} className="group relative">
+                    <Link 
+                      to={`/store/product/${product._id}`}
+                      onClick={() => trackProductView(product)}
+                      className="block"
+                    >
+                      <div className="flex bg-white rounded-lg border overflow-hidden hover:shadow-md transition-shadow">
+                        <div className="w-32 sm:w-48 flex-shrink-0">
+                          <img 
+                            src={product.image || "https://placehold.co/300x300/cccccc/FFFFFF/png?text=No+Image"} 
+                            alt={product.name} 
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <div className="flex-1 p-4">
+                          <div className="flex justify-between">
+                            <Link to={`/store/product/${product._id}`} className="hover:text-primary">
+                              <h3 className="font-medium">{product.name}</h3>
+                            </Link>
+                            <span className="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-600">
+                              {product.category}
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-600 mt-1 mb-3 line-clamp-2">
+                            {product.description}
+                          </p>
+                          <div className="flex justify-between items-center mt-auto">
+                            <span className="text-lg font-bold text-primary">
+                              {formatCurrency(product.price)}
+                            </span>
+                            <div className="flex items-center gap-2">
+                              <Link 
+                                to={`/store/product/${product._id}`}
+                                className="px-3 py-1 border rounded-md text-sm text-gray-700 hover:bg-gray-50"
+                              >
+                                Details
+                              </Link>
+                              <button
+                                onClick={() => handleAddToCart(product)}
+                                className="px-3 py-1 bg-primary text-white rounded-md text-sm hover:bg-primary/90 transition-colors flex items-center gap-1"
+                                disabled={product.stockQuantity <= 0}
+                              >
+                                <ShoppingCart size={14} />
+                                Add to Cart
+                              </button>
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </div>
                 ))}
               </div>

@@ -2,12 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ArrowRight, Star, Tag, TrendingUp, ChevronRight, ShieldCheck, Leaf, Truck, AlertTriangle } from 'lucide-react';
+import { ProductSuggestions } from '../../components/ShoppingAssistant';
+import { useShoppingAssistant } from '../../contexts/ShoppingAssistantContext';
 
 const Homepage = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { generateRecommendations } = useShoppingAssistant();
   
   useEffect(() => {
     const fetchData = async () => {
@@ -26,6 +29,14 @@ const Homepage = () => {
         
         setFeaturedProducts(featuredProducts);
         
+        // Generate initial recommendations based on the user's preferences
+        try {
+          await generateRecommendations(products);
+          console.log('Initial recommendations generated');
+        } catch (recError) {
+          console.error('Failed to generate recommendations:', recError);
+        }
+        
         // Extract unique categories and count products in each
         const categoriesMap = products.reduce((acc, product) => {
           const category = product.category;
@@ -39,15 +50,12 @@ const Homepage = () => {
           return acc;
         }, {});
         
-        // Transform categories data
-        const transformedCategories = Object.values(categoriesMap).map((category, index) => ({
-          id: index.toString(),
-          name: category.name,
-          image: `https://placehold.co/400x300/${getCategoryColor(category.name)}/FFFFFF/png?text=${category.name}`,
-          count: category.count
-        }));
+        // Convert map to array and sort by count (descending)
+        const sortedCategories = Object.values(categoriesMap)
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 6); // Take top 6 categories
         
-        setCategories(transformedCategories);
+        setCategories(sortedCategories);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching data:', error);
@@ -137,7 +145,7 @@ const Homepage = () => {
     };
     
     fetchData();
-  }, []);
+  }, [generateRecommendations]);
   
   // Get a color based on category name for placeholder images
   const getCategoryColor = (categoryName) => {
@@ -264,6 +272,14 @@ const Homepage = () => {
               <path d="M0,288L48,272C96,256,192,224,288,197.3C384,171,480,149,576,165.3C672,181,768,235,864,250.7C960,267,1056,245,1152,208C1248,171,1344,117,1392,90.7L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
             </svg>
           </div>
+        </div>
+      </section>
+      
+      {/* AI-Powered Personalized Recommendations */}
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">Recommended For You</h2>
+          <ProductSuggestions limit={4} />
         </div>
       </section>
       

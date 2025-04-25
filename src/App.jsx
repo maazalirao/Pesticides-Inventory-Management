@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn, ClerkLoaded, ClerkLoading } from "@clerk/clerk-react";
 import MainLayout from './layouts/MainLayout';
 import StoreLayout from './layouts/StoreLayout';
@@ -23,10 +23,11 @@ import OrderHistory from './pages/store/OrderHistory';
 import OrderDetail from './pages/store/OrderDetail';
 import OrderConfirmation from './pages/store/OrderConfirmation';
 import UserAccount from './pages/store/UserAccount';
+import { ShoppingAssistant } from './components/ShoppingAssistant';
 
 function App() {
   return (
-    <Router>
+    <>
       <ClerkLoading>
         <div className="flex items-center justify-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
@@ -74,8 +75,11 @@ function App() {
           {/* Redirect any unknown routes to landing page */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
+        
+        {/* Global Shopping Assistant */}
+        <ShoppingAssistant />
       </ClerkLoaded>
-    </Router>
+    </>
   );
 }
 

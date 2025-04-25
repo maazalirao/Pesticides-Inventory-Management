@@ -9,6 +9,7 @@ import supplierRoutes from './routes/supplierRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
+import openaiRoutes from './routes/openaiRoutes.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 
 // Load environment variables
@@ -45,6 +46,7 @@ app.use('/api/suppliers', supplierRoutes);
 app.use('/api/customers', customerRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/openai', openaiRoutes);
 // Add more routes as needed
 
 // Health check endpoint
