@@ -297,15 +297,15 @@ const Homepage = () => {
               </div>
             </div>
             
-            <div className="relative hidden lg:block">
+            <div className="relative mt-10 lg:mt-0">
               <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-700/20 rounded-2xl blur-2xl"></div>
-              <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-2xl overflow-hidden border border-white/10">
-                <div className="grid grid-cols-2 gap-4">
+              <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-2xl overflow-hidden border border-white/10">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   <div>
                     <img 
                       src="https://plus.unsplash.com/premium_photo-1678344170545-c3edef92a16e" 
                       alt="Sustainable Farming" 
-                      className="aspect-square object-cover rounded-lg shadow-lg mb-4 transform hover:scale-105 transition duration-300"
+                      className="aspect-square object-cover rounded-lg shadow-lg mb-2 sm:mb-4 transform hover:scale-105 transition duration-300"
                     />
                     <img 
                       src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
@@ -313,11 +313,11 @@ const Homepage = () => {
                       className="aspect-square object-cover rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
                     />
                   </div>
-                  <div className="pt-8">
+                  <div className="pt-4 sm:pt-8">
                     <img 
                       src="https://www.pomais.com/wp-content/uploads/2024/08/aluminum-phosphide8.jpg" 
                       alt="Premium Solutions" 
-                      className="aspect-square object-cover rounded-lg shadow-lg mb-4 transform hover:scale-105 transition duration-300"
+                      className="aspect-square object-cover rounded-lg shadow-lg mb-2 sm:mb-4 transform hover:scale-105 transition duration-300"
                     />
                     <img 
                       src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd" 
