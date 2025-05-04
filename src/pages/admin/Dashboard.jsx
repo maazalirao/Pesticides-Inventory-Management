@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import {
@@ -31,6 +31,17 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { 
+  getDashboardStats, 
+  getSalesData, 
+  getInventoryDistribution, 
+  getCustomerSegments,
+  getSalesForecast,
+  getLowStockProducts,
+  getExpiringProducts,
+  getRecentSales,
+  clearAnalyticsCache
+} from '../../lib/api.js';
 
 // Register ChartJS components
 ChartJS.register(
@@ -47,187 +58,185 @@ ChartJS.register(
 );
 
 const Dashboard = () => {
-  // State for dashboard filters
-  const [timeRange, setTimeRange] = useState('month');
+  // State for dashboard filters and data
+  const [timeRange, setTimeRange] = useState('year');
   const [category, setCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   
-  // Mock data for statistics
-  const statistics = [
-    {
-      title: "Inventory Items",
-      value: "240",
-      description: "Total pesticide products in stock",
-      icon: <Package className="h-5 w-5" />,
-      iconClass: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
-      change: "+12% from last month",
-      changeType: "positive"
-    },
-    {
-      title: "Low Stock Alerts",
-      value: "18",
-      description: "Products below minimum threshold",
-      icon: <AlertTriangle className="h-5 w-5" />,
-      iconClass: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300",
-      change: "+5 since last week",
-      changeType: "negative"
-    },
-    {
-      title: "Sales This Month",
-      value: "12,800",
-      description: "Total revenue from sales",
-      icon: <DollarSign className="h-5 w-5" />,
-      iconClass: "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300",
-      change: "+18% from last month",
-      changeType: "positive"
-    },
-    {
-      title: "New Orders",
-      value: "24",
-      description: "Orders received today",
-      icon: <ShoppingCart className="h-5 w-5" />,
-      iconClass: "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300",
-      change: "+4 from yesterday",
-      changeType: "positive"
-    }
-  ];
+  // State for API data
+  const [statistics, setStatistics] = useState([]);
+  const [salesData, setSalesData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [inventoryData, setInventoryData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [customerSegmentData, setCustomerSegmentData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [forecastData, setForecastData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [expiringProducts, setExpiringProducts] = useState([]);
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [recentSales, setRecentSales] = useState([]);
 
-  // Mock data for sales chart - now with more detailed data
-  const salesData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Revenue (₨)',
-        data: [450000, 520000, 480000, 580000, 600000, 720000, 850000, 920000, 1000000, 1150000, 1100000, 1250000],
-        borderColor: 'hsl(var(--primary))',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        fill: true,
-        tension: 0.4,
-        order: 1,
-      },
-      {
-        label: 'Expenses (₨)',
-        data: [320000, 340000, 310000, 360000, 380000, 420000, 460000, 510000, 530000, 560000, 580000, 610000],
-        borderColor: 'rgb(234, 88, 12)',
-        backgroundColor: 'rgba(234, 88, 12, 0.1)',
-        fill: true,
-        tension: 0.4,
-        order: 2,
-      },
-      {
-        label: 'Profit (₨)',
-        data: [130000, 180000, 170000, 220000, 220000, 300000, 390000, 410000, 470000, 590000, 520000, 640000],
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        fill: true,
-        tension: 0.4,
-        type: 'line',
-        order: 0,
+  // Fetch data from API
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Fetch each data source separately to handle individual failures
+        let statsData = {};
+        let salesChartData = { labels: [], datasets: [] };
+        let inventoryChartData = { labels: [], datasets: [] };
+        let customerSegmentsData = { labels: [], datasets: [] };
+        let forecastChartData = { labels: [], datasets: [] };
+        let lowStockData = [];
+        let expiringProductsData = [];
+        let recentSalesData = [];
+        
+        try {
+          statsData = await getDashboardStats();
+        } catch (err) {
+          console.error('Error fetching dashboard stats:', err);
+          // Continue with other data
+        }
+        
+        try {
+          salesChartData = await getSalesData(timeRange);
+        } catch (err) {
+          console.error('Error fetching sales data:', err);
+          // Continue with other data
+        }
+        
+        try {
+          inventoryChartData = await getInventoryDistribution();
+        } catch (err) {
+          console.error('Error fetching inventory distribution:', err);
+          // Continue with other data
+        }
+        
+        try {
+          customerSegmentsData = await getCustomerSegments();
+        } catch (err) {
+          console.error('Error fetching customer segments:', err);
+          // Continue with other data
+        }
+        
+        try {
+          forecastChartData = await getSalesForecast();
+        } catch (err) {
+          console.error('Error fetching sales forecast:', err);
+          // Continue with other data
+        }
+        
+        try {
+          lowStockData = await getLowStockProducts();
+        } catch (err) {
+          console.error('Error fetching low stock products:', err);
+          // Continue with other data
+        }
+        
+        try {
+          expiringProductsData = await getExpiringProducts();
+        } catch (err) {
+          console.error('Error fetching expiring products:', err);
+          // Continue with other data
+        }
+        
+        try {
+          recentSalesData = await getRecentSales();
+        } catch (err) {
+          console.error('Error fetching recent sales:', err);
+          // Continue with other data
+        }
+        
+        // Transform statistics data for UI if it exists
+        const statsArray = Object.values(statsData);
+        if (statsArray.length > 0) {
+          setStatistics(statsArray);
+        } else {
+          // Fallback to default data if API returns empty data
+          setStatistics([
+            {
+              title: "Inventory Items",
+              value: "0",
+              description: "Total pesticide products in stock",
+              icon: "Package",
+              iconClass: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
+              change: "0% from last month",
+              changeType: "positive"
+            },
+            {
+              title: "Low Stock Alerts",
+              value: "0",
+              description: "Products below minimum threshold",
+              icon: "AlertTriangle",
+              iconClass: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300",
+              change: "0% since last week",
+              changeType: "positive"
+            },
+            {
+              title: "Sales This Month",
+              value: "0",
+              description: "Total revenue from sales",
+              icon: "DollarSign",
+              iconClass: "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300",
+              change: "0% from last month",
+              changeType: "positive"
+            },
+            {
+              title: "New Orders",
+              value: "0",
+              description: "Orders received today",
+              icon: "ShoppingCart",
+              iconClass: "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300",
+              change: "0% from yesterday",
+              changeType: "positive"
+            }
+          ]);
+        }
+        
+        setSalesData(salesChartData);
+        setInventoryData(inventoryChartData);
+        setCustomerSegmentData(customerSegmentsData);
+        setForecastData(forecastChartData);
+        setLowStockProducts(lowStockData);
+        setExpiringProducts(expiringProductsData);
+        setRecentSales(recentSalesData);
+        
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+        setError('Failed to load dashboard data. Please try again.');
+        setLoading(false);
       }
-    ],
+    };
+    
+    fetchDashboardData();
+  }, [timeRange]);
+  
+  // Handle refresh button click
+  const handleRefresh = () => {
+    clearAnalyticsCache();
+    // Refetch data
+    const timeRangeValue = timeRange;
+    setTimeRange('temp');
+    setTimeout(() => setTimeRange(timeRangeValue), 10);
   };
-
-  // Mock data for inventory distribution
-  const inventoryData = {
-    labels: ['Insecticides', 'Herbicides', 'Fungicides', 'Rodenticides', 'Others'],
-    datasets: [
-      {
-        label: 'Inventory Distribution',
-        data: [120, 80, 40, 25, 15],
-        backgroundColor: [
-          'rgba(34, 197, 94, 0.8)',
-          'rgba(59, 130, 246, 0.8)',
-          'rgba(139, 92, 246, 0.8)',
-          'rgba(249, 115, 22, 0.8)',
-          'rgba(100, 116, 139, 0.8)',
-        ],
-        borderColor: [
-          'rgba(34, 197, 94, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(139, 92, 246, 1)',
-          'rgba(249, 115, 22, 1)',
-          'rgba(100, 116, 139, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
+  
+  // Handle time range change
+  const handleTimeRangeChange = (range) => {
+    setTimeRange(range);
   };
-
-  // New chart: Sales by customer segment
-  const customerSegmentData = {
-    labels: ['Agriculture', 'Commercial', 'Government', 'Residential', 'Educational'],
-    datasets: [
-      {
-        label: 'Sales by Customer Segment',
-        data: [45, 25, 15, 10, 5],
-        backgroundColor: [
-          'rgba(34, 197, 94, 0.7)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(139, 92, 246, 0.7)',
-          'rgba(249, 115, 22, 0.7)',
-          'rgba(100, 116, 139, 0.7)',
-        ],
-        borderColor: [
-          'rgba(34, 197, 94, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(139, 92, 246, 1)',
-          'rgba(249, 115, 22, 1)',
-          'rgba(100, 116, 139, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // New chart: Sales forecast
-  const forecastData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [
-      {
-        label: 'Actual Sales',
-        data: [450000, 520000, 480000, 580000, 600000, 720000],
-        borderColor: 'hsl(var(--primary))',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        fill: false,
-        tension: 0.4,
-      },
-      {
-        label: 'Predicted Sales',
-        data: [null, null, null, null, null, 720000, 780000, 850000, 920000, 1050000, 1120000, 1280000],
-        borderColor: 'rgba(139, 92, 246, 1)',
-        backgroundColor: 'rgba(139, 92, 246, 0.1)',
-        borderDash: [5, 5],
-        fill: false,
-        tension: 0.4,
-      },
-    ],
-  };
-
-  // Mock data for expiring products
-  const expiringProducts = [
-    { id: 1, name: "MaxKill Insecticide", stock: 45, expiryDate: "2023-12-15" },
-    { id: 2, name: "HerbControl Plus", stock: 28, expiryDate: "2023-12-20" },
-    { id: 3, name: "FungoClear Solution", stock: 16, expiryDate: "2023-12-28" },
-    { id: 4, name: "RatAway Pellets", stock: 34, expiryDate: "2024-01-05" },
-    { id: 5, name: "AntiPest Powder", stock: 22, expiryDate: "2024-01-10" },
-  ];
-
-  // Mock data for low stock alerts
-  const lowStockProducts = [
-    { id: 1, name: "MaxKill Insecticide", stock: 5, threshold: 10 },
-    { id: 2, name: "GardenGuard Spray", stock: 3, threshold: 15 },
-    { id: 3, name: "TermiteShield", stock: 2, threshold: 8 },
-    { id: 4, name: "MosquitoKiller", stock: 4, threshold: 12 },
-    { id: 5, name: "WeedBGone", stock: 6, threshold: 10 },
-  ];
-
-  // Mock data for recent sales
-  const recentSales = [
-    { id: 1, customer: "Al-Barakat Farms", product: "MaxKill Insecticide", quantity: 20, total: 99980, date: "Today, 10:15 AM" },
-    { id: 2, customer: "City Parks Authority", product: "HerbControl Plus", quantity: 15, total: 57750, date: "Today, 9:30 AM" },
-    { id: 3, customer: "Maaz Ali", product: "FungoClear Solution", quantity: 5, total: 32500, date: "Yesterday, 4:45 PM" },
-    { id: 4, customer: "Rehman Orchards", product: "AntiPest Powder", quantity: 10, total: 42500, date: "Yesterday, 2:20 PM" },
-    { id: 5, customer: "Agriculture University", product: "RatAway Pellets", quantity: 8, total: 23992, date: "Nov 15, 2023" },
-  ];
 
   // Chart options
   const chartOptions = {
@@ -266,43 +275,63 @@ const Dashboard = () => {
     }).format(amount);
   };
 
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full py-24">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
+        <p className="text-muted-foreground">Loading dashboard data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full py-24">
+        <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+        <p className="text-muted-foreground">{error}</p>
+        <Button 
+          variant="outline" 
+          className="mt-4"
+          onClick={handleRefresh}
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Try Again
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="hidden md:block text-2xl md:text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="hidden md:block text-muted-foreground">
-            Overview of your pesticide inventory and business metrics
-          </p>
-        </div>
-        
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[120px]">
-            <div className="flex items-center rounded-md border px-3 py-2 bg-background text-sm">
-              <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-              <select 
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
-                className="bg-transparent pr-8 focus:outline-none text-xs sm:text-sm"
-              >
-                <option value="day">Today</option>
-                <option value="week">This Week</option>
-                <option value="month">This Month</option>
-                <option value="quarter">This Quarter</option>
-                <option value="year">This Year</option>
-              </select>
-              <ChevronDown className="ml-2 h-4 w-4 text-muted-foreground" />
-            </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
+        <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center rounded-md border">
+            <Button 
+              variant={timeRange === 'week' ? 'secondary' : 'ghost'} 
+              className="text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => handleTimeRangeChange('week')}
+            >
+              Weekly
+            </Button>
+            <Button 
+              variant={timeRange === 'month' ? 'secondary' : 'ghost'} 
+              className="text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => handleTimeRangeChange('month')}
+            >
+              Monthly
+            </Button>
+            <Button 
+              variant={timeRange === 'year' ? 'secondary' : 'ghost'} 
+              className="text-xs sm:text-sm px-2 sm:px-3"
+              onClick={() => handleTimeRangeChange('year')}
+            >
+              Yearly
+            </Button>
           </div>
-          
-          <Button variant="outline" size="sm" className="gap-1">
-            <RefreshCw className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:inline">Refresh</span>
-          </Button>
-          
-          <Button variant="outline" size="sm" className="gap-1">
-            <Download className="h-4 w-4" />
-            <span className="sr-only sm:not-sr-only sm:inline">Export</span>
+          <Button size="sm" variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
@@ -319,7 +348,7 @@ const Dashboard = () => {
                     <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mt-1">{stat.value}</h2>
                   </div>
                   <div className={`p-1.5 sm:p-2 rounded-full ${stat.iconClass}`}>
-                    {stat.icon}
+                    {getIcon(stat.icon)}
                   </div>
                 </div>
                 <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{stat.description}</p>
@@ -355,13 +384,28 @@ const Dashboard = () => {
               <CardDescription>Revenue, expenses and profit over time</CardDescription>
             </div>
             <div className="flex items-center space-x-1 sm:space-x-2">
-              <Button variant="outline" size="sm" className="h-7 px-2 sm:px-3 text-xs">
+              <Button 
+                variant={timeRange === 'month' ? 'secondary' : 'outline'} 
+                size="sm" 
+                className="h-7 px-2 sm:px-3 text-xs"
+                onClick={() => handleTimeRangeChange('month')}
+              >
                 Monthly
               </Button>
-              <Button variant="outline" size="sm" className="h-7 px-2 sm:px-3 text-xs">
+              <Button 
+                variant={timeRange === 'quarter' ? 'secondary' : 'outline'} 
+                size="sm" 
+                className="h-7 px-2 sm:px-3 text-xs"
+                onClick={() => handleTimeRangeChange('quarter')}
+              >
                 Quarterly
               </Button>
-              <Button variant="outline" size="sm" className="h-7 px-2 sm:px-3 text-xs bg-muted/50">
+              <Button 
+                variant={timeRange === 'year' ? 'secondary' : 'outline'} 
+                size="sm" 
+                className="h-7 px-2 sm:px-3 text-xs"
+                onClick={() => handleTimeRangeChange('year')}
+              >
                 Yearly
               </Button>
             </div>
@@ -427,129 +471,136 @@ const Dashboard = () => {
         </CardContent>
       </Card>
 
-      {/* Alerts and notifications */}
-      <div className="grid gap-6 md:grid-cols-2">
+      {/* Tables section */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
+        {/* Expiring Products */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-lg">
-              <AlertTriangle className="mr-2 h-5 w-5 text-yellow-500" />
-              Products Expiring Soon
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <Clock className="h-5 w-5 mr-2 text-yellow-500" />
+              Expiring Products
             </CardTitle>
+            <CardDescription>Products expiring in next 60 days</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-3 text-left font-medium">Product Name</th>
-                    <th className="py-3 text-left font-medium">Stock</th>
-                    <th className="py-3 text-left font-medium">Expiry Date</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {expiringProducts.map((product) => (
-                    <tr key={product.id} className="border-b hover:bg-muted/50">
-                      <td className="py-3">{product.name}</td>
-                      <td className="py-3">{product.stock} units</td>
-                      <td className="py-3 text-yellow-600 dark:text-yellow-400 font-medium">{product.expiryDate}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {expiringProducts.length > 0 ? (
+              <div className="space-y-4">
+                {expiringProducts.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{product.name}</p>
+                      <div className="flex items-center mt-1">
+                        <span className="text-xs text-muted-foreground">Stock: {product.stock}</span>
+                        <span className="mx-2 text-muted-foreground">•</span>
+                        <span className="text-xs text-red-500">Expires: {new Date(product.expiryDate).toLocaleDateString()}</span>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="h-8 text-xs">View</Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-muted-foreground">No expiring products</p>
+              </div>
+            )}
           </CardContent>
-          <CardFooter className="border-t px-6 py-3">
-            <Button variant="ghost" className="w-full justify-center text-xs text-muted-foreground">
-              View All Expiring Products
-            </Button>
-          </CardFooter>
         </Card>
 
+        {/* Low Stock Alerts */}
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-lg">
-              <AlertTriangle className="mr-2 h-5 w-5 text-red-500" />
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
               Low Stock Alerts
             </CardTitle>
+            <CardDescription>Products below minimum threshold</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b">
-                    <th className="py-3 text-left font-medium">Product Name</th>
-                    <th className="py-3 text-left font-medium">Current Stock</th>
-                    <th className="py-3 text-left font-medium">Threshold</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {lowStockProducts.map((product) => (
-                    <tr key={product.id} className="border-b hover:bg-muted/50">
-                      <td className="py-3">{product.name}</td>
-                      <td className="py-3 text-red-600 dark:text-red-400 font-medium">{product.stock} units</td>
-                      <td className="py-3">{product.threshold} units</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            {lowStockProducts.length > 0 ? (
+              <div className="space-y-4">
+                {lowStockProducts.map((product) => (
+                  <div key={product.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{product.name}</p>
+                      <div className="flex items-center mt-1">
+                        <span className="text-xs text-red-500">Stock: {product.stock}</span>
+                        <span className="mx-2 text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">Threshold: {product.threshold}</span>
+                      </div>
+                    </div>
+                    <Button size="sm" variant="outline" className="h-8 text-xs">Restock</Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-muted-foreground">No low stock alerts</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Recent Sales */}
+        <Card className="md:col-span-2 xl:col-span-1">
+          <CardHeader>
+            <CardTitle className="text-base sm:text-lg flex items-center">
+              <ShoppingCart className="h-5 w-5 mr-2 text-green-500" />
+              Recent Sales
+            </CardTitle>
+            <CardDescription>Latest transactions</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {recentSales.length > 0 ? (
+              <div className="space-y-4">
+                {recentSales.map((sale) => (
+                  <div key={sale.id} className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium text-sm">{sale.customer}</p>
+                      <div className="flex flex-col sm:flex-row sm:items-center mt-1">
+                        <span className="text-xs text-muted-foreground">{sale.product} x{sale.quantity}</span>
+                        <span className="hidden sm:block mx-2 text-muted-foreground">•</span>
+                        <span className="text-xs text-muted-foreground">{sale.date}</span>
+                      </div>
+                    </div>
+                    <span className="font-medium text-sm">{formatCurrency(sale.total)}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-6">
+                <p className="text-sm text-muted-foreground">No recent sales</p>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="border-t px-6 py-3">
-            <Button variant="ghost" className="w-full justify-center text-xs text-muted-foreground">
-              View All Low Stock Items
+            <Button variant="ghost" className="w-full justify-center text-xs">
+              View All Sales
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </CardFooter>
         </Card>
       </div>
-
-      {/* Recent sales */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center text-lg">
-            <Clock className="mr-2 h-5 w-5 text-muted-foreground" />
-            Recent Sales
-          </CardTitle>
-          <CardDescription>Latest transactions from your store</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b">
-                  <th className="py-3 text-left font-medium">Customer</th>
-                  <th className="py-3 text-left font-medium">Product</th>
-                  <th className="py-3 text-left font-medium">Quantity</th>
-                  <th className="py-3 text-left font-medium">Total</th>
-                  <th className="py-3 text-left font-medium">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentSales.map((sale) => (
-                  <tr key={sale.id} className="border-b hover:bg-muted/50">
-                    <td className="py-3 font-medium">{sale.customer}</td>
-                    <td className="py-3">{sale.product}</td>
-                    <td className="py-3">{sale.quantity}</td>
-                    <td className="py-3 font-medium">{formatCurrency(sale.total)}</td>
-                    <td className="py-3 text-muted-foreground">{sale.date}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
-        <CardFooter className="border-t flex justify-between">
-          <Button variant="outline" size="sm">
-            <Download className="mr-2 h-4 w-4" />
-            Export Sales
-          </Button>
-          <Button variant="ghost" size="sm" className="gap-1">
-            View All Sales
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </CardFooter>
-      </Card>
     </div>
   );
+};
+
+// Helper function to get icon component based on name
+const getIcon = (iconName) => {
+  switch (iconName) {
+    case 'Package':
+      return <Package className="h-5 w-5" />;
+    case 'AlertTriangle':
+      return <AlertTriangle className="h-5 w-5" />;
+    case 'DollarSign':
+      return <DollarSign className="h-5 w-5" />;
+    case 'ShoppingCart':
+      return <ShoppingCart className="h-5 w-5" />;
+    case 'Users':
+      return <Users className="h-5 w-5" />;
+    default:
+      return <Package className="h-5 w-5" />;
+  }
 };
 
 export default Dashboard; 

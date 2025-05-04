@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import Invoice from '../server/models/Invoice.js';
+import Invoice from '../server/models/invoiceModel.js';
 import connectDB from '../server/config/db.js';
 import { format } from 'date-fns';
 

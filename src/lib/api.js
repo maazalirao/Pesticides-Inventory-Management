@@ -55,12 +55,52 @@ const cache = {
   customers: {
     data: null,
     timestamp: 0
+  },
+  analytics: {
+    dashboardStats: {
+      data: null,
+      timestamp: 0
+    },
+    salesData: {
+      data: null,
+      timestamp: 0
+    },
+    inventoryDistribution: {
+      data: null,
+      timestamp: 0
+    },
+    customerSegments: {
+      data: null,
+      timestamp: 0
+    },
+    salesForecast: {
+      data: null,
+      timestamp: 0
+    },
+    lowStock: {
+      data: null,
+      timestamp: 0
+    },
+    expiringProducts: {
+      data: null,
+      timestamp: 0
+    },
+    recentSales: {
+      data: null,
+      timestamp: 0
+    }
   }
 };
 
 // Helper function to check if cache is valid
 const isCacheValid = (key) => {
   return cache[key]?.data && (Date.now() - cache[key].timestamp < CACHE_DURATION);
+};
+
+// Helper function to check if nested cache is valid
+const isNestedCacheValid = (parentKey, childKey) => {
+  return cache[parentKey]?.[childKey]?.data && 
+    (Date.now() - cache[parentKey][childKey].timestamp < CACHE_DURATION);
 };
 
 // Product API calls
@@ -354,6 +394,186 @@ export const updateInvoiceStatus = async (id, status) => {
   } catch (error) {
     console.error(`Error updating invoice ${id} status:`, error);
     throw error.response?.data?.message || 'Failed to update invoice status';
+  }
+};
+
+// Analytics API calls
+export const getDashboardStats = async () => {
+  try {
+    // Check cache first
+    if (isNestedCacheValid('analytics', 'dashboardStats')) {
+      return cache.analytics.dashboardStats.data;
+    }
+    
+    const { data } = await api.get('/analytics/dashboard-stats');
+    
+    // Update cache
+    cache.analytics.dashboardStats.data = data;
+    cache.analytics.dashboardStats.timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    throw error;
+  }
+};
+
+export const getSalesData = async (period = 'year') => {
+  try {
+    // We don't cache this to ensure fresh data based on period parameter
+    const { data } = await api.get(`/analytics/sales-data?period=${period}`);
+    return data;
+  } catch (error) {
+    console.error('Error fetching sales data:', error);
+    throw error;
+  }
+};
+
+export const getInventoryDistribution = async () => {
+  try {
+    // Check cache first
+    if (isNestedCacheValid('analytics', 'inventoryDistribution')) {
+      return cache.analytics.inventoryDistribution.data;
+    }
+    
+    const { data } = await api.get('/analytics/inventory-distribution');
+    
+    // Update cache
+    cache.analytics.inventoryDistribution.data = data;
+    cache.analytics.inventoryDistribution.timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching inventory distribution:', error);
+    throw error;
+  }
+};
+
+export const getCustomerSegments = async () => {
+  try {
+    // Check cache first
+    if (isNestedCacheValid('analytics', 'customerSegments')) {
+      return cache.analytics.customerSegments.data;
+    }
+    
+    const { data } = await api.get('/analytics/customer-segments');
+    
+    // Update cache
+    cache.analytics.customerSegments.data = data;
+    cache.analytics.customerSegments.timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching customer segments:', error);
+    throw error;
+  }
+};
+
+export const getSalesForecast = async () => {
+  try {
+    // Check cache first
+    if (isNestedCacheValid('analytics', 'salesForecast')) {
+      return cache.analytics.salesForecast.data;
+    }
+    
+    const { data } = await api.get('/analytics/sales-forecast');
+    
+    // Update cache
+    cache.analytics.salesForecast.data = data;
+    cache.analytics.salesForecast.timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching sales forecast:', error);
+    throw error;
+  }
+};
+
+export const getLowStockProducts = async () => {
+  try {
+    // This changes frequently, so we use a shorter cache time
+    const shortCacheDuration = 2 * 60 * 1000; // 2 minutes
+    const cacheKey = 'lowStock';
+    
+    if (
+      cache.analytics[cacheKey]?.data && 
+      (Date.now() - cache.analytics[cacheKey].timestamp < shortCacheDuration)
+    ) {
+      return cache.analytics[cacheKey].data;
+    }
+    
+    const { data } = await api.get('/analytics/low-stock');
+    
+    // Update cache
+    cache.analytics[cacheKey].data = data;
+    cache.analytics[cacheKey].timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching low stock products:', error);
+    throw error;
+  }
+};
+
+export const getExpiringProducts = async () => {
+  try {
+    // Check cache first
+    if (isNestedCacheValid('analytics', 'expiringProducts')) {
+      return cache.analytics.expiringProducts.data;
+    }
+    
+    const { data } = await api.get('/analytics/expiring-products');
+    
+    // Update cache
+    cache.analytics.expiringProducts.data = data;
+    cache.analytics.expiringProducts.timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching expiring products:', error);
+    throw error;
+  }
+};
+
+export const getRecentSales = async () => {
+  try {
+    // This changes frequently, so we use a shorter cache time
+    const shortCacheDuration = 2 * 60 * 1000; // 2 minutes
+    const cacheKey = 'recentSales';
+    
+    if (
+      cache.analytics[cacheKey]?.data && 
+      (Date.now() - cache.analytics[cacheKey].timestamp < shortCacheDuration)
+    ) {
+      return cache.analytics[cacheKey].data;
+    }
+    
+    const { data } = await api.get('/analytics/recent-sales');
+    
+    // Update cache
+    cache.analytics[cacheKey].data = data;
+    cache.analytics[cacheKey].timestamp = Date.now();
+    
+    return data;
+  } catch (error) {
+    console.error('Error fetching recent sales:', error);
+    throw error;
+  }
+};
+
+// Clear specific analytics cache
+export const clearAnalyticsCache = (key) => {
+  if (key && cache.analytics[key]) {
+    cache.analytics[key].data = null;
+    cache.analytics[key].timestamp = 0;
+    console.log(`Analytics cache cleared for ${key}`);
+  } else {
+    // Clear all analytics cache
+    Object.keys(cache.analytics).forEach(k => {
+      cache.analytics[k].data = null;
+      cache.analytics[k].timestamp = 0;
+    });
+    console.log('All analytics cache cleared');
   }
 };
 
