@@ -1,6 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, ShoppingBag, Eye, Calendar, Package } from 'lucide-react';
+import { 
+  ChevronRight, 
+  ShoppingBag, 
+  Eye, 
+  Calendar, 
+  Package, 
+  Truck, 
+  CreditCard, 
+  Clock, 
+  AlertTriangle,
+  Search,
+  ArrowRight,
+  Filter
+} from 'lucide-react';
 
 const OrderHistory = () => {
   // Mock order history data
@@ -37,124 +50,164 @@ const OrderHistory = () => {
   };
   
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumbs */}
-      <div className="flex items-center text-sm text-gray-600 mb-6">
-        <Link to="/" className="hover:text-primary">Home</Link>
-        <ChevronRight size={16} className="mx-2" />
-        <Link to="/account" className="hover:text-primary">My Account</Link>
-        <ChevronRight size={16} className="mx-2" />
-        <span className="font-medium text-gray-800">Order History</span>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-md overflow-hidden mb-8">
-        <div className="bg-gray-50 px-6 py-4 border-b flex items-center justify-between">
-          <h1 className="text-2xl font-bold">My Orders</h1>
-          <Link to="/shop" className="text-primary text-sm hover:underline">
-            Continue Shopping
-          </Link>
+    <div className="bg-gray-50 py-12">
+      <div className="container mx-auto px-4">
+        {/* Breadcrumbs */}
+        <div className="flex items-center text-sm text-gray-600 mb-8">
+          <Link to="/" className="hover:text-green-600 transition-colors">Home</Link>
+          <ChevronRight size={16} className="mx-2" />
+          <Link to="/account" className="hover:text-green-600 transition-colors">My Account</Link>
+          <ChevronRight size={16} className="mx-2" />
+          <span className="font-medium text-gray-800">Order History</span>
         </div>
         
-        <div className="p-6">
-          {orders.length === 0 ? (
-            <div className="text-center py-8">
-              <ShoppingBag className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h2 className="text-lg font-medium">No orders yet</h2>
-              <p className="text-gray-500 mb-4">You haven't placed any orders yet.</p>
+        <div className="bg-white rounded-xl shadow-sm overflow-hidden mb-8 border border-gray-100">
+          <div className="bg-green-600 px-6 py-4 flex items-center justify-between">
+            <h1 className="text-2xl font-bold text-white">My Orders</h1>
+            <Link to="/store/products" className="text-white hover:text-green-200 text-sm transition-colors font-medium flex items-center">
+              Continue Shopping
+              <ArrowRight className="ml-1 h-4 w-4" />
+            </Link>
+          </div>
+          
+          <div className="p-6">
+            {/* Search and Filter Section */}
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+              <div className="relative flex-1">
+                <input 
+                  type="text" 
+                  placeholder="Search orders..." 
+                  className="w-full py-2 pl-10 pr-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              </div>
+              <div className="flex gap-3">
+                <select className="py-2 px-4 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                  <option value="">Filter by status</option>
+                  <option value="processing">Processing</option>
+                  <option value="shipped">Shipped</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+                <button className="flex items-center gap-2 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <Filter className="h-4 w-4" />
+                  <span>Filter</span>
+                </button>
+              </div>
+            </div>
+            
+            {orders.length === 0 ? (
+              <div className="text-center py-12 px-4">
+                <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <ShoppingBag className="h-10 w-10 text-green-600" />
+                </div>
+                <h2 className="text-xl font-medium text-gray-800 mb-2">No orders yet</h2>
+                <p className="text-gray-500 mb-6 max-w-md mx-auto">
+                  You haven't placed any orders yet. Start shopping and your orders will appear here.
+                </p>
+                <Link 
+                  to="/store/products" 
+                  className="inline-flex items-center justify-center px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition-colors shadow-sm"
+                >
+                  Start Shopping
+                  <ChevronRight size={18} className="ml-1" />
+                </Link>
+              </div>
+            ) : (
+              <div className="overflow-x-auto rounded-lg border border-gray-200">
+                <table className="w-full">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Order ID
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Date
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Items
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {orders.map((order) => (
+                      <tr key={order.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="font-medium text-gray-800">{order.id}</span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Calendar className="h-4 w-4 text-green-600 mr-2" />
+                            <span className="text-gray-700">{formatDate(order.date)}</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <Package className="h-4 w-4 text-green-600 mr-2" />
+                            <span className="text-gray-700">{order.items} items</span>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-800">
+                          {formatCurrency(order.total)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <Link 
+                            to={`/orders/${order.id}`}
+                            className="text-green-600 hover:text-green-700 transition-colors flex items-center justify-end"
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View Details
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+          <div className="flex flex-col md:flex-row md:items-center gap-6">
+            <div className="bg-green-100 p-4 rounded-full md:p-6">
+              <AlertTriangle className="w-8 h-8 text-green-600 md:w-10 md:h-10" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold mb-2 text-gray-800">Need Help With Your Order?</h2>
+              <p className="text-gray-600 mb-4 md:mb-0">
+                If you have any questions or concerns about your orders, please don't hesitate to contact our customer support team.
+              </p>
+            </div>
+            <div className="flex gap-4">
               <Link 
-                to="/shop" 
-                className="inline-block bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
+                to="/contact" 
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm text-center"
               >
-                Start Shopping
+                Contact Support
+              </Link>
+              <Link 
+                to="/faq" 
+                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors text-center"
+              >
+                FAQ
               </Link>
             </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-50">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Order ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Items
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Total
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {orders.map((order) => (
-                    <tr key={order.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="font-medium">{order.id}</span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Calendar className="h-4 w-4 text-gray-400 mr-2" />
-                          <span>{formatDate(order.date)}</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Package className="h-4 w-4 text-gray-400 mr-2" />
-                          <span>{order.items} items</span>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-medium">
-                        {formatCurrency(order.total)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <Link 
-                          to={`/orders/${order.id}`}
-                          className="text-primary hover:text-primary/80 flex items-center justify-end"
-                        >
-                          <Eye className="h-4 w-4 mr-1" />
-                          View Details
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-lg font-semibold mb-4">Need Help With Your Order?</h2>
-        <p className="text-gray-600 mb-4">
-          If you have any questions or concerns about your orders, please don't hesitate to contact our customer support team.
-        </p>
-        <div className="flex space-x-4">
-          <Link 
-            to="/contact" 
-            className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90"
-          >
-            Contact Support
-          </Link>
-          <Link 
-            to="/faq" 
-            className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
-          >
-            FAQ
-          </Link>
+          </div>
         </div>
       </div>
     </div>
