@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const batchSchema = mongoose.Schema(
   {
@@ -42,6 +42,11 @@ const batchSchema = mongoose.Schema(
 
 const inventorySchema = mongoose.Schema(
   {
+    clerkId: {
+      type: String,
+      required: true,
+      ref: "User",
+    },
     name: {
       type: String,
       required: true,
@@ -77,11 +82,11 @@ const inventorySchema = mongoose.Schema(
     status: {
       type: String,
       required: true,
-      default: 'In Stock',
+      default: "In Stock",
     },
     supplier: {
       type: String,
-      default: '',
+      default: "",
     },
     batches: [batchSchema],
   },
@@ -91,8 +96,8 @@ const inventorySchema = mongoose.Schema(
 );
 
 // Add compound index to ensure batchId is unique within a document
-inventorySchema.index({ 'batches.batchId': 1 }, { unique: true, sparse: true });
+inventorySchema.index({ "batches.batchId": 1 }, { unique: true, sparse: true });
 
-const Inventory = mongoose.model('Inventory', inventorySchema);
+const Inventory = mongoose.model("Inventory", inventorySchema);
 
-export default Inventory; 
+export default Inventory;

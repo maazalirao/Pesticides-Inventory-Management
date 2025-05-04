@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 import {
   getUserProfile,
   updateUserProfile,
@@ -6,25 +6,32 @@ import {
   getUserById,
   updateUser,
   deleteUser,
-} from '../controllers/userController.js';
-import { protect, admin, protectWithClerk } from '../middleware/authMiddleware.js';
+  createUser,
+} from "../controllers/userController.js";
+import {
+  protect,
+  admin,
+  protectWithClerk,
+} from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 // Public routes
+router.post("/clerk", createUser);
 
 // Protected customer routes
-router.route('/profile')
+router
+  .route("/profile")
   .get(protectWithClerk, getUserProfile)
   .put(protectWithClerk, updateUserProfile);
 
 // Admin routes
-router.route('/')
-  .get(protectWithClerk, admin, getUsers);
+router.route("/").get(protectWithClerk, admin, getUsers);
 
-router.route('/:id')
+router
+  .route("/:id")
   .get(protectWithClerk, admin, getUserById)
   .put(protectWithClerk, admin, updateUser)
   .delete(protectWithClerk, admin, deleteUser);
 
-export default router; 
+export default router;

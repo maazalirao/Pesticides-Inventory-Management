@@ -1,40 +1,31 @@
-import mongoose from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose from "mongoose";
+import bcrypt from "bcryptjs";
 
 const userSchema = mongoose.Schema(
   {
-    name: {
+    clerkId: {
       type: String,
       required: true,
+      unique: true,
+    },
+    photo: {
+      type: String,
     },
     email: {
       type: String,
       required: true,
       unique: true,
     },
-    password: {
-      type: String,
-      required: true,
-    },
     role: {
       type: String,
-      enum: ['admin', 'staff', 'customer'],
-      default: 'customer',
+      enum: ["admin", "staff", "customer"],
+      default: "customer",
     },
-    address: {
-      street: { type: String },
-      city: { type: String },
-      state: { type: String },
-      postalCode: { type: String },
-      country: { type: String },
-    },
-    phone: {
+    firstName: {
       type: String,
     },
-    clerkId: {
+    lastName: {
       type: String,
-      unique: true,
-      sparse: true,
     },
   },
   {
@@ -48,9 +39,9 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 };
 
 // Pre-save middleware to hash password before saving
-userSchema.pre('save', async function (next) {
+userSchema.pre("save", async function (next) {
   // Only hash the password if it's modified (or new)
-  if (!this.isModified('password')) {
+  if (!this.isModified("password")) {
     return next();
   }
 
@@ -62,14 +53,14 @@ userSchema.pre('save', async function (next) {
 
 // Check if user has admin permissions
 userSchema.methods.isAdmin = function () {
-  return this.role === 'admin';
+  return this.role === "admin";
 };
 
 // Check if user has staff permissions
 userSchema.methods.isStaff = function () {
-  return this.role === 'admin' || this.role === 'staff';
+  return this.role === "admin" || this.role === "staff";
 };
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
-export default User; 
+export default User;

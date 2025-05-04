@@ -1,6 +1,6 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useClerk, useUser } from '@clerk/clerk-react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useClerk, useUser } from "@clerk/clerk-react";
+import { createUser } from "../lib/api";
 
 const AuthContext = createContext(null);
 
@@ -10,7 +10,7 @@ export const AuthProvider = ({ children }) => {
   const { user, isLoaded, isSignedIn } = useUser();
   const { signOut, session } = useClerk();
   const [currentUser, setCurrentUser] = useState(null);
-  const [userRole, setUserRole] = useState('admin'); // Default to admin for now
+  const [userRole, setUserRole] = useState("customer");
   const [loading, setLoading] = useState(true);
   const [token, setToken] = useState(null);
 
@@ -20,33 +20,44 @@ export const AuthProvider = ({ children }) => {
         try {
           // Get token from Clerk session
           const sessionToken = await session?.getToken();
+          if (!sessionToken) {
+            throw new Error("No session token available");
+          }
           setToken(sessionToken);
-          
-          // For testing purposes, we'll use admin role directly 
-          // In a production environment, you would fetch this from your backend
-          setCurrentUser(user);
-          setUserRole('admin'); // Set role to admin for dashboard access
-          
-          // Uncomment below to actually fetch from backend when ready
-          /*
-          // Get user metadata from your backend
-          const response = await axios.get(`/api/users/profile`, {
-            headers: {
-              Authorization: `Bearer ${sessionToken}`,
-            },
-          });
-          
-          setCurrentUser(response.data);
-          setUserRole(response.data.role || 'customer');
-          */
+
+          // Create user in our database
+          try {
+            const createdUser = await createUser(user);
+            console.log("User created successfully:", createdUser);
+            setCurrentUser(createdUser);
+            setUserRole(createdUser.role || "customer");
+          } catch (error) {
+            console.error("Error creating user:", error);
+            // If user already exists, just set the current user
+            if (
+              error.response?.status === 400 &&
+              error.response?.data?.message === "User already exists"
+            ) {
+              console.log("User already exists, setting current user");
+              setCurrentUser(user);
+              setUserRole("customer");
+            } else {
+              // For other errors, still set the user but with limited access
+              console.log("Setting user with limited access due to error");
+              setCurrentUser(user);
+              setUserRole("customer");
+            }
+          }
         } catch (error) {
-          console.error('Error fetching user data:', error);
+          console.error("Error in authentication flow:", error);
+          setCurrentUser(null);
+          setUserRole("customer");
         } finally {
           setLoading(false);
         }
       } else if (isLoaded) {
         setCurrentUser(null);
-        setUserRole('customer');
+        setUserRole("customer");
         setLoading(false);
       }
     };
@@ -58,24 +69,19 @@ export const AuthProvider = ({ children }) => {
     try {
       await signOut();
       setCurrentUser(null);
-      setUserRole('customer');
+      setUserRole("customer");
       setToken(null);
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error("Error signing out:", error);
     }
   };
 
   const hasRole = (requiredRole) => {
-    // For now, we'll just assume the user has the proper role for testing
-    return true;
-    
-    // Uncomment for production use
-    /*
     if (!currentUser) return false;
-    if (requiredRole === 'admin') return userRole === 'admin';
-    if (requiredRole === 'staff') return userRole === 'admin' || userRole === 'staff';
+    if (requiredRole === "admin") return userRole === "admin";
+    if (requiredRole === "staff")
+      return userRole === "admin" || userRole === "staff";
     return true; // For 'customer' role or any authenticated user
-    */
   };
 
   const value = {
@@ -85,8 +91,8 @@ export const AuthProvider = ({ children }) => {
     loading,
     logout,
     hasRole,
-    token
+    token,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-}; 
+};
