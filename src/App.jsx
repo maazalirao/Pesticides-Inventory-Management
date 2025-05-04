@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { SignedIn, SignedOut, RedirectToSignIn, ClerkLoaded, ClerkLoading } from "@clerk/clerk-react";
 import MainLayout from './layouts/MainLayout';
 import StoreLayout from './layouts/StoreLayout';
@@ -12,6 +12,7 @@ import Reports from './pages/admin/Reports';
 import Store from './pages/store/Store';
 import Settings from './pages/admin/Settings';
 import Landing from './pages/Landing';
+import NavigationHandler from './components/NavigationHandler';
 
 // Store pages
 import Homepage from './pages/store/Homepage';
@@ -26,7 +27,10 @@ import UserAccount from './pages/store/UserAccount';
 
 function App() {
   return (
-    <Router>
+    <>
+      {/* This forces page reload when switching between admin/store */}
+      <NavigationHandler />
+      
       <ClerkLoading>
         <div className="flex items-center justify-center h-screen">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500"></div>
@@ -41,8 +45,8 @@ function App() {
           {/* Auth routes */}
           <Route path="/sign-in/*" element={<SignedOut><RedirectToSignIn /></SignedOut>} />
           
-          {/* Admin routes - protected routes that require authentication */}
-          <Route path="/admin" element={<RequireAuth redirectTo="/" />}>
+          {/* Admin routes - protected routes that require admin authentication */}
+          <Route path="/admin/*" element={<RequireAuth redirectTo="/" />}>
             <Route element={<MainLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="inventory" element={<Inventory />} />
@@ -56,35 +60,47 @@ function App() {
             </Route>
           </Route>
           
-          {/* Store routes - public routes accessible to all users */}
-          <Route element={<StoreLayout />}>
-            <Route path="/store">
-              <Route index element={<Homepage />} />
-              <Route path="products" element={<ProductListing />} />
-              <Route path="product/:productId" element={<ProductDetail />} />
-              <Route path="cart" element={<Cart />} />
-              <Route path="checkout" element={<Checkout />} />
-              <Route path="order-confirmation" element={<OrderConfirmation />} />
-              <Route path="orders" element={<OrderHistory />} />
-              <Route path="order/:orderId" element={<OrderDetail />} />
-              <Route path="account" element={<UserAccount />} />
-            </Route>
+          {/* Store routes */}
+          <Route path="/store/*" element={<StoreLayout />}>
+            <Route index element={<Homepage />} />
+            <Route path="products" element={<ProductListing />} />
+            <Route path="product/:productId" element={<ProductDetail />} />
+            <Route path="cart" element={<Cart />} />
+            <Route path="checkout" element={<Checkout />} />
+            <Route path="order-confirmation" element={<OrderConfirmation />} />
+            <Route path="orders" element={<OrderHistory />} />
+            <Route path="order/:orderId" element={<OrderDetail />} />
+            <Route path="account" element={<UserAccount />} />
           </Route>
 
           {/* Redirect any unknown routes to landing page */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </ClerkLoaded>
-    </Router>
+    </>
   );
 }
 
-// Simple wrapper component to protect routes
+// Auth wrapper component for all protected routes
 function RequireAuth({ redirectTo = '/' }) {
   return (
     <>
       <SignedIn>
         <Outlet />
+      </SignedIn>
+      <SignedOut>
+        <RedirectToSignIn redirectUrl={window.location.href} />
+      </SignedOut>
+    </>
+  );
+}
+
+// Auth wrapper component for store user routes
+function RequireStoreAuth({ children }) {
+  return (
+    <>
+      <SignedIn>
+        {children}
       </SignedIn>
       <SignedOut>
         <RedirectToSignIn redirectUrl={window.location.href} />

@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-react';
+import axios from 'axios';
 import { 
   ChevronRight, 
   ShoppingBag, 
@@ -12,12 +14,65 @@ import {
   AlertTriangle,
   Search,
   ArrowRight,
-  Filter
+  Filter,
+  AlertCircle
 } from 'lucide-react';
 
 const OrderHistory = () => {
-  // Mock order history data
-  const orders = [];
+  // State for order data
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const { isSignedIn, user } = useUser();
+  
+  // Function to get user-specific orders key
+  const getOrdersKey = () => {
+    if (isSignedIn && user) {
+      return `orders_${user.id}`;
+    }
+    return 'orders_guest';
+  };
+  
+  // Fetch orders on component mount
+  useEffect(() => {
+    const fetchOrders = async () => {
+      setLoading(true);
+      try {
+        // Simulate API delay
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Get user-specific orders key
+        const ordersKey = getOrdersKey();
+        
+        // Get orders from localStorage
+        const savedOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+        
+        // Sort orders by date (newest first)
+        const sortedOrders = savedOrders.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setOrders(sortedOrders);
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setError('Failed to load orders. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchOrders();
+  }, [isSignedIn, user]);
+  
+  // Filter orders based on search term and status filter
+  const filteredOrders = orders.filter(order => {
+    const matchesSearch = searchTerm === '' || 
+      order.id.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesFilter = statusFilter === '' || 
+      order.status.toLowerCase() === statusFilter.toLowerCase();
+    
+    return matchesSearch && matchesFilter;
+  });
   
   // Format date
   const formatDate = (dateString) => {
@@ -78,32 +133,56 @@ const OrderHistory = () => {
                   type="text" 
                   placeholder="Search orders..." 
                   className="w-full py-2 pl-10 pr-4 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
               </div>
               <div className="flex gap-3">
-                <select className="py-2 px-4 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                <select 
+                  className="py-2 px-4 border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                >
                   <option value="">Filter by status</option>
                   <option value="processing">Processing</option>
                   <option value="shipped">Shipped</option>
                   <option value="delivered">Delivered</option>
                   <option value="cancelled">Cancelled</option>
                 </select>
-                <button className="flex items-center gap-2 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                <button 
+                  className="flex items-center gap-2 py-2 px-4 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  onClick={() => {
+                    setSearchTerm('');
+                    setStatusFilter('');
+                  }}
+                >
                   <Filter className="h-4 w-4" />
-                  <span>Filter</span>
+                  <span>Reset</span>
                 </button>
               </div>
             </div>
             
-            {orders.length === 0 ? (
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-green-600 mb-4"></div>
+                <p className="text-gray-600">Loading your orders...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12 text-red-600">
+                <AlertCircle className="h-10 w-10 mx-auto mb-4" />
+                <p>{error}</p>
+              </div>
+            ) : filteredOrders.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <div className="bg-green-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
                   <ShoppingBag className="h-10 w-10 text-green-600" />
                 </div>
-                <h2 className="text-xl font-medium text-gray-800 mb-2">No orders yet</h2>
+                <h2 className="text-xl font-medium text-gray-800 mb-2">No orders found</h2>
                 <p className="text-gray-500 mb-6 max-w-md mx-auto">
-                  You haven't placed any orders yet. Start shopping and your orders will appear here.
+                  {orders.length === 0 
+                    ? "You haven't placed any orders yet. Start shopping and your orders will appear here."
+                    : "No orders match your search criteria. Try adjusting your filters."}
                 </p>
                 <Link 
                   to="/store/products" 
@@ -139,7 +218,7 @@ const OrderHistory = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-200">
-                    {orders.map((order) => (
+                    {filteredOrders.map((order) => (
                       <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="font-medium text-gray-800">{order.id}</span>
@@ -166,7 +245,7 @@ const OrderHistory = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <Link 
-                            to={`/orders/${order.id}`}
+                            to={`/store/orders/${order.id}`}
                             className="text-green-600 hover:text-green-700 transition-colors flex items-center justify-end"
                           >
                             <Eye className="h-4 w-4 mr-1" />
@@ -185,7 +264,7 @@ const OrderHistory = () => {
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
           <div className="flex flex-col md:flex-row md:items-center gap-6">
             <div className="bg-green-100 p-4 rounded-full md:p-6">
-              <AlertTriangle className="w-8 h-8 text-green-600 md:w-10 md:h-10" />
+              <AlertCircle className="w-8 h-8 text-green-600 md:w-10 md:h-10" />
             </div>
             <div className="flex-1">
               <h2 className="text-xl font-semibold mb-2 text-gray-800">Need Help With Your Order?</h2>

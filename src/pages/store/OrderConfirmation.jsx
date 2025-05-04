@@ -1,10 +1,12 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Check, ChevronRight, ShoppingBag, ArrowRight } from 'lucide-react';
 
 const OrderConfirmation = () => {
-  // Random order number for demo purposes
-  const orderNumber = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+  const location = useLocation();
+  
+  // Get order ID from location state or generate a fallback
+  const orderNumber = location.state?.orderId || `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
   
   return (
     <div className="container mx-auto px-4 py-8">

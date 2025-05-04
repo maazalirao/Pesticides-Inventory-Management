@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUser } from '@clerk/clerk-react';
 
 const CartContext = createContext();
 
@@ -11,18 +12,40 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }) => {
-  // Initialize cart from localStorage if available
+  const { isSignedIn, user } = useUser();
+  // Get user-specific cart key
+  const getCartKey = () => {
+    if (isSignedIn && user) {
+      return `cart_${user.id}`;
+    }
+    return 'cart_guest';
+  };
+
+  // Initialize cart from localStorage if available, using user-specific key
   const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem('cart');
+    const cartKey = getCartKey();
+    const savedCart = localStorage.getItem(cartKey);
     return savedCart ? JSON.parse(savedCart) : [];
   });
   
   const [cartOpen, setCartOpen] = useState(false);
   
-  // Save cart to localStorage when it changes
+  // Update cart when user changes
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(cart));
-  }, [cart]);
+    const cartKey = getCartKey();
+    const savedCart = localStorage.getItem(cartKey);
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    } else {
+      setCart([]);
+    }
+  }, [isSignedIn, user]);
+  
+  // Save cart to localStorage when it changes, using user-specific key
+  useEffect(() => {
+    const cartKey = getCartKey();
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+  }, [cart, isSignedIn, user]);
   
   // Add an item to the cart
   const addToCart = (product, quantity = 1) => {

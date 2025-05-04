@@ -10,8 +10,7 @@ import {
   ChevronRight, 
   Leaf, 
   Heart,
-  User,
-  LayoutDashboard
+  User
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { motion } from 'framer-motion';
@@ -41,13 +40,6 @@ const StoreLayout = () => {
     };
   }, []);
 
-  // Handle admin navigation
-  const handleAdminNav = () => {
-    if (isSignedIn) {
-      navigate('/admin');
-    }
-  };
-
   // Check if a link is active
   const isActive = (path) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
@@ -68,12 +60,14 @@ const StoreLayout = () => {
             </button>
 
             {/* Logo */}
-            <Link to="/" className="flex items-center">
-              <Leaf size={28} className="text-green-300 mr-2" />
-              <span className="text-xl sm:text-2xl font-bold text-white">
-                Agri<span className="text-green-300">Store</span>
-              </span>
-            </Link>
+            <div className="flex items-center space-x-2">
+              <a href="/" className="flex items-center">
+                <Leaf size={28} className="text-green-300 mr-2" />
+                <span className="text-xl sm:text-2xl font-bold text-white">
+                  Agri<span className="text-green-300">Store</span>
+                </span>
+              </a>
+            </div>
 
             {/* Main Navigation - Desktop */}
             <nav className="hidden lg:flex items-center justify-center space-x-8">
@@ -131,33 +125,25 @@ const StoreLayout = () => {
                 </Link>
               </motion.div>
               
-              <motion.div
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <button 
-                  onClick={handleAdminNav}
-                  className="flex items-center gap-1 text-white bg-green-800 px-2 py-1.5 rounded-md hover:bg-green-900 transition-all"
-                >
-                  <LayoutDashboard size={16} />
-                  <span className="text-xs font-medium">Admin</span>
-                </button>
-              </motion.div>
-              
               {isSignedIn ? (
-                <div className="ml-2">
-                  <UserButton afterSignOutUrl="/" />
-                </div>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <UserButton />
+                </motion.div>
               ) : (
-                <SignInButton mode="modal">
-                  <motion.button 
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="ml-2 bg-green-800 hover:bg-green-900 text-white p-2 rounded-full transition-colors"
-                  >
-                    <User size={20} />
-                  </motion.button>
-                </SignInButton>
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <SignInButton mode="modal" redirectUrl={location.pathname}>
+                    <button className="flex items-center gap-1 text-white bg-green-800 px-2 py-1.5 rounded-md hover:bg-green-900 transition-all">
+                      <User size={16} />
+                      <span className="text-xs font-medium">Sign In</span>
+                    </button>
+                  </SignInButton>
+                </motion.div>
               )}
             </div>
           </div>
@@ -212,16 +198,6 @@ const StoreLayout = () => {
                 >
                   Orders
                 </Link>
-                <button 
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    handleAdminNav();
-                  }}
-                  className="flex items-center text-left py-2 px-3 rounded-lg text-white bg-green-800 hover:bg-green-900"
-                >
-                  <LayoutDashboard size={16} className="mr-2" />
-                  Admin Dashboard
-                </button>
               </nav>
             </motion.div>
           )}
@@ -308,15 +284,6 @@ const StoreLayout = () => {
                     <ChevronRight size={14} className="mr-1 text-green-500" />
                     Main Page
                   </Link>
-                </li>
-                <li>
-                  <button 
-                    onClick={handleAdminNav}
-                    className="text-gray-400 hover:text-green-400 transition-colors duration-200 bg-transparent border-none p-0 m-0 text-left flex items-center"
-                  >
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
-                    Admin Dashboard
-                  </button>
                 </li>
                 <li>
                   <Link to="/store/terms" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">

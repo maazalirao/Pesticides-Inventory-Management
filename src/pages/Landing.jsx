@@ -64,7 +64,7 @@ const Landing = () => {
               </SignedIn>
               
               <SignedOut>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" redirectUrl="/admin">
                   <button className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg text-sm font-medium transition-all shadow-lg hover:shadow-orange-500/30 flex items-center">
                     <Lock className="mr-2 h-4 w-4" />
                     Admin Login
@@ -91,14 +91,14 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/store" className="group px-6 py-3 bg-white hover:bg-gray-100 text-slate-900 rounded-lg font-semibold transition flex items-center justify-center shadow-lg hover:shadow-white/20">
+              <a href="/store" className="group px-6 py-3 bg-white hover:bg-gray-100 text-slate-900 rounded-lg font-semibold transition flex items-center justify-center shadow-lg hover:shadow-white/20">
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 Visit Store
                 <ChevronRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
-              </Link>
+              </a>
               
               <SignedOut>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" redirectUrl="/admin">
                   <button className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
                     <Lock className="mr-2 h-5 w-5" />
                     Admin Login
@@ -107,10 +107,10 @@ const Landing = () => {
               </SignedOut>
               
               <SignedIn>
-                <Link to="/admin" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
+                <a href="/admin" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
                   <BarChart2 className="mr-2 h-5 w-5" />
                   Admin Dashboard
-                </Link>
+                </a>
               </SignedIn>
             </div>
             
@@ -263,13 +263,13 @@ const Landing = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Streamline Your Inventory Management?</h2>
             <p className="text-xl text-slate-300 mb-8">Get started today with our comprehensive solution for managing your agricultural products inventory and online store.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/store" className="px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-gray-100 transition shadow-xl flex items-center justify-center">
+              <a href="/store" className="px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-gray-100 transition shadow-xl flex items-center justify-center">
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 Explore Store
-              </Link>
+              </a>
               
               <SignedOut>
-                <SignInButton mode="modal">
+                <SignInButton mode="modal" redirectUrl="/admin">
                   <button className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
                     <ShieldCheck className="mr-2 h-5 w-5" />
                     Access Admin Dashboard
@@ -278,10 +278,10 @@ const Landing = () => {
               </SignedOut>
               
               <SignedIn>
-                <Link to="/admin" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
+                <a href="/admin" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
                   <ShieldCheck className="mr-2 h-5 w-5" />
                   Go to Dashboard
-                </Link>
+                </a>
               </SignedIn>
             </div>
           </div>
@@ -334,7 +334,7 @@ const Landing = () => {
                     <Link to="/admin" className="text-slate-400 hover:text-orange-400 transition-colors">Dashboard</Link>
                   </SignedIn>
                   <SignedOut>
-                    <SignInButton mode="modal">
+                    <SignInButton mode="modal" redirectUrl="/admin">
                       <button className="text-slate-400 hover:text-orange-400 transition-colors text-left">Admin Login</button>
                     </SignInButton>
                   </SignedOut>

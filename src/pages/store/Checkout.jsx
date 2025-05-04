@@ -1,11 +1,21 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../contexts/CartContext';
+import { useUser } from '@clerk/clerk-react';
 import { ChevronRight, CreditCard, Truck, Check, ShieldCheck, ArrowLeft } from 'lucide-react';
 
 const Checkout = () => {
   const navigate = useNavigate();
   const { cart, subtotal, clearCart } = useCart();
+  const { isSignedIn, user } = useUser();
+  
+  // Function to get user-specific orders key
+  const getOrdersKey = () => {
+    if (isSignedIn && user) {
+      return `orders_${user.id}`;
+    }
+    return 'orders_guest';
+  };
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -74,16 +84,68 @@ const Checkout = () => {
     e.preventDefault();
     setLoading(true);
     
-    // In a real app, you would send the order to your API here
     try {
-      // Simulate API call with setTimeout
+      // Create order object with all necessary details
+      const orderItems = cart.map(item => ({
+        product: item.id,
+        name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+        image: item.image || `https://placehold.co/100x100/e2e8f0/64748b?text=${item.name.charAt(0)}`
+      }));
+      
+      const orderData = {
+        orderItems,
+        shippingAddress: {
+          address: formData.address,
+          city: formData.city,
+          postalCode: formData.zipCode,
+          country: 'Pakistan', // Default for demo
+        },
+        paymentMethod: formData.paymentMethod,
+        itemsPrice: subtotal,
+        taxPrice: subtotal * 0.07,
+        shippingPrice: 0, // Free shipping for demo
+        totalPrice: subtotal + (subtotal * 0.07),
+      };
+
+      // In a real app, call your API here
+      // const response = await axios.post('/api/orders', orderData);
+      
+      // For demo, simulate API call with localStorage
+      // Create a unique order ID
+      const orderId = `ORD-${Math.floor(100000 + Math.random() * 900000)}`;
+      
+      // Get user-specific orders key
+      const ordersKey = getOrdersKey();
+      
+      // Get existing orders from localStorage or initialize empty array
+      const existingOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
+      
+      // Add new order with status and date
+      const newOrder = {
+        id: orderId,
+        date: new Date().toISOString(),
+        items: orderItems.reduce((total, item) => total + item.quantity, 0),
+        total: orderData.totalPrice,
+        status: 'Processing',
+        products: orderItems,
+        shippingAddress: orderData.shippingAddress,
+        paymentMethod: orderData.paymentMethod
+      };
+      
+      // Save updated orders to localStorage with user-specific key
+      localStorage.setItem(ordersKey, JSON.stringify([...existingOrders, newOrder]));
+      
+      // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
       // Clear cart and navigate to success page
       clearCart();
-      navigate('/store/order-confirmation');
+      navigate('/store/order-confirmation', { state: { orderId } });
     } catch (error) {
       console.error('Order submission failed:', error);
+    } finally {
       setLoading(false);
     }
   };
