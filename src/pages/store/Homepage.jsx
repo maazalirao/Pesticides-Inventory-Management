@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { useCart } from '../../contexts/CartContext';
 import { 
   ArrowRight, 
   Star, 
@@ -21,6 +22,7 @@ import {
 } from 'lucide-react';
 
 const Homepage = () => {
+  const { addToCart } = useCart();
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -217,6 +219,21 @@ const Homepage = () => {
     }).format(amount);
   };
   
+  // Handle adding product to cart
+  const handleAddToCart = (product, e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    
+    addToCart({
+      id: product._id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+      category: product.category,
+      quantity: 1
+    });
+  };
+  
   return (
     <div className="flex flex-col">
       {/* Hero Section with Video Background */}
@@ -269,12 +286,12 @@ const Homepage = () => {
               
               <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
                 {stats.map(stat => (
-                  <div key={stat.id} className="bg-white/10 backdrop-blur-sm rounded-lg p-3 flex flex-col items-center text-center">
-                    <div className="bg-white/20 rounded-full p-2 mb-2">
+                  <div key={stat.id} className="bg-white rounded-lg p-3 flex flex-col items-center text-center">
+                    <div className="bg-green-100 rounded-full p-2 mb-2">
                       {stat.icon}
                     </div>
-                    <h3 className="text-xl text-white font-bold">{stat.value}</h3>
-                    <p className="text-xs text-white/70">{stat.label}</p>
+                    <h3 className="text-xl text-gray-800 font-bold">{stat.value}</h3>
+                    <p className="text-xs text-gray-500">{stat.label}</p>
                   </div>
                 ))}
               </div>
@@ -466,7 +483,7 @@ const Homepage = () => {
                         {product.category}
                       </span>
                     </div>
-                    <button className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-rose-500 transition-colors shadow-md">
+                    <button className="absolute bottom-3 right-3 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center text-gray-600 hover:text-rose-500 transition-colors shadow-md" onClick={(e) => handleAddToCart(product, e)}>
                       <Heart className="h-5 w-5" />
                     </button>
                   </div>
@@ -509,7 +526,10 @@ const Homepage = () => {
                           )}
                         </div>
                       </div>
-                      <button className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center">
+                      <button 
+                        className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
+                        onClick={(e) => handleAddToCart(product, e)}
+                      >
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Add to Cart
                       </button>

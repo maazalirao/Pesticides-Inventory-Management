@@ -56,8 +56,8 @@ const StoreLayout = () => {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Main Header */}
-      <header className={`sticky top-0 z-50 ${scrolled ? 'bg-green-600/95 shadow-md backdrop-blur-sm text-white' : 'bg-green-600 text-white'} transition-all duration-300`}>
-        <div className="container mx-auto px-4 py-4">
+      <header className={`sticky top-0 z-50 ${scrolled ? 'bg-green-700/95 shadow-md backdrop-blur-sm text-white' : 'bg-green-700 text-white'} transition-all duration-300`}>
+        <div className="container mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
             <button 
@@ -69,9 +69,9 @@ const StoreLayout = () => {
 
             {/* Logo */}
             <Link to="/" className="flex items-center">
-              <Leaf size={28} className="text-white mr-2" />
+              <Leaf size={28} className="text-green-300 mr-2" />
               <span className="text-xl sm:text-2xl font-bold text-white">
-                Agri<span className="text-green-200">Store</span>
+                Agri<span className="text-green-300">Store</span>
               </span>
             </Link>
 
@@ -79,36 +79,22 @@ const StoreLayout = () => {
             <nav className="hidden lg:flex items-center justify-center space-x-8">
               <Link 
                 to="/store" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-green-200' : 'text-white hover:text-green-200'}`}
+                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-green-300' : 'text-white hover:text-green-300'}`}
               >
                 Home
               </Link>
               <Link 
                 to="/store/products" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/products') ? 'text-green-200' : 'text-white hover:text-green-200'}`}
+                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/products') ? 'text-green-300' : 'text-white hover:text-green-300'}`}
               >
                 Products
               </Link>
               <Link 
                 to="/store/orders" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/orders') ? 'text-green-200' : 'text-white hover:text-green-200'}`}
+                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/orders') ? 'text-green-300' : 'text-white hover:text-green-300'}`}
               >
                 Orders
               </Link>
-              <Link 
-                to="/store/account" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/account') ? 'text-green-200' : 'text-white hover:text-green-200'}`}
-              >
-                Account
-              </Link>
-              {isSignedIn && (
-                <button 
-                  onClick={handleAdminNav}
-                  className="whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 text-white hover:text-green-200"
-                >
-                  Admin
-                </button>
-              )}
             </nav>
 
             {/* Actions */}
@@ -117,7 +103,7 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSearchOpen(!searchOpen)} 
-                className="text-white hover:text-green-200 transition-colors duration-200 p-1"
+                className="text-white hover:text-green-300 transition-colors duration-200 p-1"
               >
                 <Search size={20} />
               </motion.button>
@@ -126,7 +112,7 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/store/wishlist" className="text-white hover:text-green-200 transition-colors duration-200 p-1 relative">
+                <Link to="/store/wishlist" className="text-white hover:text-green-300 transition-colors duration-200 p-1 relative">
                   <Heart size={20} />
                 </Link>
               </motion.div>
@@ -135,29 +121,28 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/store/cart" className="text-white hover:text-green-200 transition-colors duration-200 p-1 relative">
+                <Link to="/store/cart" className="text-white hover:text-green-300 transition-colors duration-200 p-1 relative">
                   <ShoppingCart size={20} />
                   {totalItems > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-white text-green-600 text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                    <span className="absolute -top-2 -right-2 bg-green-300 text-green-800 text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                       {totalItems}
                     </span>
                   )}
                 </Link>
               </motion.div>
               
-              {isSignedIn && (
-                <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
+              <motion.div
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <button 
+                  onClick={handleAdminNav}
+                  className="flex items-center gap-1 text-white bg-green-800 px-2 py-1.5 rounded-md hover:bg-green-900 transition-all"
                 >
-                  <button 
-                    onClick={handleAdminNav}
-                    className="text-white hover:text-green-200 transition-colors duration-200 p-1 relative"
-                  >
-                    <LayoutDashboard size={20} />
-                  </button>
-                </motion.div>
-              )}
+                  <LayoutDashboard size={16} />
+                  <span className="text-xs font-medium">Admin</span>
+                </button>
+              </motion.div>
               
               {isSignedIn ? (
                 <div className="ml-2">
@@ -168,7 +153,7 @@ const StoreLayout = () => {
                   <motion.button 
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className="ml-2 bg-green-700 hover:bg-green-800 text-white p-2 rounded-full transition-colors"
+                    className="ml-2 bg-green-800 hover:bg-green-900 text-white p-2 rounded-full transition-colors"
                   >
                     <User size={20} />
                   </motion.button>
@@ -187,12 +172,12 @@ const StoreLayout = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full p-2 pr-10 bg-white/10 border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-green-200"
+                className="w-full p-2 pr-10 bg-white/10 border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-green-300"
                 autoFocus
               />
               <Search 
                 size={18} 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-200" 
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-300" 
               />
             </motion.div>
           )}
@@ -203,44 +188,38 @@ const StoreLayout = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden mt-4 pb-4 border-t border-green-500"
+              className="lg:hidden mt-4 pb-4 border-t border-green-600"
             >
               <nav className="flex flex-col space-y-3 pt-4">
                 <Link 
                   to="/store" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store') && location.pathname === '/store' ? 'bg-green-700 text-white font-medium' : 'text-white hover:bg-green-700'}`}
+                  className={`py-2 px-3 rounded-lg ${isActive('/store') && location.pathname === '/store' ? 'bg-green-800 text-white font-medium' : 'text-white hover:bg-green-800'}`}
                 >
                   Home
                 </Link>
                 <Link 
                   to="/store/products" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store/products') ? 'bg-green-700 text-white font-medium' : 'text-white hover:bg-green-700'}`}
+                  className={`py-2 px-3 rounded-lg ${isActive('/store/products') ? 'bg-green-800 text-white font-medium' : 'text-white hover:bg-green-800'}`}
                 >
                   Products
                 </Link>
                 <Link 
                   to="/store/orders" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store/orders') ? 'bg-green-700 text-white font-medium' : 'text-white hover:bg-green-700'}`}
+                  className={`py-2 px-3 rounded-lg ${isActive('/store/orders') ? 'bg-green-800 text-white font-medium' : 'text-white hover:bg-green-800'}`}
                 >
                   Orders
-                </Link>
-                <Link 
-                  to="/store/account" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store/account') ? 'bg-green-700 text-white font-medium' : 'text-white hover:bg-green-700'}`}
-                >
-                  Account
                 </Link>
                 <button 
                   onClick={() => {
                     setMobileMenuOpen(false);
                     handleAdminNav();
                   }}
-                  className="text-left py-2 px-3 rounded-lg text-white hover:bg-green-700"
+                  className="flex items-center text-left py-2 px-3 rounded-lg text-white bg-green-800 hover:bg-green-900"
                 >
+                  <LayoutDashboard size={16} className="mr-2" />
                   Admin Dashboard
                 </button>
               </nav>
@@ -331,22 +310,13 @@ const StoreLayout = () => {
                   </Link>
                 </li>
                 <li>
-                  {isSignedIn ? (
-                    <button 
-                      onClick={handleAdminNav}
-                      className="text-gray-400 hover:text-green-400 transition-colors duration-200 bg-transparent border-none p-0 m-0 text-left flex items-center"
-                    >
-                      <ChevronRight size={14} className="mr-1 text-green-500" />
-                      Admin Dashboard
-                    </button>
-                  ) : (
-                    <SignInButton mode="modal">
-                      <button className="text-gray-400 hover:text-green-400 transition-colors duration-200 bg-transparent border-none p-0 m-0 text-left flex items-center">
-                        <ChevronRight size={14} className="mr-1 text-green-500" />
-                        Admin Login
-                      </button>
-                    </SignInButton>
-                  )}
+                  <button 
+                    onClick={handleAdminNav}
+                    className="text-gray-400 hover:text-green-400 transition-colors duration-200 bg-transparent border-none p-0 m-0 text-left flex items-center"
+                  >
+                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                    Admin Dashboard
+                  </button>
                 </li>
                 <li>
                   <Link to="/store/terms" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">

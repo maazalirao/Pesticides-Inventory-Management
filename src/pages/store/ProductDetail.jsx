@@ -75,8 +75,7 @@ const ProductDetail = () => {
         category: product.category,
         quantity
       });
-      // Show notification (in a real app, you might use a toast notification)
-      alert(`${quantity} x ${product.name} added to cart!`);
+      // No alert notification needed
     }
   };
   
