@@ -11,7 +11,9 @@ import {
 const router = express.Router();
 
 // Get all inventory items / Create new inventory item
-router.route("/").get(getInventoryItems).post(createInventoryItem);
+router.route("/").post(createInventoryItem);
+
+router.route("/:clerkId").get(getInventoryItems);
 
 // Get/Update/Delete specific inventory item
 router

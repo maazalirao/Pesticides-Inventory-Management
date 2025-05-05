@@ -156,10 +156,14 @@ const isNestedCacheValid = (parentKey, childKey) => {
 };
 
 // Product API calls
-export const getProducts = async () => {
+export const getProducts = async (clerkId) => {
   try {
-    console.log("Fetching products...");
-    const { data } = await api.get("/products");
+    console.log("Fetching products for user:", clerkId);
+
+    // Add the clerkId as a query parameter if it exists
+    const url = clerkId ? `/products/${clerkId}` : "/products";
+    const { data } = await api.get(url);
+
     console.log("Products fetched:", data.length);
     return data;
   } catch (error) {
@@ -205,10 +209,11 @@ export const deleteProduct = async (id) => {
 };
 
 // Inventory API calls
-export const getInventoryItems = async () => {
+export const getInventoryItems = async (clerkId) => {
   try {
-    console.log("Fetching inventory items...");
-    const { data } = await api.get("/inventory");
+    console.log("Fetching inventory items for user:", clerkId);
+    const url = clerkId ? `/inventory/${clerkId}` : "/inventory";
+    const { data } = await api.get(url);
     console.log("Inventory items fetched:", data.length);
     return data;
   } catch (error) {

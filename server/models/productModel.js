@@ -1,7 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const productSchema = mongoose.Schema(
   {
+    clerkId: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -31,11 +35,11 @@ const productSchema = mongoose.Schema(
     },
     supplier: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'Supplier',
+      ref: "Supplier",
     },
     image: {
       type: String,
-      default: '/images/default-product.jpg',
+      default: "/images/default-product.jpg",
     },
     isActive: {
       type: Boolean,
@@ -43,16 +47,16 @@ const productSchema = mongoose.Schema(
     },
     manufacturer: {
       type: String,
-      default: '',
+      default: "",
     },
     toxicityLevel: {
       type: String,
-      enum: ['Low', 'Medium', 'High'],
-      default: 'Low',
+      enum: ["Low", "Medium", "High"],
+      default: "Low",
     },
     recommendedUse: {
       type: String,
-      default: '',
+      default: "",
     },
     tags: [String],
   },
@@ -61,6 +65,6 @@ const productSchema = mongoose.Schema(
   }
 );
 
-const Product = mongoose.model('Product', productSchema);
+const Product = mongoose.model("Product", productSchema);
 
-export default Product; 
+export default Product;

@@ -1,41 +1,72 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
-import { getProducts, deleteProduct, createProduct, updateProduct } from '../../lib/api';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import {
+  Search,
+  Filter,
+  Plus,
+  Edit,
+  Trash,
+  ChevronDown,
+  Download,
+  Upload,
+} from "lucide-react";
+import {
+  getProducts,
+  deleteProduct,
+  createProduct,
+  updateProduct,
+} from "../../lib/api";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../../components/ui/dialog";
+
+// import { useAuth } from "../../contexts/AuthContext";
+import { useUser } from "@clerk/clerk-react";
 
 const Products = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterCategory, setFilterCategory] = useState('All');
+  const { user } = useUser();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterCategory, setFilterCategory] = useState("All");
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentProductId, setCurrentProductId] = useState(null);
   const [newProduct, setNewProduct] = useState({
-    name: '',
-    description: '',
-    category: '',
-    price: '',
-    stockQuantity: '',
-    manufacturer: '',
-    toxicityLevel: 'Low',
-    recommendedUse: '',
-    sku: '',
-    image: 'https://picsum.photos/seed/pesticide/300/300',
-    tags: []
+    name: "",
+    description: "",
+    category: "",
+    price: "",
+    stockQuantity: "",
+    manufacturer: "",
+    toxicityLevel: "Low",
+    recommendedUse: "",
+    sku: "",
+    image: "https://picsum.photos/seed/pesticide/300/300",
+    tags: [],
   });
-  const [formError, setFormError] = useState('');
+  const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
-  
+
   const fileInputRef = useRef(null);
-  const [importError, setImportError] = useState('');
-  const [importSuccess, setImportSuccess] = useState('');
-  
+  const [importError, setImportError] = useState("");
+  const [importSuccess, setImportSuccess] = useState("");
+
   // Fetch products on component mount with cleanup
   useEffect(() => {
     let isMounted = true;
@@ -43,16 +74,17 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await getProducts();
-        
+        // Pass the Clerk user ID to fetch only products for this user
+        const data = await getProducts(user?.id);
+
         if (isMounted) {
           setProducts(data);
           setError(null);
         }
       } catch (err) {
         if (isMounted) {
-          console.error('Products fetch error in component:', err);
-          setError('Failed to fetch products. Please try again later.');
+          console.error("Products fetch error in component:", err);
+          setError("Failed to fetch products. Please try again later.");
         }
       } finally {
         if (isMounted) {
@@ -60,20 +92,25 @@ const Products = () => {
         }
       }
     };
-    
-    fetchProducts();
+
+    // Only fetch products if the user is loaded
+    if (user) {
+      fetchProducts();
+    }
 
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [user]);
 
   // Optimize filtered products calculation with useMemo
   const filteredProducts = useMemo(() => {
-    return products.filter(product => {
-      const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          product.description?.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
+    return products.filter((product) => {
+      const matchesSearch =
+        product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        filterCategory === "All" || product.category === filterCategory;
       return matchesSearch && matchesCategory;
     });
   }, [products, searchTerm, filterCategory]);
@@ -92,12 +129,12 @@ const Products = () => {
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
   const handleDeleteProduct = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
+    if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         await deleteProduct(id);
-        setProducts(products.filter(product => product._id !== id));
+        setProducts(products.filter((product) => product._id !== id));
       } catch (error) {
-        setError('Failed to delete product');
+        setError("Failed to delete product");
         console.error(error);
       }
     }
@@ -112,12 +149,12 @@ const Products = () => {
       category: product.category,
       price: product.price,
       stockQuantity: product.stockQuantity,
-      manufacturer: product.manufacturer || '',
-      toxicityLevel: product.toxicityLevel || 'Low',
-      recommendedUse: product.recommendedUse || '',
-      sku: product.sku || '',
-      image: product.image || 'https://picsum.photos/seed/pesticide/300/300',
-      tags: product.tags || []
+      manufacturer: product.manufacturer || "",
+      toxicityLevel: product.toxicityLevel || "Low",
+      recommendedUse: product.recommendedUse || "",
+      sku: product.sku || "",
+      image: product.image || "https://picsum.photos/seed/pesticide/300/300",
+      tags: product.tags || [],
     });
     setIsDialogOpen(true);
   };
@@ -126,17 +163,17 @@ const Products = () => {
     setIsEditMode(false);
     setCurrentProductId(null);
     setNewProduct({
-      name: '',
-      description: '',
-      category: '',
-      price: '',
-      stockQuantity: '',
-      manufacturer: '',
-      toxicityLevel: 'Low',
-      recommendedUse: '',
-      sku: '',
-      image: 'https://picsum.photos/seed/pesticide/300/300',
-      tags: []
+      name: "",
+      description: "",
+      category: "",
+      price: "",
+      stockQuantity: "",
+      manufacturer: "",
+      toxicityLevel: "Low",
+      recommendedUse: "",
+      sku: "",
+      image: "https://picsum.photos/seed/pesticide/300/300",
+      tags: [],
     });
     setIsDialogOpen(true);
   };
@@ -145,21 +182,22 @@ const Products = () => {
     const { name, value } = e.target;
     setNewProduct({
       ...newProduct,
-      [name]: name === 'price' || name === 'stockQuantity' 
-        ? parseFloat(value) || ''
-        : value
+      [name]:
+        name === "price" || name === "stockQuantity"
+          ? parseFloat(value) || ""
+          : value,
     });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setFormError('');
+    setFormError("");
     setIsSubmitting(true);
 
     try {
       // Validate required fields
       if (!newProduct.name || !newProduct.category || !newProduct.price) {
-        setFormError('Please fill in all required fields');
+        setFormError("Please fill in all required fields");
         setIsSubmitting(false);
         return;
       }
@@ -168,26 +206,38 @@ const Products = () => {
       if (isEditMode) {
         result = await updateProduct(currentProductId, newProduct);
         // Update the product in the list
-        setProducts(products.map(p => p._id === currentProductId ? result : p));
+        setProducts(
+          products.map((p) => (p._id === currentProductId ? result : p))
+        );
       } else {
-        result = await createProduct(newProduct);
+        // Add user ID to the product data when creating
+        const productWithUserId = {
+          ...newProduct,
+          clerkId: user.id, // Add the user ID from Clerk
+        };
+        console.log(
+          "Product data being sent:",
+          JSON.stringify(productWithUserId, null, 2)
+        );
+        result = await createProduct(productWithUserId);
+        console.log("Response from server:", JSON.stringify(result, null, 2));
         // Add the new product to the list
         setProducts([...products, result]);
       }
-      
+
       // Reset form and close dialog
       setNewProduct({
-        name: '',
-        description: '',
-        category: '',
-        price: '',
-        stockQuantity: '',
-        manufacturer: '',
-        toxicityLevel: 'Low',
-        recommendedUse: '',
-        sku: '',
-        image: 'https://picsum.photos/seed/pesticide/300/300',
-        tags: []
+        name: "",
+        description: "",
+        category: "",
+        price: "",
+        stockQuantity: "",
+        manufacturer: "",
+        toxicityLevel: "Low",
+        recommendedUse: "",
+        sku: "",
+        image: "https://picsum.photos/seed/pesticide/300/300",
+        tags: [],
       });
       setIsDialogOpen(false);
     } catch (error) {
@@ -214,7 +264,7 @@ const Products = () => {
   const getPageNumbers = () => {
     const pageNumbers = [];
     const maxPagesToShow = 3; // Show max 3 page numbers
-    
+
     if (totalPages <= maxPagesToShow) {
       // If we have 3 or fewer pages, show all of them
       for (let i = 1; i <= totalPages; i++) {
@@ -224,142 +274,161 @@ const Products = () => {
       // Show current page, plus one on each side if possible
       let startPage = Math.max(1, currentPage - 1);
       let endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
-      
+
       // Adjust if we're near the end
       if (endPage - startPage < maxPagesToShow - 1) {
         startPage = Math.max(1, endPage - maxPagesToShow + 1);
       }
-      
+
       for (let i = startPage; i <= endPage; i++) {
         pageNumbers.push(i);
       }
     }
-    
+
     return pageNumbers;
   };
 
   // Get unique categories for filter dropdown
-  const categories = ['All', ...new Set(products.map(product => product.category).filter(Boolean))];
+  const categories = [
+    "All",
+    ...new Set(products.map((product) => product.category).filter(Boolean)),
+  ];
 
   // Toxicity level badge color
   const getToxicityColor = (level) => {
     switch (level) {
-      case 'Low':
-        return 'bg-green-100 text-green-800';
-      case 'Medium':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'High':
-        return 'bg-red-100 text-red-800';
+      case "Low":
+        return "bg-green-100 text-green-800";
+      case "Medium":
+        return "bg-yellow-100 text-yellow-800";
+      case "High":
+        return "bg-red-100 text-red-800";
       default:
-        return 'bg-gray-100 text-gray-800';
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   // Export products to CSV
   const exportProducts = () => {
     // Get the products to export (either filtered or all)
-    const productsToExport = filteredProducts.length > 0 ? filteredProducts : products;
-    
+    const productsToExport =
+      filteredProducts.length > 0 ? filteredProducts : products;
+
     if (productsToExport.length === 0) {
-      alert('No products to export');
+      alert("No products to export");
       return;
     }
-    
+
     // Define the fields to export
     const fields = [
-      'name', 'description', 'category', 'price', 'stockQuantity',
-      'manufacturer', 'toxicityLevel', 'recommendedUse', 'sku', 'image'
+      "name",
+      "description",
+      "category",
+      "price",
+      "stockQuantity",
+      "manufacturer",
+      "toxicityLevel",
+      "recommendedUse",
+      "sku",
+      "image",
     ];
-    
+
     // Create CSV header
-    let csv = fields.join(',') + '\n';
-    
+    let csv = fields.join(",") + "\n";
+
     // Add data rows
-    productsToExport.forEach(product => {
-      const row = fields.map(field => {
+    productsToExport.forEach((product) => {
+      const row = fields.map((field) => {
         // Format the value, wrap in quotes, and escape quotes inside
-        let value = product[field] !== undefined ? product[field] : '';
+        let value = product[field] !== undefined ? product[field] : "";
         // Convert to string and handle quotes
         value = String(value).replace(/"/g, '""');
         return `"${value}"`;
       });
-      csv += row.join(',') + '\n';
+      csv += row.join(",") + "\n";
     });
-    
+
     // Create blob and download link
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `pesticide-products-${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `pesticide-products-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
-  
+
   // Trigger file input click when Import button is clicked
   const handleImportClick = () => {
     fileInputRef.current.click();
   };
-  
+
   // Handle file selection for import
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
-    setImportError('');
-    setImportSuccess('');
-    
+    setImportError("");
+    setImportSuccess("");
+
     if (!file) return;
-    
+
     // Check file extension
-    if (!file.name.endsWith('.csv')) {
-      setImportError('Only CSV files are supported');
+    if (!file.name.endsWith(".csv")) {
+      setImportError("Only CSV files are supported");
       return;
     }
-    
+
     const reader = new FileReader();
     reader.onload = async (event) => {
       try {
         const csv = event.target.result;
-        const lines = csv.split('\n');
-        
+        const lines = csv.split("\n");
+
         // Get headers
-        const headers = lines[0].split(',').map(header => 
-          header.trim().replace(/^"(.*)"$/, '$1')
-        );
-        
+        const headers = lines[0]
+          .split(",")
+          .map((header) => header.trim().replace(/^"(.*)"$/, "$1"));
+
         // Parse products
         const newProducts = [];
         for (let i = 1; i < lines.length; i++) {
           if (!lines[i].trim()) continue; // Skip empty lines
-          
+
           const values = lines[i].match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g);
           if (!values) continue;
-          
+
           const product = {};
           headers.forEach((header, index) => {
             // Extract value, remove quotes
-            let value = values[index]?.trim().replace(/^"(.*)"$/, '$1').replace(/""/g, '"') || '';
-            
+            let value =
+              values[index]
+                ?.trim()
+                .replace(/^"(.*)"$/, "$1")
+                .replace(/""/g, '"') || "";
+
             // Convert numeric fields
-            if (header === 'price' || header === 'stockQuantity') {
-              value = value === '' ? 0 : parseFloat(value);
+            if (header === "price" || header === "stockQuantity") {
+              value = value === "" ? 0 : parseFloat(value);
             }
-            
+
             product[header] = value;
           });
-          
+
           // Validate required fields
           if (product.name && product.category && product.price !== undefined) {
             newProducts.push(product);
           }
         }
-        
+
         if (newProducts.length === 0) {
-          setImportError('No valid products found in the file');
+          setImportError("No valid products found in the file");
           return;
         }
-        
+
         // Create products in database
         let successCount = 0;
         for (const product of newProducts) {
@@ -367,27 +436,29 @@ const Products = () => {
             const result = await createProduct(product);
             if (result && result._id) {
               successCount++;
-              setProducts(prevProducts => [...prevProducts, result]);
+              setProducts((prevProducts) => [...prevProducts, result]);
             }
           } catch (error) {
-            console.error('Failed to import product:', error);
+            console.error("Failed to import product:", error);
           }
         }
-        
-        setImportSuccess(`Successfully imported ${successCount} of ${newProducts.length} products`);
-        
+
+        setImportSuccess(
+          `Successfully imported ${successCount} of ${newProducts.length} products`
+        );
+
         // Reset file input
         e.target.value = null;
       } catch (error) {
-        setImportError('Failed to parse the file: ' + error.message);
+        setImportError("Failed to parse the file: " + error.message);
         console.error(error);
       }
     };
-    
+
     reader.onerror = () => {
-      setImportError('Failed to read the file');
+      setImportError("Failed to read the file");
     };
-    
+
     reader.readAsText(file);
   };
 
@@ -395,14 +466,19 @@ const Products = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="hidden md:block text-3xl font-bold tracking-tight">Product Management</h1>
+          <h1 className="hidden md:block text-3xl font-bold tracking-tight">
+            Product Management
+          </h1>
           <p className="hidden md:block text-muted-foreground">
             Add, edit and manage your pesticide product catalog
           </p>
         </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90" onClick={handleAddNewProduct}>
+            <Button
+              className="flex items-center gap-2 bg-primary hover:bg-primary/90"
+              onClick={handleAddNewProduct}
+            >
               <Plus className="h-4 w-4" />
               Add New Product
             </Button>
@@ -410,12 +486,12 @@ const Products = () => {
           <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
             <DialogHeader className="border-b border-gray-700 pb-4">
               <DialogTitle className="text-xl font-bold text-primary">
-                {isEditMode ? 'Edit Product' : 'Add New Product'}
+                {isEditMode ? "Edit Product" : "Add New Product"}
               </DialogTitle>
               <DialogDescription className="text-gray-300 text-sm mt-1">
-                {isEditMode 
-                  ? 'Update the details of this product in your inventory.' 
-                  : 'Fill in the details below to add a new product to your inventory.'}
+                {isEditMode
+                  ? "Update the details of this product in your inventory."
+                  : "Fill in the details below to add a new product to your inventory."}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-5 py-4 sm:py-5">
@@ -426,7 +502,10 @@ const Products = () => {
               )}
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
+                  <label
+                    htmlFor="name"
+                    className="text-sm font-semibold text-gray-200 flex items-center"
+                  >
                     Product Name <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
@@ -439,7 +518,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="category" className="text-sm font-semibold text-gray-200 flex items-center">
+                  <label
+                    htmlFor="category"
+                    className="text-sm font-semibold text-gray-200 flex items-center"
+                  >
                     Category <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
@@ -452,7 +534,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="price" className="text-sm font-semibold text-gray-200 flex items-center">
+                  <label
+                    htmlFor="price"
+                    className="text-sm font-semibold text-gray-200 flex items-center"
+                  >
                     Price <span className="text-red-400 ml-1">*</span>
                   </label>
                   <input
@@ -467,7 +552,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="stockQuantity" className="text-sm font-semibold text-gray-200">
+                  <label
+                    htmlFor="stockQuantity"
+                    className="text-sm font-semibold text-gray-200"
+                  >
                     Stock Quantity
                   </label>
                   <input
@@ -480,7 +568,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="sku" className="text-sm font-semibold text-gray-200">
+                  <label
+                    htmlFor="sku"
+                    className="text-sm font-semibold text-gray-200"
+                  >
                     SKU
                   </label>
                   <input
@@ -492,7 +583,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="manufacturer" className="text-sm font-semibold text-gray-200">
+                  <label
+                    htmlFor="manufacturer"
+                    className="text-sm font-semibold text-gray-200"
+                  >
                     Manufacturer
                   </label>
                   <input
@@ -504,7 +598,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="toxicityLevel" className="text-sm font-semibold text-gray-200">
+                  <label
+                    htmlFor="toxicityLevel"
+                    className="text-sm font-semibold text-gray-200"
+                  >
                     Toxicity Level
                   </label>
                   <select
@@ -520,7 +617,10 @@ const Products = () => {
                   </select>
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="recommendedUse" className="text-sm font-semibold text-gray-200">
+                  <label
+                    htmlFor="recommendedUse"
+                    className="text-sm font-semibold text-gray-200"
+                  >
                     Recommended Use
                   </label>
                   <input
@@ -532,7 +632,10 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
-                  <label htmlFor="image" className="text-sm font-semibold text-gray-200">
+                  <label
+                    htmlFor="image"
+                    className="text-sm font-semibold text-gray-200"
+                  >
                     Image URL
                   </label>
                   <input
@@ -547,7 +650,10 @@ const Products = () => {
                 </div>
               </div>
               <div className="space-y-1 sm:space-y-2">
-                <label htmlFor="description" className="text-sm font-semibold text-gray-200">
+                <label
+                  htmlFor="description"
+                  className="text-sm font-semibold text-gray-200"
+                >
                   Description
                 </label>
                 <textarea
@@ -560,19 +666,31 @@ const Products = () => {
                 ></textarea>
               </div>
               <div className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
-                <p className="text-xs text-gray-400 mb-3 sm:mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+                <p className="text-xs text-gray-400 mb-3 sm:mb-4">
+                  Fields marked with <span className="text-red-400">*</span> are
+                  required
+                </p>
                 <DialogFooter>
-                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                    className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto"
+                  >
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
+                  <Button
+                    type="submit"
                     disabled={isSubmitting}
                     className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium w-full sm:w-auto"
                   >
-                    {isSubmitting 
-                      ? (isEditMode ? 'Updating...' : 'Creating...') 
-                      : (isEditMode ? 'Update Product' : 'Create Product')}
+                    {isSubmitting
+                      ? isEditMode
+                        ? "Updating..."
+                        : "Creating..."
+                      : isEditMode
+                      ? "Update Product"
+                      : "Create Product"}
                   </Button>
                 </DialogFooter>
               </div>
@@ -599,7 +717,7 @@ const Products = () => {
                 className="pl-10 w-full rounded-md border border-input bg-background py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
               />
             </div>
-            
+
             <div className="flex gap-2">
               <div className="relative inline-block w-48">
                 <div className="flex items-center">
@@ -610,7 +728,9 @@ const Products = () => {
                     className="w-full rounded-md border border-input bg-background py-2 pl-3 pr-10 text-sm focus:outline-none focus:ring-1 focus:ring-primary appearance-none"
                   >
                     {categories.map((category) => (
-                      <option key={category} value={category}>{category}</option>
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
                     ))}
                   </select>
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
@@ -619,11 +739,15 @@ const Products = () => {
                 </div>
               </div>
 
-              <Button variant="outline" className="flex items-center gap-2" onClick={exportProducts}>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={exportProducts}
+              >
                 <Download className="h-4 w-4" />
                 Export
               </Button>
-              
+
               <input
                 type="file"
                 accept=".csv"
@@ -631,7 +755,11 @@ const Products = () => {
                 onChange={handleFileUpload}
                 className="hidden"
               />
-              <Button variant="outline" className="flex items-center gap-2" onClick={handleImportClick}>
+              <Button
+                variant="outline"
+                className="flex items-center gap-2"
+                onClick={handleImportClick}
+              >
                 <Upload className="h-4 w-4" />
                 Import
               </Button>
@@ -663,29 +791,50 @@ const Products = () => {
               <table className="w-full text-sm hidden md:table">
                 <thead>
                   <tr className="bg-muted/50 border-b">
-                    <th className="py-3 px-4 text-left font-medium">Product Name</th>
-                    <th className="py-3 px-4 text-left font-medium">Category</th>
+                    <th className="py-3 px-4 text-left font-medium">
+                      Product Name
+                    </th>
+                    <th className="py-3 px-4 text-left font-medium">
+                      Category
+                    </th>
                     <th className="py-3 px-4 text-left font-medium">Price</th>
-                    <th className="py-3 px-4 text-left font-medium">Manufacturer</th>
-                    <th className="py-3 px-4 text-left font-medium">Toxicity Level</th>
-                    <th className="py-3 px-4 text-left font-medium">Recommended Use</th>
-                    <th className="py-3 px-4 text-center font-medium">Actions</th>
+                    <th className="py-3 px-4 text-left font-medium">
+                      Manufacturer
+                    </th>
+                    <th className="py-3 px-4 text-left font-medium">
+                      Toxicity Level
+                    </th>
+                    <th className="py-3 px-4 text-left font-medium">
+                      Recommended Use
+                    </th>
+                    <th className="py-3 px-4 text-center font-medium">
+                      Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {currentItems.map((product) => (
-                    <tr key={product._id} className="border-b hover:bg-muted/25">
+                    <tr
+                      key={product._id}
+                      className="border-b hover:bg-muted/25"
+                    >
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-3">
                           <div className="h-16 w-16 rounded-md overflow-hidden bg-gradient-to-br from-indigo-900 to-purple-900 flex-shrink-0 p-[2px] shadow-lg shadow-indigo-500/20 relative group">
                             <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 to-purple-500/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"></div>
                             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
                             <div className="h-full w-full rounded overflow-hidden relative">
-                              <img 
-                                src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
+                              <img
+                                src={
+                                  product.image ||
+                                  "https://i.imgur.com/bnDHhKe.jpg"
+                                }
                                 alt={product.name}
                                 className="h-full w-full object-cover z-0"
-                                onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
+                                onError={(e) => {
+                                  e.target.src =
+                                    "https://i.imgur.com/bnDHhKe.jpg";
+                                }}
                               />
                               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent z-10"></div>
                               <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500 z-20"></div>
@@ -693,28 +842,39 @@ const Products = () => {
                           </div>
                           <div>
                             <p className="font-medium">{product.name}</p>
-                            <p className="text-xs text-muted-foreground">{product.description?.substring(0, 60)}...</p>
+                            <p className="text-xs text-muted-foreground">
+                              {product.description?.substring(0, 60)}...
+                            </p>
                           </div>
                         </div>
                       </td>
                       <td className="py-3 px-4">{product.category}</td>
-                      <td className="py-3 px-4">{product.price?.toFixed(2)} Rs</td>
+                      <td className="py-3 px-4">
+                        {product.price?.toFixed(2)} Rs
+                      </td>
                       <td className="py-3 px-4">{product.manufacturer}</td>
                       <td className="py-3 px-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(
+                            product.toxicityLevel
+                          )}`}
+                        >
                           {product.toxicityLevel}
                         </span>
                       </td>
                       <td className="py-3 px-4">{product.recommendedUse}</td>
                       <td className="py-3 px-4">
                         <div className="flex justify-center gap-2">
-                          <button 
+                          <button
                             className="p-1 rounded-md hover:bg-muted"
                             onClick={() => handleEditProduct(product)}
                           >
                             <Edit className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
+                          <button
+                            className="p-1 rounded-md hover:bg-muted"
+                            onClick={() => handleDeleteProduct(product._id)}
+                          >
                             <Trash className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -733,57 +893,90 @@ const Products = () => {
                 ) : (
                   <div className="px-3 py-4 space-y-4">
                     {currentItems.map((product) => (
-                      <div key={product._id} className="border rounded-lg bg-card shadow-sm overflow-hidden">
+                      <div
+                        key={product._id}
+                        className="border rounded-lg bg-card shadow-sm overflow-hidden"
+                      >
                         <div className="flex flex-col">
                           <div className="relative h-40 w-full bg-gradient-to-br from-indigo-900 to-purple-900">
-                            <img 
-                              src={product.image || 'https://i.imgur.com/bnDHhKe.jpg'} 
+                            <img
+                              src={
+                                product.image ||
+                                "https://i.imgur.com/bnDHhKe.jpg"
+                              }
                               alt={product.name}
                               className="h-full w-full object-cover"
-                              onError={(e) => {e.target.src = 'https://i.imgur.com/bnDHhKe.jpg'}}
+                              onError={(e) => {
+                                e.target.src =
+                                  "https://i.imgur.com/bnDHhKe.jpg";
+                              }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-cyan-500 to-blue-500"></div>
                           </div>
-                          
+
                           <div className="p-4">
                             <div className="flex justify-between items-start mb-2">
-                              <h3 className="font-semibold text-lg">{product.name}</h3>
-                              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(product.toxicityLevel)}`}>
+                              <h3 className="font-semibold text-lg">
+                                {product.name}
+                              </h3>
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${getToxicityColor(
+                                  product.toxicityLevel
+                                )}`}
+                              >
                                 {product.toxicityLevel}
                               </span>
                             </div>
-                            
-                            <p className="text-xs text-muted-foreground mb-3">{product.description?.substring(0, 80)}...</p>
-                            
+
+                            <p className="text-xs text-muted-foreground mb-3">
+                              {product.description?.substring(0, 80)}...
+                            </p>
+
                             <div className="grid grid-cols-2 gap-x-4 gap-y-3 mb-3">
                               <div>
-                                <p className="text-xs text-muted-foreground">Category</p>
-                                <p className="text-sm font-medium">{product.category}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Category
+                                </p>
+                                <p className="text-sm font-medium">
+                                  {product.category}
+                                </p>
                               </div>
                               <div>
-                                <p className="text-xs text-muted-foreground">Price</p>
-                                <p className="text-sm font-medium">{product.price?.toFixed(2)} Rs</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Price
+                                </p>
+                                <p className="text-sm font-medium">
+                                  {product.price?.toFixed(2)} Rs
+                                </p>
                               </div>
                               <div>
-                                <p className="text-xs text-muted-foreground">Manufacturer</p>
-                                <p className="text-sm">{product.manufacturer || '-'}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Manufacturer
+                                </p>
+                                <p className="text-sm">
+                                  {product.manufacturer || "-"}
+                                </p>
                               </div>
                               <div>
-                                <p className="text-xs text-muted-foreground">Recommended Use</p>
-                                <p className="text-sm">{product.recommendedUse || '-'}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  Recommended Use
+                                </p>
+                                <p className="text-sm">
+                                  {product.recommendedUse || "-"}
+                                </p>
                               </div>
                             </div>
-                            
+
                             <div className="flex justify-end gap-3 pt-3 border-t">
-                              <button 
+                              <button
                                 className="p-2 rounded-md bg-blue-500/10 hover:bg-blue-500/20"
                                 onClick={() => handleEditProduct(product)}
                               >
                                 <Edit className="h-4 w-4 text-blue-600" />
                               </button>
-                              <button 
-                                className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20" 
+                              <button
+                                className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20"
                                 onClick={() => handleDeleteProduct(product._id)}
                               >
                                 <Trash className="h-4 w-4 text-red-600" />
@@ -801,31 +994,40 @@ const Products = () => {
 
           {!loading && !error && (
             <div className="mt-4 flex flex-col sm:flex-row items-center justify-between text-sm text-muted-foreground">
-              <p>Showing {Math.min(indexOfFirstItem + 1, filteredProducts.length)} to {Math.min(indexOfLastItem, filteredProducts.length)} of {filteredProducts.length} products</p>
+              <p>
+                Showing{" "}
+                {Math.min(indexOfFirstItem + 1, filteredProducts.length)} to{" "}
+                {Math.min(indexOfLastItem, filteredProducts.length)} of{" "}
+                {filteredProducts.length} products
+              </p>
               <div className="flex gap-1 mt-3 sm:mt-0">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={goToPreviousPage}
                   disabled={currentPage === 1}
                 >
                   Previous
                 </Button>
-                
-                {getPageNumbers().map(number => (
-                  <Button 
+
+                {getPageNumbers().map((number) => (
+                  <Button
                     key={number}
-                    variant="outline" 
-                    size="sm" 
-                    className={currentPage === number ? "bg-primary text-primary-foreground" : ""}
+                    variant="outline"
+                    size="sm"
+                    className={
+                      currentPage === number
+                        ? "bg-primary text-primary-foreground"
+                        : ""
+                    }
                     onClick={() => handlePageChange(number)}
                   >
                     {number}
                   </Button>
                 ))}
-                
-                <Button 
-                  variant="outline" 
+
+                <Button
+                  variant="outline"
                   size="sm"
                   onClick={goToNextPage}
                   disabled={currentPage === totalPages || totalPages === 0}

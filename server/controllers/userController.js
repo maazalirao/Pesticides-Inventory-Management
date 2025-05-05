@@ -116,7 +116,6 @@ const getUsers = asyncHandler(async (req, res) => {
 const createUser = asyncHandler(async (req, res) => {
   const { clerkId, email, firstName, lastName, role = "customer" } = req.body;
 
-  console.log("data at receiving endpoint", req.body);
   // Check if user already exists
   const userExists = await User.findOne({ clerkId });
 
@@ -135,6 +134,12 @@ const createUser = asyncHandler(async (req, res) => {
   });
 
   if (user) {
+    req.session.user = {
+      _id: user._id,
+      role: user.role,
+      email: user.email,
+    };
+
     res.status(201).json({
       _id: user._id,
       clerkId: user.clerkId,

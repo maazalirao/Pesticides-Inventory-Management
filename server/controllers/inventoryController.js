@@ -6,7 +6,7 @@ import Inventory from "../models/inventoryModel.js";
 // @access  Private
 const getInventoryItems = asyncHandler(async (req, res) => {
   // Use lean() for faster queries and select only needed fields
-  const inventoryItems = await Inventory.find({})
+  const inventoryItems = await Inventory.find({ clerkId: req.params.clerkId })
     .select(
       "name sku category quantity unit price threshold status supplier batches"
     )
@@ -45,6 +45,7 @@ const createInventoryItem = asyncHandler(async (req, res) => {
     status,
     supplier,
     batches,
+    clerkId,
   } = req.body;
 
   // Check if the item already exists by SKU
@@ -66,6 +67,7 @@ const createInventoryItem = asyncHandler(async (req, res) => {
     status,
     supplier: supplier || "",
     batches: batches || [],
+    clerkId,
   });
 
   if (inventoryItem) {

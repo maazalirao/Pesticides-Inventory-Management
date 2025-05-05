@@ -1,13 +1,16 @@
-import asyncHandler from 'express-async-handler';
-import Product from '../models/productModel.js';
+import asyncHandler from "express-async-handler";
+import Product from "../models/productModel.js";
 
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
   // Use lean() for faster queries and select only needed fields
-  const products = await Product.find({})
-    .select('name description category price stockQuantity sku image manufacturer toxicityLevel recommendedUse tags')
+  console.log("req.params.clerkId is here : " + req.params.clerkId);
+  const products = await Product.find({ clerkId: req.params.clerkId })
+    .select(
+      "name description category price stockQuantity sku image manufacturer toxicityLevel recommendedUse tags"
+    )
     .lean()
     .exec();
   res.json(products);
@@ -17,13 +20,16 @@ const getProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/:id
 // @access  Public
 const getProductById = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id).populate('supplier', 'name');
-  
+  const product = await Product.findById(req.params.id).populate(
+    "supplier",
+    "name"
+  );
+
   if (product) {
     res.json(product);
   } else {
     res.status(404);
-    throw new Error('Product not found');
+    throw new Error("Product not found");
   }
 });
 
@@ -31,6 +37,8 @@ const getProductById = asyncHandler(async (req, res) => {
 // @route   POST /api/products
 // @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
+  console.log("req.body  of product at back end is here : " + req.body);
+  console.log("req.body  of product at back end is here : " + req.body.clerkId);
   const {
     name,
     description,
@@ -44,13 +52,14 @@ const createProduct = asyncHandler(async (req, res) => {
     toxicityLevel,
     recommendedUse,
     tags,
+    clerkId,
   } = req.body;
 
   const productExists = await Product.findOne({ sku });
 
   if (productExists) {
     res.status(400);
-    throw new Error('Product with this SKU already exists');
+    throw new Error("Product with this SKU already exists");
   }
 
   const product = await Product.create({
@@ -61,18 +70,19 @@ const createProduct = asyncHandler(async (req, res) => {
     stockQuantity,
     sku,
     supplier,
-    image: image || '/images/default-product.jpg',
+    image: image || "/images/default-product.jpg",
     manufacturer,
     toxicityLevel,
     recommendedUse,
     tags,
+    clerkId,
   });
 
   if (product) {
     res.status(201).json(product);
   } else {
     res.status(400);
-    throw new Error('Invalid product data');
+    throw new Error("Invalid product data");
   }
 });
 
@@ -94,14 +104,15 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.manufacturer = req.body.manufacturer || product.manufacturer;
     product.toxicityLevel = req.body.toxicityLevel || product.toxicityLevel;
     product.recommendedUse = req.body.recommendedUse || product.recommendedUse;
-    product.isActive = req.body.isActive !== undefined ? req.body.isActive : product.isActive;
+    product.isActive =
+      req.body.isActive !== undefined ? req.body.isActive : product.isActive;
     product.tags = req.body.tags || product.tags;
 
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } else {
     res.status(404);
-    throw new Error('Product not found');
+    throw new Error("Product not found");
   }
 });
 
@@ -113,10 +124,10 @@ const deleteProduct = asyncHandler(async (req, res) => {
 
   if (product) {
     await product.deleteOne();
-    res.json({ message: 'Product removed' });
+    res.json({ message: "Product removed" });
   } else {
     res.status(404);
-    throw new Error('Product not found');
+    throw new Error("Product not found");
   }
 });
 
@@ -126,4 +137,4 @@ export {
   createProduct,
   updateProduct,
   deleteProduct,
-}; 
+};
