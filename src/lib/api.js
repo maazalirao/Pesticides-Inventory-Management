@@ -270,17 +270,15 @@ export const addBatchToInventoryItem = async (id, batchData) => {
 };
 
 // Supplier API calls
-export const getSuppliers = async () => {
+export const getSuppliers = async (clerkId) => {
   try {
-    if (isCacheValid("suppliers")) {
-      return cache.suppliers.data;
-    }
-
-    const { data } = await api.get("/suppliers");
-    cache.suppliers.data = data;
-    cache.suppliers.timestamp = Date.now();
+    console.log("Fetching suppliers for user:", clerkId);
+    const url = clerkId ? `/suppliers/${clerkId}` : "/suppliers";
+    const { data } = await api.get(url);
+    console.log("Suppliers fetched:", data.length);
     return data;
   } catch (error) {
+    console.error("Error fetching suppliers:", error);
     throw error;
   }
 };
@@ -325,17 +323,15 @@ export const deleteSupplier = async (id) => {
 };
 
 // Customer API calls
-export const getCustomers = async () => {
+export const getCustomers = async (clerkId) => {
   try {
-    if (isCacheValid("customers")) {
-      return cache.customers.data;
-    }
-
-    const { data } = await api.get("/customers");
-    cache.customers.data = data;
-    cache.customers.timestamp = Date.now();
+    console.log("Fetching customers for user:", clerkId);
+    const url = clerkId ? `/customers/${clerkId}` : "/customers";
+    const { data } = await api.get(url);
+    console.log("Customers fetched:", data.length);
     return data;
   } catch (error) {
+    console.error("Error fetching customers:", error);
     throw error;
   }
 };
@@ -395,9 +391,10 @@ export const clearCache = (key) => {
 };
 
 // Invoice API calls
-export const getInvoices = async () => {
+export const getInvoices = async (clerkId) => {
   try {
-    const response = await api.get("/invoices");
+    const url = clerkId ? `/invoices/clerk/${clerkId}` : "/invoices";
+    const response = await api.get(url);
     // The server returns { success: true, data: [...] } so we need to extract the data property
     return response.data.data || [];
   } catch (error) {

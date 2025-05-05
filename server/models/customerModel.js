@@ -1,7 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const customerSchema = mongoose.Schema(
   {
+    clerkId: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -34,12 +38,17 @@ const customerSchema = mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    customerType: {
+      type: String,
+      enum: ["Admin", "Employee", "Customer"],
+      default: "Customer",
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const Customer = mongoose.model('Customer', customerSchema);
+const Customer = mongoose.model("Customer", customerSchema);
 
-export default Customer; 
+export default Customer;

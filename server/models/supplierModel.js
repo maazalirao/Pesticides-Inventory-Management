@@ -1,7 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const supplierSchema = mongoose.Schema(
   {
+    clerkId: {
+      type: String,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -44,6 +48,6 @@ const supplierSchema = mongoose.Schema(
   }
 );
 
-const Supplier = mongoose.model('Supplier', supplierSchema);
+const Supplier = mongoose.model("Supplier", supplierSchema);
 
-export default Supplier; 
+export default Supplier;

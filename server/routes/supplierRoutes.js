@@ -1,23 +1,23 @@
-import express from 'express';
+import express from "express";
 import {
   getSuppliers,
   getSupplierById,
   createSupplier,
   updateSupplier,
   deleteSupplier,
-} from '../controllers/supplierController.js';
-import { protect, admin } from '../middleware/authMiddleware.js';
+} from "../controllers/supplierController.js";
+import { protect, admin } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
-
 // Public routes
-router.route('/')
-  .get(getSuppliers)
-  .post(createSupplier);
+router.route("/").post(createSupplier);
 
-router.route('/:id')
+router.route("/:clerkId").get(getSuppliers);
+
+router
+  .route("/:id")
   .get(getSupplierById)
   .put(updateSupplier)
   .delete(deleteSupplier);
 
-export default router; 
+export default router;

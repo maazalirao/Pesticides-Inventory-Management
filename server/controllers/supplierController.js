@@ -1,13 +1,15 @@
-import asyncHandler from 'express-async-handler';
-import Supplier from '../models/supplierModel.js';
+import asyncHandler from "express-async-handler";
+import Supplier from "../models/supplierModel.js";
 
 // @desc    Fetch all suppliers
 // @route   GET /api/suppliers
 // @access  Public
 const getSuppliers = asyncHandler(async (req, res) => {
   // Use lean() for faster queries and select only needed fields
-  const suppliers = await Supplier.find({})
-    .select('name contactPerson email phone address taxId paymentTerms notes isActive')
+  const suppliers = await Supplier.find({ clerkId: req.params.clerkId })
+    .select(
+      "name contactPerson email phone address taxId paymentTerms notes isActive"
+    )
     .lean()
     .exec();
   res.json(suppliers);
@@ -18,12 +20,12 @@ const getSuppliers = asyncHandler(async (req, res) => {
 // @access  Public
 const getSupplierById = asyncHandler(async (req, res) => {
   const supplier = await Supplier.findById(req.params.id);
-  
+
   if (supplier) {
     res.json(supplier);
   } else {
     res.status(404);
-    throw new Error('Supplier not found');
+    throw new Error("Supplier not found");
   }
 });
 
@@ -31,23 +33,25 @@ const getSupplierById = asyncHandler(async (req, res) => {
 // @route   POST /api/suppliers
 // @access  Private/Admin
 const createSupplier = asyncHandler(async (req, res) => {
+  console.log("Creating supplier:", req.body);
   const {
     name,
     contactPerson,
     email,
     phone,
-    address,
     taxId,
+    address,
     paymentTerms,
     notes,
     isActive,
+    clerkId,
   } = req.body;
 
   const supplierExists = await Supplier.findOne({ email });
 
   if (supplierExists) {
     res.status(400);
-    throw new Error('Supplier with this email already exists');
+    throw new Error("Supplier with this email already exists");
   }
 
   const supplier = await Supplier.create({
@@ -60,13 +64,14 @@ const createSupplier = asyncHandler(async (req, res) => {
     paymentTerms,
     notes,
     isActive: isActive !== undefined ? isActive : true,
+    clerkId,
   });
 
   if (supplier) {
     res.status(201).json(supplier);
   } else {
     res.status(400);
-    throw new Error('Invalid supplier data');
+    throw new Error("Invalid supplier data");
   }
 });
 
@@ -85,13 +90,14 @@ const updateSupplier = asyncHandler(async (req, res) => {
     supplier.taxId = req.body.taxId || supplier.taxId;
     supplier.paymentTerms = req.body.paymentTerms || supplier.paymentTerms;
     supplier.notes = req.body.notes || supplier.notes;
-    supplier.isActive = req.body.isActive !== undefined ? req.body.isActive : supplier.isActive;
+    supplier.isActive =
+      req.body.isActive !== undefined ? req.body.isActive : supplier.isActive;
 
     const updatedSupplier = await supplier.save();
     res.json(updatedSupplier);
   } else {
     res.status(404);
-    throw new Error('Supplier not found');
+    throw new Error("Supplier not found");
   }
 });
 
@@ -103,10 +109,10 @@ const deleteSupplier = asyncHandler(async (req, res) => {
 
   if (supplier) {
     await supplier.deleteOne();
-    res.json({ message: 'Supplier removed' });
+    res.json({ message: "Supplier removed" });
   } else {
     res.status(404);
-    throw new Error('Supplier not found');
+    throw new Error("Supplier not found");
   }
 });
 
@@ -116,4 +122,4 @@ export {
   createSupplier,
   updateSupplier,
   deleteSupplier,
-}; 
+};

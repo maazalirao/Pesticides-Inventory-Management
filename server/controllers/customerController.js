@@ -1,13 +1,15 @@
-import asyncHandler from 'express-async-handler';
-import Customer from '../models/customerModel.js';
+import asyncHandler from "express-async-handler";
+import Customer from "../models/customerModel.js";
 
 // @desc    Fetch all customers
 // @route   GET /api/customers
 // @access  Public
 const getCustomers = asyncHandler(async (req, res) => {
   // Use lean() for faster queries and select only needed fields
-  const customers = await Customer.find({})
-    .select('name email phone address paymentMethod taxId notes isActive')
+  const customers = await Customer.find({ clerkId: req.params.clerkId })
+    .select(
+      "name email phone address paymentMethod taxId notes isActive customerType"
+    )
     .lean()
     .exec();
   res.json(customers);
@@ -18,12 +20,12 @@ const getCustomers = asyncHandler(async (req, res) => {
 // @access  Public
 const getCustomerById = asyncHandler(async (req, res) => {
   const customer = await Customer.findById(req.params.id);
-  
+
   if (customer) {
     res.json(customer);
   } else {
     res.status(404);
-    throw new Error('Customer not found');
+    throw new Error("Customer not found");
   }
 });
 
@@ -31,6 +33,7 @@ const getCustomerById = asyncHandler(async (req, res) => {
 // @route   POST /api/customers
 // @access  Private/Admin
 const createCustomer = asyncHandler(async (req, res) => {
+  console.log("Creating customer backend:", req.body);
   const {
     name,
     email,
@@ -40,13 +43,15 @@ const createCustomer = asyncHandler(async (req, res) => {
     taxId,
     notes,
     isActive,
+    clerkId,
+    customerType,
   } = req.body;
 
   const customerExists = await Customer.findOne({ email });
 
   if (customerExists) {
     res.status(400);
-    throw new Error('Customer with this email already exists');
+    throw new Error("Customer with this email already exists");
   }
 
   const customer = await Customer.create({
@@ -58,13 +63,15 @@ const createCustomer = asyncHandler(async (req, res) => {
     taxId,
     notes,
     isActive: isActive !== undefined ? isActive : true,
+    clerkId,
+    customerType,
   });
 
   if (customer) {
     res.status(201).json(customer);
   } else {
     res.status(400);
-    throw new Error('Invalid customer data');
+    throw new Error("Invalid customer data");
   }
 });
 
@@ -72,6 +79,7 @@ const createCustomer = asyncHandler(async (req, res) => {
 // @route   PUT /api/customers/:id
 // @access  Private/Admin
 const updateCustomer = asyncHandler(async (req, res) => {
+  console.log("Updating customer backend:", req.body);
   const customer = await Customer.findById(req.params.id);
 
   if (customer) {
@@ -82,13 +90,15 @@ const updateCustomer = asyncHandler(async (req, res) => {
     customer.paymentMethod = req.body.paymentMethod || customer.paymentMethod;
     customer.taxId = req.body.taxId || customer.taxId;
     customer.notes = req.body.notes || customer.notes;
-    customer.isActive = req.body.isActive !== undefined ? req.body.isActive : customer.isActive;
+    customer.customerType = req.body.customerType || customer.customerType;
+    customer.isActive =
+      req.body.isActive !== undefined ? req.body.isActive : customer.isActive;
 
     const updatedCustomer = await customer.save();
     res.json(updatedCustomer);
   } else {
     res.status(404);
-    throw new Error('Customer not found');
+    throw new Error("Customer not found");
   }
 });
 
@@ -100,10 +110,10 @@ const deleteCustomer = asyncHandler(async (req, res) => {
 
   if (customer) {
     await customer.deleteOne();
-    res.json({ message: 'Customer removed' });
+    res.json({ message: "Customer removed" });
   } else {
     res.status(404);
-    throw new Error('Customer not found');
+    throw new Error("Customer not found");
   }
 });
 
@@ -113,4 +123,4 @@ export {
   createCustomer,
   updateCustomer,
   deleteCustomer,
-}; 
+};
