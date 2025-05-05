@@ -1,11 +1,10 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const orderSchema = mongoose.Schema(
   {
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
-      ref: 'User',
     },
     orderItems: [
       {
@@ -14,9 +13,8 @@ const orderSchema = mongoose.Schema(
         image: { type: String, required: true },
         price: { type: Number, required: true },
         product: {
-          type: mongoose.Schema.Types.ObjectId,
+          type: String,
           required: true,
-          ref: 'Product',
         },
       },
     ],
@@ -75,13 +73,16 @@ const orderSchema = mongoose.Schema(
     status: {
       type: String,
       required: true,
-      enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
-      default: 'Pending',
+      enum: ["Pending", "Processing", "Shipped", "Delivered", "Cancelled"],
+      default: "Pending",
     },
     trackingNumber: {
       type: String,
     },
     notes: {
+      type: String,
+    },
+    clerkId: {
       type: String,
     },
   },
@@ -91,10 +92,10 @@ const orderSchema = mongoose.Schema(
 );
 
 // Update inventory when order is placed
-orderSchema.post('save', async function() {
-  const Product = mongoose.model('Product');
-  const Inventory = mongoose.model('Inventory');
-  
+orderSchema.post("save", async function () {
+  const Product = mongoose.model("Product");
+  const Inventory = mongoose.model("Inventory");
+
   for (const item of this.orderItems) {
     // Update product stock
     const product = await Product.findById(item.product);
@@ -103,17 +104,17 @@ orderSchema.post('save', async function() {
       if (this.isNew) {
         // Find inventory items for this product
         const inventoryItems = await Inventory.find({ product: item.product });
-        
+
         let remainingQuantity = item.quantity;
         for (const invItem of inventoryItems) {
           if (remainingQuantity <= 0) break;
-          
+
           const availableQty = invItem.quantity;
           const deductQty = Math.min(availableQty, remainingQuantity);
-          
+
           invItem.quantity -= deductQty;
           await invItem.save();
-          
+
           remainingQuantity -= deductQty;
         }
       }
@@ -121,6 +122,6 @@ orderSchema.post('save', async function() {
   }
 });
 
-const Order = mongoose.model('Order', orderSchema);
+const Order = mongoose.model("Order", orderSchema);
 
-export default Order; 
+export default Order;

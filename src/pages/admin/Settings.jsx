@@ -29,22 +29,35 @@ import {
   AlertTriangle,
   Sun,
   Moon,
+  UserCircle,
+  LoaderCircle,
 } from "lucide-react";
 import { useTheme } from "../../lib/ThemeProvider";
+import { getUserProfile } from "../../lib/api";
+import { useUser } from "@clerk/clerk-react";
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
-  const { theme, toggleTheme } = useTheme();
+  const { theme } = useTheme();
+  const { user: clerkUser } = useUser();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  // Mock user data
-  const userData = {
-    name: "Jamal Siddique Qadri",
-    email: "maaz@example.com",
+  // Default static user data as fallback
+  const defaultUserData = {
+    name:
+      clerkUser?.firstName && clerkUser?.lastName
+        ? `${clerkUser.firstName} ${clerkUser.lastName}`
+        : clerkUser?.username || "User",
+    email: clerkUser?.primaryEmailAddress?.emailAddress || "user@example.com",
     role: "Administrator",
     company: "PestTrack Solutions",
     avatar:
-      "https://ui-avatars.com/api/?name=John+Doe&background=6366f1&color=fff",
-    twoFactorEnabled: true,
+      clerkUser?.imageUrl ||
+      `https://ui-avatars.com/api/?name=${
+        clerkUser?.firstName || "User"
+      }&background=6366f1&color=fff`,
+    twoFactorEnabled: false,
     notifications: {
       email: true,
       browser: true,
@@ -62,12 +75,71 @@ const Settings = () => {
     backup: {
       autoBackup: true,
       backupFrequency: "daily",
-      lastBackup: "2023-12-15T08:30:00",
+      lastBackup: new Date().toISOString(),
     },
   };
 
+  // State for user data
+  const [userData, setUserData] = useState(defaultUserData);
+
   // State for form values
   const [formValues, setFormValues] = useState(userData);
+
+  // Fetch user data from the database
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        if (clerkUser) {
+          const data = await getUserProfile();
+
+          if (isMounted) {
+            console.log("User profile data:", data);
+
+            // If we have data from the database, use it
+            if (data) {
+              // Merge with default data for any missing fields
+              const mergedData = {
+                ...defaultUserData,
+                name:
+                  data.firstName && data.lastName
+                    ? `${data.firstName} ${data.lastName}`
+                    : data.name || defaultUserData.name,
+                email: data.email || defaultUserData.email,
+                role: data.role || defaultUserData.role,
+                // Keep other default fields if not provided by the API
+              };
+
+              setUserData(mergedData);
+              setFormValues(mergedData);
+            }
+
+            setError("");
+          }
+        }
+      } catch (err) {
+        if (isMounted) {
+          console.error("Error fetching user data:", err);
+          // setError("Failed to fetch user data. Using default settings.");
+          // Use default data on error
+          setUserData(defaultUserData);
+          setFormValues(defaultUserData);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    fetchUserData();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [clerkUser]);
 
   // Update form values when theme changes
   useEffect(() => {
@@ -103,6 +175,40 @@ const Settings = () => {
     }).format(date);
   };
 
+  // Handle save changes
+  const handleSaveChanges = async () => {
+    // Here you would implement the API call to save the changes
+    // For now just show an alert
+    alert("Changes saved successfully!");
+  };
+
+  // Handle manual backup
+  const handleBackupNow = () => {
+    // Update last backup time to now
+    const now = new Date().toISOString();
+    setFormValues((prev) => ({
+      ...prev,
+      backup: {
+        ...prev.backup,
+        lastBackup: now,
+      },
+    }));
+
+    alert("Manual backup initiated");
+  };
+
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-[70vh]">
+        <div className="text-center">
+          <LoaderCircle className="h-12 w-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading your settings...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -113,6 +219,15 @@ const Settings = () => {
           Manage your account settings and preferences
         </p>
       </div>
+
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-md p-4 mb-4">
+          <div className="flex">
+            <AlertTriangle className="h-5 w-5 text-yellow-600 mr-3 flex-shrink-0" />
+            <span>{error}</span>
+          </div>
+        </div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-6">
         {/* Sidebar */}
@@ -286,18 +401,24 @@ const Settings = () => {
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center gap-4">
-                  <img
-                    src={userData.avatar}
-                    alt="Profile"
-                    className="h-16 w-16 rounded-full"
-                  />
+                  {formValues.avatar ? (
+                    <img
+                      src={formValues.avatar}
+                      alt="Profile"
+                      className="h-16 w-16 rounded-full"
+                    />
+                  ) : (
+                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <UserCircle className="h-10 w-10 text-primary" />
+                    </div>
+                  )}
                   <div>
-                    <h3 className="font-medium">{userData.name}</h3>
+                    <h3 className="font-medium">{formValues.name}</h3>
                     <p className="text-sm text-muted-foreground">
-                      {userData.role}
+                      {formValues.role}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {userData.company}
+                      {formValues.company}
                     </p>
                   </div>
                   <Button variant="outline" size="sm" className="ml-auto">
@@ -310,7 +431,10 @@ const Settings = () => {
                     <label className="text-sm font-medium">Full Name</label>
                     <input
                       type="text"
-                      defaultValue={userData.name}
+                      value={formValues.name}
+                      onChange={(e) =>
+                        setFormValues({ ...formValues, name: e.target.value })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -319,7 +443,10 @@ const Settings = () => {
                     <label className="text-sm font-medium">Email Address</label>
                     <input
                       type="email"
-                      defaultValue={userData.email}
+                      value={formValues.email}
+                      onChange={(e) =>
+                        setFormValues({ ...formValues, email: e.target.value })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -328,7 +455,13 @@ const Settings = () => {
                     <label className="text-sm font-medium">Company</label>
                     <input
                       type="text"
-                      defaultValue={userData.company}
+                      value={formValues.company}
+                      onChange={(e) =>
+                        setFormValues({
+                          ...formValues,
+                          company: e.target.value,
+                        })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     />
                   </div>
@@ -336,21 +469,29 @@ const Settings = () => {
                   <div className="grid gap-2">
                     <label className="text-sm font-medium">Role</label>
                     <select
-                      defaultValue={userData.role}
+                      value={formValues.role}
+                      onChange={(e) =>
+                        setFormValues({ ...formValues, role: e.target.value })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     >
-                      <option>Administrator</option>
-                      <option>Manager</option>
-                      <option>Employee</option>
-                      <option>Read Only</option>
+                      <option value="Administrator">Administrator</option>
+                      <option value="Manager">Manager</option>
+                      <option value="Employee">Employee</option>
+                      <option value="Read Only">Read Only</option>
                     </select>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between border-t px-6 py-4">
-                <Button variant="outline">Cancel</Button>
-                <Button>Save Changes</Button>
-              </CardFooter>
+              {/* <CardFooter className="flex justify-between border-t px-6 py-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setFormValues(userData)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveChanges}>Save Changes</Button>
+              </CardFooter> */}
             </Card>
           )}
 
@@ -481,8 +622,13 @@ const Settings = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between border-t px-6 py-4">
-                <Button variant="outline">Cancel</Button>
-                <Button>Save Preferences</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setFormValues(userData)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveChanges}>Save Preferences</Button>
               </CardFooter>
             </Card>
           )}
@@ -592,6 +738,17 @@ const Settings = () => {
                   </Button>
                 </div>
               </CardContent>
+              <CardFooter className="flex justify-between border-t px-6 py-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setFormValues(userData)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveChanges}>
+                  Save Security Settings
+                </Button>
+              </CardFooter>
             </Card>
           )}
 
@@ -613,16 +770,53 @@ const Settings = () => {
                       <div>
                         <p className="text-sm">Theme Settings</p>
                         <p className="text-xs text-muted-foreground">
-                          Dark mode is currently disabled
+                          {formValues.appearance.theme === "dark"
+                            ? "Dark mode is currently enabled"
+                            : "Dark mode is currently disabled"}
                         </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-3 gap-4 mt-4">
-                    <div className="p-4 border rounded-md border-primary bg-muted/50">
-                      <div className="h-20 bg-background border rounded-md mb-2"></div>
+                    <div
+                      className={`p-4 border rounded-md ${
+                        formValues.appearance.theme === "light"
+                          ? "border-primary bg-muted/50"
+                          : "border-muted"
+                      } cursor-pointer`}
+                      onClick={() =>
+                        handleChange("appearance", "theme", "light")
+                      }
+                    >
+                      <div className="h-20 bg-white border rounded-md mb-2"></div>
                       <p className="text-sm font-medium text-center">Light</p>
+                    </div>
+                    <div
+                      className={`p-4 border rounded-md ${
+                        formValues.appearance.theme === "dark"
+                          ? "border-primary bg-muted/50"
+                          : "border-muted"
+                      } cursor-pointer`}
+                      onClick={() =>
+                        handleChange("appearance", "theme", "dark")
+                      }
+                    >
+                      <div className="h-20 bg-gray-900 border border-gray-700 rounded-md mb-2"></div>
+                      <p className="text-sm font-medium text-center">Dark</p>
+                    </div>
+                    <div
+                      className={`p-4 border rounded-md ${
+                        formValues.appearance.theme === "system"
+                          ? "border-primary bg-muted/50"
+                          : "border-muted"
+                      } cursor-pointer`}
+                      onClick={() =>
+                        handleChange("appearance", "theme", "system")
+                      }
+                    >
+                      <div className="h-20 bg-gradient-to-r from-white to-gray-900 border rounded-md mb-2"></div>
+                      <p className="text-sm font-medium text-center">System</p>
                     </div>
                   </div>
                 </div>
@@ -680,8 +874,13 @@ const Settings = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between border-t px-6 py-4">
-                <Button variant="outline">Reset to Defaults</Button>
-                <Button>Save Preferences</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setFormValues(userData)}
+                >
+                  Reset to Defaults
+                </Button>
+                <Button onClick={handleSaveChanges}>Save Preferences</Button>
               </CardFooter>
             </Card>
           )}
@@ -699,7 +898,13 @@ const Settings = () => {
                   <div className="grid gap-2">
                     <label className="text-sm font-medium">Language</label>
                     <select
-                      defaultValue="en-US"
+                      value={formValues.language || "en-US"}
+                      onChange={(e) =>
+                        setFormValues({
+                          ...formValues,
+                          language: e.target.value,
+                        })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     >
                       <option value="en-US">English (United States)</option>
@@ -715,7 +920,13 @@ const Settings = () => {
                   <div className="grid gap-2">
                     <label className="text-sm font-medium">Time Zone</label>
                     <select
-                      defaultValue="America/New_York"
+                      value={formValues.timeZone || "America/New_York"}
+                      onChange={(e) =>
+                        setFormValues({
+                          ...formValues,
+                          timeZone: e.target.value,
+                        })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     >
                       <option value="America/New_York">
@@ -739,7 +950,13 @@ const Settings = () => {
                   <div className="grid gap-2">
                     <label className="text-sm font-medium">Date Format</label>
                     <select
-                      defaultValue="MM/DD/YYYY"
+                      value={formValues.dateFormat || "MM/DD/YYYY"}
+                      onChange={(e) =>
+                        setFormValues({
+                          ...formValues,
+                          dateFormat: e.target.value,
+                        })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     >
                       <option value="MM/DD/YYYY">MM/DD/YYYY</option>
@@ -751,7 +968,13 @@ const Settings = () => {
                   <div className="grid gap-2">
                     <label className="text-sm font-medium">Currency</label>
                     <select
-                      defaultValue="PKR"
+                      value={formValues.currency || "PKR"}
+                      onChange={(e) =>
+                        setFormValues({
+                          ...formValues,
+                          currency: e.target.value,
+                        })
+                      }
                       className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                     >
                       <option value="PKR">PKR (₨)</option>
@@ -782,8 +1005,13 @@ const Settings = () => {
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between border-t px-6 py-4">
-                <Button variant="outline">Cancel</Button>
-                <Button>Save Changes</Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setFormValues(userData)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleSaveChanges}>Save Changes</Button>
               </CardFooter>
             </Card>
           )}
@@ -822,7 +1050,7 @@ const Settings = () => {
                     <div className="flex justify-between">
                       <span className="text-sm">Next scheduled backup:</span>
                       <span className="text-sm font-medium">
-                        December 16, 2023, 08:30 AM
+                        {calculateNextBackup(formValues.backup)}
                       </span>
                     </div>
                   </div>
@@ -868,10 +1096,7 @@ const Settings = () => {
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-4">
-                  <Button
-                    className="w-full"
-                    onClick={() => alert("Manual backup initiated")}
-                  >
+                  <Button className="w-full" onClick={() => handleBackupNow()}>
                     <Save className="h-4 w-4 mr-2" />
                     Backup Now
                   </Button>
@@ -900,12 +1125,55 @@ const Settings = () => {
                   </div>
                 </div>
               </CardContent>
+              <CardFooter className="flex justify-between border-t px-6 py-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setFormValues(userData)}
+                >
+                  Reset to Defaults
+                </Button>
+                <Button onClick={handleSaveChanges}>
+                  Save Backup Settings
+                </Button>
+              </CardFooter>
             </Card>
           )}
         </div>
       </div>
     </div>
   );
+};
+
+// Helper function to calculate the next backup date
+const calculateNextBackup = (backup) => {
+  if (!backup || !backup.lastBackup || !backup.backupFrequency) {
+    return "Not scheduled";
+  }
+
+  const lastBackup = new Date(backup.lastBackup);
+  let nextBackup = new Date(lastBackup);
+
+  switch (backup.backupFrequency) {
+    case "daily":
+      nextBackup.setDate(lastBackup.getDate() + 1);
+      break;
+    case "weekly":
+      nextBackup.setDate(lastBackup.getDate() + 7);
+      break;
+    case "monthly":
+      nextBackup.setMonth(lastBackup.getMonth() + 1);
+      break;
+    default:
+      return "Unknown schedule";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(nextBackup);
 };
 
 export default Settings;
