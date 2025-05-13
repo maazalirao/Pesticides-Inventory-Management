@@ -9,7 +9,8 @@ import {
   assignUserToStore,
   removeUserFromStore,
   getMyStores,
-  repairStoreRelationships
+  repairStoreRelationships,
+  getPublicStores
 } from '../controllers/storeController.js';
 
 // This is a placeholder - you'll need to create the actual controller
@@ -34,6 +35,10 @@ router.route('/')
 // Note: This MUST be before the '/:id' routes to avoid path conflicts
 router.route('/mystores')
   .get(protect, storeOwner, getMyStores);
+
+// Public route to get active stores for customer view
+router.route('/public')
+  .get(getPublicStores);
 
 // Special debug endpoint for development mode
 router.route('/repair-relationships')

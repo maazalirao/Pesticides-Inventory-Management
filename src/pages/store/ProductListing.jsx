@@ -3,7 +3,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Search, Filter, ShoppingCart, Grid3X3, List, Star,
   ChevronDown, Sliders, X, Package, AlertTriangle, 
-  ChevronRight, Heart, Leaf, ArrowUpDown, Tag, CheckCircle2
+  ChevronRight, Heart, Leaf, ArrowUpDown, Tag, CheckCircle2,
+  Store
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import { motion } from 'framer-motion';
@@ -14,6 +15,7 @@ const ProductListing = () => {
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const categoryParam = searchParams.get('category');
+  const storeParam = searchParams.get('store');
   
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
@@ -22,31 +24,51 @@ const ProductListing = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
+  const [selectedStore, setSelectedStore] = useState(null);
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [sortBy, setSortBy] = useState('featured');
   const [searchTerm, setSearchTerm] = useState('');
   
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await axios.get('/api/products');
-        setProducts(response.data);
+        
+        // Get selected store from localStorage or URL param
+        const storeId = storeParam || localStorage.getItem('selectedStoreId');
+        
+        if (storeId) {
+          try {
+            const storeResponse = await axios.get(`/api/stores/${storeId}`);
+            setSelectedStore(storeResponse.data);
+          } catch (err) {
+            console.error('Error fetching store:', err);
+          }
+        }
+        
+        // Fetch products with store filter if a store is selected
+        let productsEndpoint = '/api/products';
+        if (storeId) {
+          productsEndpoint = `/api/products?store=${storeId}`;
+        }
+        
+        const productResponse = await axios.get(productsEndpoint);
+        setProducts(productResponse.data);
         setLoading(false);
       } catch (err) {
-        console.error('Error fetching products:', err);
+        console.error('Error fetching data:', err);
         setError('Failed to load products. Please try again later.');
         setLoading(false);
       }
     };
 
-    fetchProducts();
+    fetchData();
     
     // Update category if provided in URL
     if (categoryParam) {
       setSelectedCategory(categoryParam.toLowerCase());
     }
-  }, [categoryParam]);
+  }, [categoryParam, storeParam]);
   
   // Format currency
   const formatCurrency = (amount) => {
@@ -73,7 +95,10 @@ const ProductListing = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    return categoryMatch && priceMatch && searchMatch;
+    // Filter by store (if selected)
+    const storeMatch = !selectedStore || (product.store && product.store.toString() === selectedStore._id);
+    
+    return categoryMatch && priceMatch && searchMatch && storeMatch;
   });
   
   // Sort products
@@ -159,10 +184,12 @@ const ProductListing = () => {
         
         <div className="container mx-auto px-4 relative z-20">
           <div className="max-w-2xl">
-            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white text-green-700 text-xs font-medium mb-4 shadow-sm">
-              <Leaf className="w-3 h-3 mr-1 text-green-700" />
-              Premium Agricultural Solutions
-            </div>
+            {selectedStore && (
+              <div className="inline-flex items-center px-3 py-1 rounded-full bg-white text-green-700 text-xs font-medium mb-4 shadow-sm">
+                <Store className="w-3 h-3 mr-1 text-green-700" />
+                Browsing {selectedStore.name}
+              </div>
+            )}
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               Shop Our Premium <span className="text-green-300">Agricultural Products</span>
             </h1>
@@ -191,6 +218,12 @@ const ProductListing = () => {
             <Link to="/" className="hover:text-green-600 transition-colors">Home</Link>
             <ChevronRight size={16} className="mx-2" />
             <span className="font-medium text-gray-800">Products</span>
+            {selectedStore && (
+              <>
+                <ChevronRight size={16} className="mx-2" />
+                <span className="font-medium text-green-600">{selectedStore.name}</span>
+              </>
+            )}
             {selectedCategory !== 'all' && (
               <>
                 <ChevronRight size={16} className="mx-2" />

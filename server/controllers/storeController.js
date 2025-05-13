@@ -403,6 +403,18 @@ const repairStoreRelationships = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Get all active stores for public view
+// @route   GET /api/stores/public
+// @access  Public
+const getPublicStores = asyncHandler(async (req, res) => {
+  const stores = await Store.find({ status: 'active' })
+    .select('name description email phone address')
+    .lean();
+  
+  console.log(`Found ${stores.length} active stores for public view`);
+  res.json(stores);
+});
+
 export {
   createStore,
   getStores,
@@ -412,5 +424,6 @@ export {
   assignUserToStore,
   removeUserFromStore,
   getMyStores,
-  repairStoreRelationships
+  repairStoreRelationships,
+  getPublicStores
 }; 

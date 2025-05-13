@@ -12,11 +12,11 @@ const router = express.Router();
 
 // Root routes - using storeId as a query parameter
 router.route('/')
-  .get(protect, getProducts) // Get products with optional storeId in query
+  .get(getProducts) // Public endpoint to get products with optional store filter
   .post(protect, createProduct); // Create product with storeId in body
 
 router.route('/:id')
-  .get(protect, getProductById) // Get product details
+  .get(getProductById) // Get product details - make it public
   .put(protect, updateProduct) // Update product
   .delete(protect, deleteProduct); // Delete product
 

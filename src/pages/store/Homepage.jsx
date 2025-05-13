@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../../contexts/CartContext';
+import StoreShowcase from '../../components/StoreShowcase';
 import { 
   ArrowRight, 
   Star, 
@@ -235,204 +236,54 @@ const Homepage = () => {
   };
   
   return (
-    <div className="flex flex-col">
-      {/* Hero Section with Video Background */}
-      <section className="relative overflow-hidden min-h-[85vh] flex items-center">
-        {/* Video Background with Overlay */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-r from-green-900/90 via-green-800/80 to-green-700/70 z-10"></div>
-          <video 
-            className="w-full h-full object-cover"
-            autoPlay 
-            loop 
-            muted 
-            playsInline
-          >
-            <source src="https://player.vimeo.com/external/517088133.sd.mp4?s=ade3e7eb4df44db472498c2553e4a3b9a89fbdce&profile_id=164&oauth2_token_id=57447761" type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
-        </div>
-
-        <div className="relative z-10 max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="text-center lg:text-left">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-green-500/20 backdrop-blur-sm text-green-300 text-sm font-medium mb-4">
-                <Sparkles className="w-4 h-4 mr-2" />
-                Organic & Sustainable Solutions
-              </div>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 text-white leading-tight">
-                Elevate Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-300 to-green-500">Agriculture</span> with Premium Products
+    <div className="min-h-screen bg-white">
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-green-50 to-green-100 pt-16 pb-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="lg:grid lg:grid-cols-12 lg:gap-8">
+            <div className="sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left">
+              <h1 className="text-4xl tracking-tight font-extrabold text-gray-900 sm:text-5xl md:text-6xl lg:text-5xl xl:text-6xl">
+                <span className="block">Quality Pesticides</span>
+                <span className="block text-green-600">For Better Farming</span>
               </h1>
-              <p className="text-lg md:text-xl text-white/80 mb-8 max-w-lg mx-auto lg:mx-0">
-                Discover our curated selection of high-quality agricultural solutions designed to maximize yield, protect crops, and promote sustainable farming.
+              <p className="mt-3 text-base text-gray-500 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl">
+                Protect your crops and increase your yields with our premium selection of pesticides, 
+                herbicides, and agricultural products.
               </p>
-              
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link 
-                  to="/store/products" 
-                  className="inline-flex items-center justify-center px-6 py-4 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-1"
-                >
-                  Shop Products
-                  <ArrowRight className="ml-2" size={20} />
-                </Link>
-                <Link 
-                  to="/store/contact" 
-                  className="inline-flex items-center justify-center px-6 py-4 bg-white/10 backdrop-blur-sm border border-white/30 text-white font-semibold rounded-lg hover:bg-white/20 transition duration-300"
-                >
-                  <Phone className="mr-2" size={20} />
-                  Contact Expert
-                </Link>
-              </div>
-              
-              <div className="mt-10 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map(stat => (
-                  <div key={stat.id} className="bg-white rounded-lg p-3 flex flex-col items-center text-center">
-                    <div className="bg-green-100 rounded-full p-2 mb-2">
-                      {stat.icon}
-                    </div>
-                    <h3 className="text-xl text-gray-800 font-bold">{stat.value}</h3>
-                    <p className="text-xs text-gray-500">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="relative mt-10 lg:mt-0">
-              <div className="absolute inset-0 bg-gradient-to-br from-green-500/20 to-green-700/20 rounded-2xl blur-2xl"></div>
-              <div className="relative bg-white/10 backdrop-blur-sm rounded-2xl p-4 sm:p-6 shadow-2xl overflow-hidden border border-white/10">
-                <div className="grid grid-cols-2 gap-2 sm:gap-4">
-                  <div>
-                    <img 
-                      src="https://plus.unsplash.com/premium_photo-1678344170545-c3edef92a16e" 
-                      alt="Sustainable Farming" 
-                      className="aspect-square object-cover rounded-lg shadow-lg mb-2 sm:mb-4 transform hover:scale-105 transition duration-300"
-                    />
-                    <img 
-                      src="https://images.unsplash.com/photo-1625246333195-78d9c38ad449?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1470&q=80" 
-                      alt="Organic Products" 
-                      className="aspect-square object-cover rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
-                    />
-                  </div>
-                  <div className="pt-4 sm:pt-8">
-                    <img 
-                      src="https://www.pomais.com/wp-content/uploads/2024/08/aluminum-phosphide8.jpg" 
-                      alt="Premium Solutions" 
-                      className="aspect-square object-cover rounded-lg shadow-lg mb-2 sm:mb-4 transform hover:scale-105 transition duration-300"
-                    />
-                    <img 
-                      src="https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd" 
-                      alt="Pesticide Application" 
-                      className="aspect-square object-cover rounded-lg shadow-lg transform hover:scale-105 transition duration-300"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      
-      {/* Categories Section - Modern Grid Layout */}
-      <section className="py-16 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-10">
-            <span className="inline-block px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-3">
-              Product Categories
-            </span>
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
-              Explore Our <span className="text-green-600">Categories</span>
-            </h2>
-            <p className="text-gray-600 max-w-2xl mx-auto">
-              We offer a comprehensive range of agricultural solutions to meet all your farming needs.
-            </p>
-          </div>
-          
-          {loading ? (
-            <div className="flex justify-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Grid - Hidden on Small Screens */}
-              <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {categories.map((category) => (
-                  <Link 
-                    key={category.id} 
-                    to={`/store/products?category=${category.name.toLowerCase()}`}
-                    className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-green-900 opacity-70 z-10"></div>
-                    <img 
-                      src={category.image} 
-                      alt={category.name}
-                      className="w-full h-64 object-cover transform group-hover:scale-110 transition-transform duration-700" 
-                    />
-                    <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="text-white text-xl font-bold group-hover:text-green-300 transition-colors">{category.name}</h3>
-                          <p className="text-white/80 text-sm">
-                            {category.count} Products
-                          </p>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-sm w-10 h-10 rounded-full flex items-center justify-center transform group-hover:bg-green-500 transition-all duration-300">
-                          <ChevronRight className="h-5 w-5 text-white" />
-                        </div>
-                      </div>
-                    </div>
+              <div className="mt-8 sm:flex sm:justify-center lg:justify-start">
+                <div className="rounded-md shadow">
+                  <Link to="/store/products" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-green-600 hover:bg-green-700 md:py-4 md:text-lg md:px-10">
+                    Shop Now
                   </Link>
-                ))}
-              </div>
-
-              {/* Mobile Carousel */}
-              <div className="sm:hidden overflow-x-auto pb-8 hide-scrollbar">
-                <div className="inline-flex space-x-4 px-4">
-                  {categories.map((category) => (
-                    <Link 
-                      key={category.id} 
-                      to={`/store/products?category=${category.name.toLowerCase()}`}
-                      className="flex-shrink-0 w-80 group relative overflow-hidden rounded-xl shadow-lg"
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-green-900 opacity-70 z-10"></div>
-                      <img 
-                        src={category.image} 
-                        alt={category.name}
-                        className="w-full h-48 object-cover" 
-                      />
-                      <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="text-white text-lg font-bold">{category.name}</h3>
-                            <p className="text-white/80 text-xs">
-                              {category.count} Products
-                            </p>
-                          </div>
-                          <div className="bg-white/10 backdrop-blur-sm w-8 h-8 rounded-full flex items-center justify-center">
-                            <ChevronRight className="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
+                </div>
+                <div className="mt-3 sm:mt-0 sm:ml-3">
+                  <Link to="/store/categories" className="w-full flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-green-600 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10">
+                    View Categories
+                  </Link>
                 </div>
               </div>
-
-              <div className="text-center mt-8">
-                <Link 
-                  to="/store/products" 
-                  className="inline-flex items-center px-6 py-3 border border-green-600 text-green-600 bg-white rounded-lg text-sm font-medium hover:bg-green-600 hover:text-white transition-colors shadow-sm"
-                >
-                  View All Categories
-                  <ChevronRight className="ml-1" size={16} />
-                </Link>
+            </div>
+            <div className="mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center">
+              <div className="relative mx-auto w-full rounded-lg shadow-lg lg:max-w-md">
+                <div className="relative block w-full bg-white rounded-lg overflow-hidden">
+                  <img 
+                    className="w-full" 
+                    src="https://images.unsplash.com/photo-1635035908273-d567b8373c36?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80" 
+                    alt="Person spraying pesticide on crops"
+                  />
+                  <div className="absolute inset-0 bg-green-600 mix-blend-multiply opacity-30"></div>
+                </div>
               </div>
-            </>
-          )}
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* Store Showcase Section */}
+      <StoreShowcase />
       
-      {/* Featured Products Section - Modern Card Design */}
-      <section className="py-16 bg-gray-50">
+      {/* Featured Products Section */}
+      <section className="py-12 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
             <span className="inline-block px-4 py-1 rounded-full bg-amber-100 text-amber-700 text-sm font-medium mb-3">
@@ -549,6 +400,105 @@ const Homepage = () => {
               <ArrowRight className="ml-2" size={18} />
             </Link>
           </div>
+        </div>
+      </section>
+      
+      {/* Categories Section - Modern Grid Layout */}
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-10">
+            <span className="inline-block px-4 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium mb-3">
+              Product Categories
+            </span>
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-gray-900">
+              Explore Our <span className="text-green-600">Categories</span>
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              We offer a comprehensive range of agricultural solutions to meet all your farming needs.
+            </p>
+          </div>
+          
+          {loading ? (
+            <div className="flex justify-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Grid - Hidden on Small Screens */}
+              <div className="hidden sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {categories.map((category) => (
+                  <Link 
+                    key={category.id} 
+                    to={`/store/products?category=${category.name.toLowerCase()}`}
+                    className="group relative overflow-hidden rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent to-green-900 opacity-70 z-10"></div>
+                    <img 
+                      src={category.image} 
+                      alt={category.name}
+                      className="w-full h-64 object-cover transform group-hover:scale-110 transition-transform duration-700" 
+                    />
+                    <div className="absolute bottom-0 left-0 right-0 p-6 z-20">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="text-white text-xl font-bold group-hover:text-green-300 transition-colors">{category.name}</h3>
+                          <p className="text-white/80 text-sm">
+                            {category.count} Products
+                          </p>
+                        </div>
+                        <div className="bg-white/10 backdrop-blur-sm w-10 h-10 rounded-full flex items-center justify-center transform group-hover:bg-green-500 transition-all duration-300">
+                          <ChevronRight className="h-5 w-5 text-white" />
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+
+              {/* Mobile Carousel */}
+              <div className="sm:hidden overflow-x-auto pb-8 hide-scrollbar">
+                <div className="inline-flex space-x-4 px-4">
+                  {categories.map((category) => (
+                    <Link 
+                      key={category.id} 
+                      to={`/store/products?category=${category.name.toLowerCase()}`}
+                      className="flex-shrink-0 w-80 group relative overflow-hidden rounded-xl shadow-lg"
+                    >
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-green-900 opacity-70 z-10"></div>
+                      <img 
+                        src={category.image} 
+                        alt={category.name}
+                        className="w-full h-48 object-cover" 
+                      />
+                      <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="text-white text-lg font-bold">{category.name}</h3>
+                            <p className="text-white/80 text-xs">
+                              {category.count} Products
+                            </p>
+                          </div>
+                          <div className="bg-white/10 backdrop-blur-sm w-8 h-8 rounded-full flex items-center justify-center">
+                            <ChevronRight className="h-4 w-4 text-white" />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+
+              <div className="text-center mt-8">
+                <Link 
+                  to="/store/products" 
+                  className="inline-flex items-center px-6 py-3 border border-green-600 text-green-600 bg-white rounded-lg text-sm font-medium hover:bg-green-600 hover:text-white transition-colors shadow-sm"
+                >
+                  View All Categories
+                  <ChevronRight className="ml-1" size={16} />
+                </Link>
+              </div>
+            </>
+          )}
         </div>
       </section>
       

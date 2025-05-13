@@ -19,7 +19,7 @@ const checkUserStoreAccess = async (req, storeId) => {
 
 // @desc    Fetch all products
 // @route   GET /api/products
-// @access  Private
+// @access  Public/Private
 const getProducts = asyncHandler(async (req, res) => {
   // Add extensive debug logging
   console.log('getProducts called with URL:', req.originalUrl);
@@ -41,11 +41,22 @@ const getProducts = asyncHandler(async (req, res) => {
   let query = {};
   
   // Get storeId from URL params or query params
-  const storeId = req.params.storeId || req.query.storeId || req.body.storeId;
+  // For public endpoints, check 'store' parameter to filter by store
+  const storeId = req.params.storeId || req.query.storeId || req.query.store || req.body.storeId;
   
-  // For admin routes, we want all products - do not filter by store
-  if (isAdminRoute || req.user.role === 'admin') {
-    // Keep query empty to get all products across all stores
+  // Check if request is from a public endpoint (no user object)
+  const isPublicRequest = !req.user;
+  
+  if (isPublicRequest) {
+    // Public API requests
+    if (storeId) {
+      query.store = storeId;
+    }
+    
+    // Always filter by active status for public requests
+    query.status = { $ne: 'discontinued' };
+  } else if (isAdminRoute || req.user.role === 'admin') {
+    // For admin routes, we want all products - do not filter by store
     console.log('Admin route detected - fetching products from all stores');
   } else if (storeId) {
     query.store = storeId;
@@ -73,7 +84,7 @@ const getProducts = asyncHandler(async (req, res) => {
     console.log(`Found ${products.length} products`);
     
     // For admin routes, also get all stores and return in expected format
-    if (isAdminRoute || req.user.role === 'admin') {
+    if (!isPublicRequest && (isAdminRoute || req.user.role === 'admin')) {
       const Store = mongoose.model('Store');
       const stores = await Store.find({}).lean().exec();
       
@@ -97,7 +108,7 @@ const getProducts = asyncHandler(async (req, res) => {
 
 // @desc    Fetch single product
 // @route   GET /api/products/:id
-// @access  Private
+// @access  Public/Private
 const getProductById = asyncHandler(async (req, res) => {
   // Get storeId from URL params or query params
   const storeId = getStoreIdFromRequest(req);
@@ -110,6 +121,12 @@ const getProductById = asyncHandler(async (req, res) => {
     query.store = storeId;
   }
   
+  // For public requests, only return active products
+  const isPublicRequest = !req.user;
+  if (isPublicRequest) {
+    query.status = { $ne: 'discontinued' };
+  }
+  
   // Find the product
   const product = await Product.findOne(query)
     .populate('supplier', 'name')
@@ -120,11 +137,13 @@ const getProductById = asyncHandler(async (req, res) => {
     throw new Error('Product not found');
   }
   
-  // Check if user has access to the store this product belongs to
-  const hasAccess = await checkUserStoreAccess(req, product.store._id.toString());
-  if (!hasAccess) {
-    res.status(403);
-    throw new Error('You do not have access to this product');
+  // Check if user has access to the store this product belongs to (skip for public requests)
+  if (!isPublicRequest) {
+    const hasAccess = await checkUserStoreAccess(req, product.store._id.toString());
+    if (!hasAccess) {
+      res.status(403);
+      throw new Error('You do not have access to this product');
+    }
   }
   
   res.json(product);
