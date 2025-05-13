@@ -27,8 +27,7 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   Clock,
-  CheckCircle2,
-  XCircle2
+  CheckCircle2
 } from 'lucide-react';
 import {
   Dialog,
@@ -952,7 +951,7 @@ const StoreManagement = () => {
                             onClick={() => handleRejectRequest(request._id)}
                             disabled={loading}
                           >
-                            <XCircle2 className="h-4 w-4 mr-2" />
+                            <XCircle className="h-4 w-4 mr-2" />
                             Reject
                           </Button>
                         </div>
