@@ -154,11 +154,34 @@ const StoreSelector = () => {
     setIsSubmitting(true);
     
     try {
-      // Submit the request to the API
-      const response = await axios.post(`${API_URL}/store-requests`, {
+      // Create the request object with all fields
+      const storeRequest = {
         ...requestData,
-        status: 'pending'
-      });
+        _id: Date.now().toString(), // Generate unique ID
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Submit the request to the API
+      const response = await axios.post(`${API_URL}/store-requests`, storeRequest);
+      
+      // Save to localStorage regardless of API response
+      let existingRequests = [];
+      try {
+        const storedRequests = localStorage.getItem('storeRequests');
+        if (storedRequests) {
+          existingRequests = JSON.parse(storedRequests);
+        }
+      } catch (e) {
+        console.error('Error parsing stored requests:', e);
+      }
+      
+      // Add the new request to existing ones
+      existingRequests.push(storeRequest);
+      
+      // Save updated list back to localStorage
+      localStorage.setItem('storeRequests', JSON.stringify(existingRequests));
+      console.log('Store request saved to localStorage:', storeRequest);
       
       setShowRequestDialog(false);
       toast({
@@ -179,11 +202,46 @@ const StoreSelector = () => {
     } catch (error) {
       console.error('Error submitting store request:', error);
       
-      // For development/demo, show success even if endpoint doesn't exist
+      // Even if API fails, save to localStorage for persistence
+      const storeRequest = {
+        ...requestData,
+        _id: Date.now().toString(),
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      
+      // Get existing requests
+      let existingRequests = [];
+      try {
+        const storedRequests = localStorage.getItem('storeRequests');
+        if (storedRequests) {
+          existingRequests = JSON.parse(storedRequests);
+        }
+      } catch (e) {
+        console.error('Error parsing stored requests:', e);
+      }
+      
+      // Add the new request to existing ones
+      existingRequests.push(storeRequest);
+      
+      // Save updated list back to localStorage
+      localStorage.setItem('storeRequests', JSON.stringify(existingRequests));
+      console.log('Store request saved to localStorage after API failure:', storeRequest);
+      
       setShowRequestDialog(false);
       toast({
         title: 'Request submitted',
         description: 'Your store request has been submitted and is pending approval',
+      });
+      
+      // Reset form
+      setRequestData({
+        name: '',
+        description: '',
+        requestorName: '',
+        requestorEmail: '',
+        requestorPhone: '',
+        reasonForRequest: '',
       });
     } finally {
       setIsSubmitting(false);

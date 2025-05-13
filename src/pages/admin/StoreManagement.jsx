@@ -133,40 +133,62 @@ const StoreManagement = () => {
   const fetchStoreRequests = async () => {
     setRequestsLoading(true);
     try {
-      // This endpoint might need to be implemented in your backend
+      // Try to fetch from API first
       const { data } = await axios.get(`${API_URL}/store-requests`);
       setStoreRequests(data);
       setFilteredRequests(data);
+      
+      // Also store in localStorage for persistence
+      localStorage.setItem('storeRequests', JSON.stringify(data));
+      
       setRequestsLoading(false);
     } catch (error) {
       console.error('Error fetching store requests:', error);
-      // Mock data for development if the endpoint doesn't exist
-      const mockRequests = [
-        {
-          _id: '1',
-          name: 'New Retail Store',
-          description: 'A new retail store in the downtown area',
-          requestorName: 'John Smith',
-          requestorEmail: 'john@example.com',
-          requestorPhone: '+1 555-1234',
-          reasonForRequest: 'Expanding business to new location',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 86400000).toISOString(),
-        },
-        {
-          _id: '2',
-          name: 'Warehouse Store',
-          description: 'A large warehouse for bulk pesticide sales',
-          requestorName: 'Sarah Johnson',
-          requestorEmail: 'sarah@example.com',
-          requestorPhone: '+1 555-5678',
-          reasonForRequest: 'Need a dedicated warehouse for industrial clients',
-          status: 'pending',
-          createdAt: new Date(Date.now() - 172800000).toISOString(),
+      
+      // Try to get from localStorage first
+      const storedRequests = localStorage.getItem('storeRequests');
+      let requests = [];
+      
+      if (storedRequests) {
+        try {
+          requests = JSON.parse(storedRequests);
+          console.log('Retrieved store requests from localStorage:', requests);
+        } catch (e) {
+          console.error('Error parsing stored requests:', e);
         }
-      ];
-      setStoreRequests(mockRequests);
-      setFilteredRequests(mockRequests);
+      }
+      
+      // If no stored requests or parsing failed, use mock data
+      if (!requests || !requests.length) {
+        console.log('Using mock store requests data');
+        requests = [
+          {
+            _id: '1',
+            name: 'New Retail Store',
+            description: 'A new retail store in the downtown area',
+            requestorName: 'John Smith',
+            requestorEmail: 'john@example.com',
+            requestorPhone: '+1 555-1234',
+            reasonForRequest: 'Expanding business to new location',
+            status: 'pending',
+            createdAt: new Date(Date.now() - 86400000).toISOString(),
+          },
+          {
+            _id: '2',
+            name: 'Warehouse Store',
+            description: 'A large warehouse for bulk pesticide sales',
+            requestorName: 'Sarah Johnson',
+            requestorEmail: 'sarah@example.com',
+            requestorPhone: '+1 555-5678',
+            reasonForRequest: 'Need a dedicated warehouse for industrial clients',
+            status: 'pending',
+            createdAt: new Date(Date.now() - 172800000).toISOString(),
+          }
+        ];
+      }
+      
+      setStoreRequests(requests);
+      setFilteredRequests(requests);
       setRequestsLoading(false);
     }
   };
@@ -339,6 +361,8 @@ const StoreManagement = () => {
         status: 'active'
       };
       
+      console.log('Creating new store from request:', storeData);
+      
       // Call API to create the store
       const storeResponse = await axios.post(`${API_URL}/stores`, storeData);
       
@@ -351,6 +375,11 @@ const StoreManagement = () => {
       setStores([...stores, storeResponse.data]);
       setStoreRequests(storeRequests.map(req => 
         req._id === requestId ? { ...req, status: 'approved' } : req
+      ));
+      
+      // Update localStorage
+      localStorage.setItem('storeRequests', JSON.stringify(
+        storeRequests.map(req => req._id === requestId ? { ...req, status: 'approved' } : req)
       ));
       
       toast({
@@ -377,9 +406,13 @@ const StoreManagement = () => {
         
         // Update states
         setStores([...stores, mockStore]);
-        setStoreRequests(storeRequests.map(req => 
+        const updatedRequests = storeRequests.map(req => 
           req._id === requestId ? { ...req, status: 'approved' } : req
-        ));
+        );
+        setStoreRequests(updatedRequests);
+        
+        // Update localStorage for persistence
+        localStorage.setItem('storeRequests', JSON.stringify(updatedRequests));
         
         toast({
           title: 'Success',
@@ -406,9 +439,13 @@ const StoreManagement = () => {
       });
       
       // Update local state
-      setStoreRequests(storeRequests.map(req => 
+      const updatedRequests = storeRequests.map(req => 
         req._id === requestId ? { ...req, status: 'rejected' } : req
-      ));
+      );
+      setStoreRequests(updatedRequests);
+      
+      // Update localStorage
+      localStorage.setItem('storeRequests', JSON.stringify(updatedRequests));
       
       toast({
         title: 'Success',
@@ -418,9 +455,13 @@ const StoreManagement = () => {
       console.error('Error rejecting store request:', error);
       
       // For development/demo, simulate success
-      setStoreRequests(storeRequests.map(req => 
+      const updatedRequests = storeRequests.map(req => 
         req._id === requestId ? { ...req, status: 'rejected' } : req
-      ));
+      );
+      setStoreRequests(updatedRequests);
+      
+      // Update localStorage
+      localStorage.setItem('storeRequests', JSON.stringify(updatedRequests));
       
       toast({
         title: 'Success',
@@ -648,12 +689,6 @@ const StoreManagement = () => {
           </p>
         </div>
         <div className="mt-4 md:mt-0 flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={handleCreateStoreRequest}
-          >
-            <Clock className="mr-2 h-4 w-4" /> Request Store
-          </Button>
           <Button onClick={handleCreateStore}>
             <Plus className="mr-2 h-4 w-4" /> New Store
           </Button>
