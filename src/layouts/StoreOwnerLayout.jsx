@@ -361,7 +361,10 @@ const StoreOwnerLayout = () => {
               <div className="ml-4 flex items-center">
                 <Store className="h-5 w-5 text-emerald-400 mr-2 hidden md:inline" />
                 <span className="text-lg font-bold text-white hidden md:inline">Store Owner</span>
-                <span className="text-xs font-medium text-slate-200 md:hidden">Store Owner Dashboard</span>
+                <div className="flex items-center md:hidden">
+                  <Store className="h-5 w-5 text-emerald-400 mr-2" />
+                  <span className="text-xs font-medium text-slate-200">Store Owner Dashboard</span>
+                </div>
               </div>
             </div>
             
