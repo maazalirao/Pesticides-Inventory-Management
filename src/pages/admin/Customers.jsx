@@ -66,9 +66,9 @@ const Customers = () => {
   useEffect(() => {
     let isMounted = true;
 
-    const fetchCustomers = async () => {
-      try {
-        setLoading(true);
+  const fetchCustomers = async () => {
+    try {
+      setLoading(true);
         
         // Check if we're in admin path
         const isAdminPath = window.location.pathname.includes('/admin');
@@ -100,7 +100,7 @@ const Customers = () => {
         }
         
         if (isMounted) {
-          setCustomers(data);
+      setCustomers(data);
           
           // Extract unique stores from customers if not already set
           if (storesList.length === 0 && data.length > 0) {
@@ -115,16 +115,16 @@ const Customers = () => {
             setStores(storesList);
           }
           
-          setError('');
+      setError('');
         }
-      } catch (err) {
+    } catch (err) {
         if (isMounted) {
           setError('Failed to fetch customers');
           console.error(err);
         }
-      } finally {
+    } finally {
         if (isMounted) {
-          setLoading(false);
+      setLoading(false);
         }
       }
     };
@@ -154,12 +154,12 @@ const Customers = () => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
       deleteCustomer(id)
         .then(() => {
-          setCustomers(customers.filter(customer => customer._id !== id));
+        setCustomers(customers.filter(customer => customer._id !== id));
         })
         .catch(error => {
           console.error('Error deleting customer:', error);
-          setError('Failed to delete customer');
-        });
+        setError('Failed to delete customer');
+      });
     }
   };
 
@@ -201,9 +201,9 @@ const Customers = () => {
               <Button onClick={() => {
                 setIsEditMode(false);
                 setCurrentCustomer({
-                  name: '',
-                  email: '',
-                  phone: '',
+        name: '',
+        email: '',
+        phone: '',
                   location: '',
                   storeId: ''
                 });
@@ -224,8 +224,8 @@ const Customers = () => {
               const percentage = customers.length > 0 
                 ? Math.round((storeCustomers.length / customers.length) * 100) 
                 : 0;
-              
-              return (
+
+  return (
                 <Card key={store._id} className={`hover:shadow-md transition-shadow border-l-4 border-l-${getStoreColor(store)}-400`}>
                   <CardContent className="pt-6">
                     <div className="flex items-center justify-between">
@@ -271,7 +271,7 @@ const Customers = () => {
                     </div>
                     
                     <div className="flex justify-between mb-4">
-                      <div>
+        <div>
                         <h3 className="font-semibold text-lg flex items-center">
                           <User className="mr-2 h-5 w-5 text-gray-500" />
                           {customer.name}
@@ -310,8 +310,8 @@ const Customers = () => {
                       <p className="flex items-center text-sm">
                         <MapPin className="mr-2 h-4 w-4 text-gray-500" />
                         {customer.location || 'No Location'}
-                      </p>
-                    </div>
+          </p>
+        </div>
                   </CardContent>
                 </Card>
               ))}
@@ -321,18 +321,18 @@ const Customers = () => {
       </Card>
 
       {/* Add/Edit Customer Dialog */}
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-          <DialogHeader className="border-b border-gray-700 pb-4">
-            <DialogTitle className="text-xl font-bold text-primary">
-              {isEditMode ? 'Edit Customer' : 'Add New Customer'}
-            </DialogTitle>
-            <DialogDescription className="text-gray-300 text-sm mt-1">
+            <DialogHeader className="border-b border-gray-700 pb-4">
+              <DialogTitle className="text-xl font-bold text-primary">
+                {isEditMode ? 'Edit Customer' : 'Add New Customer'}
+              </DialogTitle>
+              <DialogDescription className="text-gray-300 text-sm mt-1">
               {isEditMode 
                 ? 'Update the details of this customer.' 
                 : 'Fill in the details below to add a new customer.'}
-            </DialogDescription>
-          </DialogHeader>
+              </DialogDescription>
+            </DialogHeader>
           <form onSubmit={(e) => {
             e.preventDefault();
             // Handle submission
@@ -360,21 +360,21 @@ const Customers = () => {
                 });
             }
           }} className="space-y-5 py-4 sm:py-5">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
-              <div className="space-y-1 sm:space-y-2">
-                <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
-                  Customer Name <span className="text-red-400 ml-1">*</span>
-                </label>
-                <input
-                  id="name"
-                  name="name"
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5">
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="name" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Customer Name <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <input
+                    id="name"
+                    name="name"
                   value={currentCustomer.name || ''}
                   onChange={(e) => setCurrentCustomer({...currentCustomer, name: e.target.value})}
-                  className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
-                />
-              </div>
-              <div className="space-y-1 sm:space-y-2">
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  />
+                </div>
+                <div className="space-y-1 sm:space-y-2">
                 <label htmlFor="storeId" className="text-sm font-semibold text-gray-200 flex items-center">
                   Store <span className="text-red-400 ml-1">*</span>
                 </label>
@@ -395,59 +395,59 @@ const Customers = () => {
               <div className="space-y-1 sm:space-y-2">
                 <label htmlFor="email" className="text-sm font-semibold text-gray-200">
                   Email
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
+                  </label>
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
                   value={currentCustomer.email || ''}
                   onChange={(e) => setCurrentCustomer({...currentCustomer, email: e.target.value})}
-                  className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
-              <div className="space-y-1 sm:space-y-2">
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div className="space-y-1 sm:space-y-2">
                 <label htmlFor="phone" className="text-sm font-semibold text-gray-200">
                   Phone
-                </label>
-                <input
-                  id="phone"
-                  name="phone"
+                  </label>
+                  <input
+                    id="phone"
+                    name="phone"
                   value={currentCustomer.phone || ''}
                   onChange={(e) => setCurrentCustomer({...currentCustomer, phone: e.target.value})}
-                  className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                />
-              </div>
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
               <div className="col-span-2 space-y-1 sm:space-y-2">
                 <label htmlFor="location" className="text-sm font-semibold text-gray-200">
                   Location
-                </label>
-                <input
+                  </label>
+                  <input
                   id="location"
                   name="location"
                   value={currentCustomer.location || ''}
                   onChange={(e) => setCurrentCustomer({...currentCustomer, location: e.target.value})}
-                  className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
-                />
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
               </div>
-            </div>
-            <div className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
-              <p className="text-xs text-gray-400 mb-3 sm:mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit"
+              </div>
+              <div className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
+                <p className="text-xs text-gray-400 mb-3 sm:mb-4">Fields marked with <span className="text-red-400">*</span> are required</p>
+                <DialogFooter>
+                  <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)} className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white w-full sm:w-auto">
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
                   disabled={!currentCustomer.name || !currentCustomer.storeId}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium w-full sm:w-auto"
-                >
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium w-full sm:w-auto"
+                  >
                   {isEditMode ? 'Update Customer' : 'Add Customer'}
-                </Button>
-              </DialogFooter>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+                  </Button>
+                </DialogFooter>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
     </div>
   );
 };

@@ -54,22 +54,10 @@ const Landing = () => {
             
             <div className="hidden sm:flex items-center gap-4">
               <Link
-                to="/select-role"
-                className="text-white bg-gray-600 hover:bg-gray-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors"
+                to="/role-selection"
+                className="text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors shadow-lg hover:shadow-orange-500/30"
               >
                 Choose Role
-              </Link>
-              <Link
-                to="/admin"
-                className="text-white bg-orange-600 hover:bg-orange-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors"
-              >
-                Admin Portal
-              </Link>
-              <Link
-                to="/select-store"
-                className="text-white bg-emerald-600 hover:bg-emerald-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors"
-              >
-                Store Owner Portal
               </Link>
             </div>
           </div>
@@ -97,14 +85,9 @@ const Landing = () => {
                 <ChevronRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
               </Link>
               
-              <Link to="/admin" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
+              <Link to="/role-selection" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
                 <Settings className="mr-2 h-5 w-5" />
-                Admin Dashboard
-              </Link>
-              
-              <Link to="/select-store" className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-emerald-500/30 flex items-center justify-center">
-                <Building2 className="mr-2 h-5 w-5" />
-                Store Owner
+                Enter System
               </Link>
             </div>
             
@@ -150,7 +133,7 @@ const Landing = () => {
                     <h3 className="font-semibold text-lg mb-2 mt-4">Customer Store</h3>
                     <p className="text-sm text-slate-300">Browse products and place orders online</p>
                   </div>
-                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/admin')}>
+                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/role-selection')}>
                     <div className="relative">
                       <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl group-hover:blur-lg transition-all"></div>
                       <BarChart2 className="h-10 w-10 text-orange-500 relative z-10 group-hover:text-orange-400 transition-colors" />
@@ -158,7 +141,7 @@ const Landing = () => {
                     <h3 className="font-semibold text-lg mb-2 mt-4">Admin Dashboard</h3>
                     <p className="text-sm text-slate-300">Manage inventory, products, and orders</p>
                   </div>
-                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/select-store')}>
+                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/role-selection')}>
                     <div className="relative">
                       <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl group-hover:blur-lg transition-all"></div>
                       <Building2 className="h-10 w-10 text-emerald-500 relative z-10 group-hover:text-emerald-400 transition-colors" />
@@ -185,35 +168,24 @@ const Landing = () => {
       <section className="container mx-auto px-4 py-16 bg-slate-900/50 rounded-3xl my-20">
         <div className="text-center mb-16">
           <span className="px-4 py-1 bg-orange-500/20 text-orange-300 rounded-full font-medium text-sm border border-orange-500/30">
-            Choose Your Role
+            Get Started
           </span>
           <h2 className="text-3xl font-bold mt-4">Access the System</h2>
           <div className="w-24 h-1 bg-gradient-to-r from-orange-500 to-orange-300 mx-auto mt-6 rounded-full"></div>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
-          <div className="bg-white/5 rounded-xl p-8 backdrop-blur-sm border border-orange-500/20 hover:bg-white/10 transition hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 group cursor-pointer" onClick={() => navigate('/admin')}>
-            <div className="h-16 w-16 bg-orange-500/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-orange-500/30 transition-colors">
-              <Settings className="h-8 w-8 text-orange-500" />
+        <div className="max-w-lg mx-auto">
+          <div className="bg-white/5 rounded-xl p-8 backdrop-blur-sm border border-orange-500/20 hover:bg-white/10 transition hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 group cursor-pointer" onClick={() => navigate('/role-selection')}>
+            <div className="flex items-center justify-center">
+              <div className="h-16 w-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Settings className="h-8 w-8 text-white" />
+              </div>
             </div>
-            <h3 className="text-2xl font-semibold mb-3">Admin Portal</h3>
-            <p className="text-slate-300 mb-6">Access the administrative dashboard to manage inventory, products, stores, and system settings.</p>
-            <div className="flex justify-end">
-              <Link to="/admin" className="group inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors">
-                Access Dashboard <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-          </div>
-          
-          <div className="bg-white/5 rounded-xl p-8 backdrop-blur-sm border border-emerald-500/20 hover:bg-white/10 transition hover:shadow-lg hover:shadow-emerald-500/5 hover:scale-105 group cursor-pointer" onClick={() => navigate('/select-store')}>
-            <div className="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center mb-6 group-hover:bg-emerald-500/30 transition-colors">
-              <Building2 className="h-8 w-8 text-emerald-500" />
-            </div>
-            <h3 className="text-2xl font-semibold mb-3">Store Owner Portal</h3>
-            <p className="text-slate-300 mb-6">Select and manage your store, handle inventory, process orders, and view sales analytics.</p>
-            <div className="flex justify-end">
-              <Link to="/select-store" className="group inline-flex items-center text-emerald-400 hover:text-emerald-300 transition-colors">
-                Select Store <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
+            <h3 className="text-2xl font-semibold text-center mb-3">Choose Your Role</h3>
+            <p className="text-slate-300 text-center mb-6">Access the system as an Administrator or Store Owner based on your responsibilities.</p>
+            <div className="flex justify-center">
+              <Link to="/role-selection" className="group inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors">
+                Go to Role Selection <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </div>
@@ -301,14 +273,9 @@ const Landing = () => {
                 Explore Store
               </a>
               
-              <Link to="/admin" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
+              <Link to="/role-selection" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
                 <Settings className="mr-2 h-5 w-5" />
-                Access Admin Dashboard
-              </Link>
-              
-              <Link to="/select-store" className="px-8 py-4 bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
-                <Building2 className="mr-2 h-5 w-5" />
-                Access Store Owner Portal
+                Enter System
               </Link>
             </div>
           </div>

@@ -20,6 +20,7 @@ import StoreOwnerCustomers from './pages/storeowner/Customers';
 import StoreOwnerSuppliers from './pages/storeowner/Suppliers';
 import StoreProfile from './pages/storeowner/StoreProfile';
 import Landing from './pages/Landing';
+import RoleSelection from './pages/RoleSelection.jsx';
 import NavigationHandler from './components/NavigationHandler';
 import RoleSelector from './components/RoleSelector';
 import StoreSelector from './components/StoreSelector';
@@ -46,7 +47,10 @@ function App() {
         {/* Landing page - main entry point */}
         <Route path="/" element={<Landing />} />
         
-        {/* Role selection after login */}
+        {/* New unified role selection page */}
+        <Route path="/role-selection" element={<RoleSelection />} />
+        
+        {/* Legacy role selection after login */}
         <Route path="/select-role" element={<RoleSelector />} />
         
         {/* Store selection for store owners */}

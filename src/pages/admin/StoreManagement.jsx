@@ -1021,10 +1021,10 @@ const StoreManagement = () => {
       
       {/* Create Store Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Create New Store</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <DialogHeader className="border-b border-gray-700 pb-4">
+            <DialogTitle className="text-xl font-bold text-primary">Create New Store</DialogTitle>
+            <DialogDescription className="text-gray-300 text-sm mt-1">
               Add a new store to your organization. Fill in the details below.
             </DialogDescription>
           </DialogHeader>
@@ -1038,32 +1038,32 @@ const StoreManagement = () => {
             <TabsContent value="details" className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="col-span-2">
-                  <Label htmlFor="name">Store Name *</Label>
+                  <Label htmlFor="name" className="text-sm font-semibold text-gray-200">Store Name *</Label>
                   <Input
                     id="name"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
                     placeholder="Enter store name"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                     required
                   />
                 </div>
                 
                 <div className="col-span-2">
-                  <Label htmlFor="description">Description</Label>
+                  <Label htmlFor="description" className="text-sm font-semibold text-gray-200">Description</Label>
                   <Textarea
                     id="description"
                     name="description"
                     value={formData.description}
                     onChange={handleInputChange}
                     placeholder="Brief description of the store"
-                    className="mt-1 h-20"
+                    className="mt-1 h-20 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email" className="text-sm font-semibold text-gray-200">Email</Label>
                   <Input
                     id="email"
                     name="email"
@@ -1071,90 +1071,90 @@ const StoreManagement = () => {
                     value={formData.email}
                     onChange={handleInputChange}
                     placeholder="contact@example.com"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="phone">Phone</Label>
+                  <Label htmlFor="phone" className="text-sm font-semibold text-gray-200">Phone</Label>
                   <Input
                     id="phone"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
                     placeholder="+1 (555) 123-4567"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div className="col-span-2">
-                  <Label htmlFor="address.street">Street Address</Label>
+                  <Label htmlFor="address.street" className="text-sm font-semibold text-gray-200">Street Address</Label>
                   <Input
                     id="address.street"
                     name="address.street"
                     value={formData.address.street}
                     onChange={handleInputChange}
                     placeholder="123 Main St"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="address.city">City</Label>
+                  <Label htmlFor="address.city" className="text-sm font-semibold text-gray-200">City</Label>
                   <Input
                     id="address.city"
                     name="address.city"
                     value={formData.address.city}
                     onChange={handleInputChange}
                     placeholder="New York"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="address.state">State/Province</Label>
+                  <Label htmlFor="address.state" className="text-sm font-semibold text-gray-200">State/Province</Label>
                   <Input
                     id="address.state"
                     name="address.state"
                     value={formData.address.state}
                     onChange={handleInputChange}
                     placeholder="NY"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="address.postalCode">Postal Code</Label>
+                  <Label htmlFor="address.postalCode" className="text-sm font-semibold text-gray-200">Postal Code</Label>
                   <Input
                     id="address.postalCode"
                     name="address.postalCode"
                     value={formData.address.postalCode}
                     onChange={handleInputChange}
                     placeholder="10001"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="address.country">Country</Label>
+                  <Label htmlFor="address.country" className="text-sm font-semibold text-gray-200">Country</Label>
                   <Input
                     id="address.country"
                     name="address.country"
                     value={formData.address.country}
                     onChange={handleInputChange}
                     placeholder="USA"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div className="col-span-2">
-                  <Label htmlFor="status">Status</Label>
+                  <Label htmlFor="status" className="text-sm font-semibold text-gray-200">Status</Label>
                   <select
                     id="status"
                     name="status"
                     value={formData.status}
                     onChange={handleInputChange}
-                    className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                    className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 text-white shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                   >
                     <option value="active">Active</option>
                     <option value="inactive">Inactive</option>
@@ -1166,19 +1166,19 @@ const StoreManagement = () => {
             <TabsContent value="owner" className="space-y-4">
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="ownerName">Owner Name</Label>
+                  <Label htmlFor="ownerName" className="text-sm font-semibold text-gray-200">Owner Name</Label>
                   <Input
                     id="ownerName"
                     name="ownerName"
                     value={formData.ownerName}
                     onChange={handleInputChange}
                     placeholder="John Doe"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="ownerEmail">Owner Email</Label>
+                  <Label htmlFor="ownerEmail" className="text-sm font-semibold text-gray-200">Owner Email</Label>
                   <Input
                     id="ownerEmail"
                     name="ownerEmail"
@@ -1186,12 +1186,12 @@ const StoreManagement = () => {
                     value={formData.ownerEmail}
                     onChange={handleInputChange}
                     placeholder="owner@example.com"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="ownerPassword">Password</Label>
+                  <Label htmlFor="ownerPassword" className="text-sm font-semibold text-gray-200">Password</Label>
                   <Input
                     id="ownerPassword"
                     name="ownerPassword"
@@ -1199,9 +1199,9 @@ const StoreManagement = () => {
                     value={formData.ownerPassword}
                     onChange={handleInputChange}
                     placeholder="••••••••"
-                    className="mt-1"
+                    className="mt-1 bg-gray-800 border-gray-700 text-white"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-400 mt-1">
                     Leave blank to skip creating an owner account. You can add an owner later.
                   </p>
                 </div>
@@ -1209,16 +1209,18 @@ const StoreManagement = () => {
             </TabsContent>
           </Tabs>
           
-          <DialogFooter>
+          <DialogFooter className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
             <Button 
               variant="outline" 
               onClick={() => setShowCreateDialog(false)}
+              className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
             >
               Cancel
             </Button>
             <Button 
               onClick={submitCreateStore}
               disabled={!formData.name || loading}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
             >
               {loading ? 'Creating...' : 'Create Store'}
             </Button>
@@ -1228,42 +1230,42 @@ const StoreManagement = () => {
       
       {/* Edit Store Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Edit Store</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <DialogHeader className="border-b border-gray-700 pb-4">
+            <DialogTitle className="text-xl font-bold text-primary">Edit Store</DialogTitle>
+            <DialogDescription className="text-gray-300 text-sm mt-1">
               Update the details for this store.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 py-4">
             <div className="col-span-2">
-              <Label htmlFor="edit-name">Store Name *</Label>
+              <Label htmlFor="edit-name" className="text-sm font-semibold text-gray-200">Store Name *</Label>
               <Input
                 id="edit-name"
                 name="name"
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="Enter store name"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
                 required
               />
             </div>
             
             <div className="col-span-2">
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description" className="text-sm font-semibold text-gray-200">Description</Label>
               <Textarea
                 id="edit-description"
                 name="description"
                 value={formData.description}
                 onChange={handleInputChange}
                 placeholder="Brief description of the store"
-                className="mt-1 h-20"
+                className="mt-1 h-20 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="edit-email">Email</Label>
+              <Label htmlFor="edit-email" className="text-sm font-semibold text-gray-200">Email</Label>
               <Input
                 id="edit-email"
                 name="email"
@@ -1271,90 +1273,90 @@ const StoreManagement = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="contact@example.com"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="edit-phone">Phone</Label>
+              <Label htmlFor="edit-phone" className="text-sm font-semibold text-gray-200">Phone</Label>
               <Input
                 id="edit-phone"
                 name="phone"
                 value={formData.phone}
                 onChange={handleInputChange}
                 placeholder="+1 (555) 123-4567"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div className="col-span-2">
-              <Label htmlFor="edit-address.street">Street Address</Label>
+              <Label htmlFor="edit-address.street" className="text-sm font-semibold text-gray-200">Street Address</Label>
               <Input
                 id="edit-address.street"
                 name="address.street"
                 value={formData.address.street}
                 onChange={handleInputChange}
                 placeholder="123 Main St"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="edit-address.city">City</Label>
+              <Label htmlFor="edit-address.city" className="text-sm font-semibold text-gray-200">City</Label>
               <Input
                 id="edit-address.city"
                 name="address.city"
                 value={formData.address.city}
                 onChange={handleInputChange}
                 placeholder="New York"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="edit-address.state">State/Province</Label>
+              <Label htmlFor="edit-address.state" className="text-sm font-semibold text-gray-200">State/Province</Label>
               <Input
                 id="edit-address.state"
                 name="address.state"
                 value={formData.address.state}
                 onChange={handleInputChange}
                 placeholder="NY"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="edit-address.postalCode">Postal Code</Label>
+              <Label htmlFor="edit-address.postalCode" className="text-sm font-semibold text-gray-200">Postal Code</Label>
               <Input
                 id="edit-address.postalCode"
                 name="address.postalCode"
                 value={formData.address.postalCode}
                 onChange={handleInputChange}
                 placeholder="10001"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="edit-address.country">Country</Label>
+              <Label htmlFor="edit-address.country" className="text-sm font-semibold text-gray-200">Country</Label>
               <Input
                 id="edit-address.country"
                 name="address.country"
                 value={formData.address.country}
                 onChange={handleInputChange}
                 placeholder="USA"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div className="col-span-2">
-              <Label htmlFor="edit-status">Status</Label>
+              <Label htmlFor="edit-status" className="text-sm font-semibold text-gray-200">Status</Label>
               <select
                 id="edit-status"
                 name="status"
                 value={formData.status}
                 onChange={handleInputChange}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                className="mt-1 block w-full rounded-md bg-gray-800 border-gray-700 text-white shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -1362,16 +1364,18 @@ const StoreManagement = () => {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="pt-2 sm:pt-3 border-t border-gray-700 mt-3 sm:mt-4">
             <Button 
               variant="outline" 
               onClick={() => setShowEditDialog(false)}
+              className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
             >
               Cancel
             </Button>
             <Button 
               onClick={submitEditStore}
               disabled={!formData.name || loading}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
             >
               {loading ? 'Saving...' : 'Save Changes'}
             </Button>
@@ -1381,25 +1385,26 @@ const StoreManagement = () => {
       
       {/* Delete Store Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Delete Store</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[500px] bg-gray-900 text-white border-2 border-primary/20 shadow-lg">
+          <DialogHeader className="border-b border-gray-700 pb-4">
+            <DialogTitle className="text-xl font-bold text-primary">Delete Store</DialogTitle>
+            <DialogDescription className="text-gray-300 text-sm mt-1">
               Are you sure you want to delete this store? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           
           {selectedStore && (
-            <div className="p-4 border rounded-md bg-gray-50">
-              <h4 className="font-semibold">{selectedStore.name}</h4>
-              {selectedStore.email && <p className="text-sm text-gray-500 mt-1">{selectedStore.email}</p>}
+            <div className="p-4 border border-gray-700 rounded-md bg-gray-800 my-4">
+              <h4 className="font-semibold text-white">{selectedStore.name}</h4>
+              {selectedStore.email && <p className="text-sm text-gray-300 mt-1">{selectedStore.email}</p>}
             </div>
           )}
           
-          <DialogFooter>
+          <DialogFooter className="pt-2 sm:pt-3 border-t border-gray-700 mt-3">
             <Button 
               variant="outline" 
               onClick={() => setShowDeleteDialog(false)}
+              className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
             >
               Cancel
             </Button>
@@ -1407,6 +1412,7 @@ const StoreManagement = () => {
               variant="destructive"
               onClick={submitDeleteStore}
               disabled={loading}
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               {loading ? 'Deleting...' : 'Delete Store'}
             </Button>
@@ -1416,29 +1422,29 @@ const StoreManagement = () => {
       
       {/* Manage Owner Dialog */}
       <Dialog open={showOwnerDialog} onOpenChange={setShowOwnerDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Assign Store Owner</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="sm:max-w-[500px] bg-gray-900 text-white border-2 border-primary/20 shadow-lg">
+          <DialogHeader className="border-b border-gray-700 pb-4">
+            <DialogTitle className="text-xl font-bold text-primary">Assign Store Owner</DialogTitle>
+            <DialogDescription className="text-gray-300 text-sm mt-1">
               Create and assign a store owner to manage this location.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="modal-ownerName">Name</Label>
+              <Label htmlFor="modal-ownerName" className="text-sm font-semibold text-gray-200">Name</Label>
               <Input
                 id="modal-ownerName"
                 name="ownerName"
                 value={formData.ownerName}
                 onChange={handleInputChange}
                 placeholder="John Doe"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="modal-ownerEmail">Email</Label>
+              <Label htmlFor="modal-ownerEmail" className="text-sm font-semibold text-gray-200">Email</Label>
               <Input
                 id="modal-ownerEmail"
                 name="ownerEmail"
@@ -1446,12 +1452,12 @@ const StoreManagement = () => {
                 value={formData.ownerEmail}
                 onChange={handleInputChange}
                 placeholder="owner@example.com"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
             
             <div>
-              <Label htmlFor="modal-ownerPassword">Password</Label>
+              <Label htmlFor="modal-ownerPassword" className="text-sm font-semibold text-gray-200">Password</Label>
               <Input
                 id="modal-ownerPassword"
                 name="ownerPassword"
@@ -1459,21 +1465,23 @@ const StoreManagement = () => {
                 value={formData.ownerPassword}
                 onChange={handleInputChange}
                 placeholder="••••••••"
-                className="mt-1"
+                className="mt-1 bg-gray-800 border-gray-700 text-white"
               />
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="pt-2 sm:pt-3 border-t border-gray-700 mt-3">
             <Button 
               variant="outline" 
               onClick={() => setShowOwnerDialog(false)}
+              className="bg-transparent border-gray-600 text-gray-200 hover:bg-gray-800 hover:text-white"
             >
               Cancel
             </Button>
             <Button 
               onClick={submitUpdateOwner}
               disabled={!formData.ownerName || !formData.ownerEmail || !formData.ownerPassword || loading}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
             >
               {loading ? 'Assigning...' : 'Assign Owner'}
             </Button>

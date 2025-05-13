@@ -477,21 +477,21 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-            <div>
+                  <div>
                 <CardTitle>Global Inventory Overview</CardTitle>
                 <CardDescription>Comprehensive inventory data across all stores</CardDescription>
-            </div>
+                  </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/inventory'}>
                 View Full Inventory
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-            </div>
+                  </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-              </div>
+                </div>
             ) : allInventory.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <div className="mb-2">
@@ -515,10 +515,10 @@ const Dashboard = () => {
                         <div>
                           <p className="text-sm font-medium text-green-700">Total Items</p>
                           <p className="text-2xl font-bold">{allInventory.length}</p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
                   
                   <Card className="bg-amber-50">
                     <CardContent className="p-4">
@@ -526,14 +526,14 @@ const Dashboard = () => {
                         <div className="mr-4 bg-amber-100 p-2 rounded-full">
                           <AlertTriangle className="h-6 w-6 text-amber-600" />
                         </div>
-                        <div>
+            <div>
                           <p className="text-sm font-medium text-amber-700">Low Stock Items</p>
                           <p className="text-2xl font-bold">
                             {allInventory.filter(item => 
                               item.quantity < (item.threshold || 10) && item.quantity > 0
                             ).length}
                           </p>
-                        </div>
+            </div>
             </div>
           </CardContent>
         </Card>
@@ -552,9 +552,9 @@ const Dashboard = () => {
                             ).length}
                           </p>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+            </div>
+          </CardContent>
+        </Card>
                 </div>
                 
                 <h3 className="text-lg font-semibold mb-3">Inventory by Category</h3>
@@ -601,7 +601,7 @@ const Dashboard = () => {
                                     {storeName} ({count})
                                   </Badge>
                                 ))}
-                              </div>
+            </div>
                             </td>
                             <td className="py-2 px-4 text-right">{categoryItems.length}</td>
                             <td className="py-2 px-4 text-right">₨ {totalValue.toLocaleString()}</td>
@@ -699,14 +699,14 @@ const Dashboard = () => {
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-              </div>
+            </div>
             ) : allStores.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No store data available</p>
                 <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Refresh Data
-                </Button>
+            </Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -859,23 +859,23 @@ const Dashboard = () => {
 
       {/* Products by Store */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1">
-        <Card>
+      <Card>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <div>
+          <div>
                 <CardTitle>Products by Store</CardTitle>
                 <CardDescription>Distribution of products across all stores</CardDescription>
-              </div>
+          </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/products'}>
                 View All Products
-              </Button>
+          </Button>
             </div>
-          </CardHeader>
-          <CardContent>
+        </CardHeader>
+        <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-              </div>
+          </div>
             ) : allProducts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No product data available</p>
@@ -907,19 +907,19 @@ const Dashboard = () => {
                             <div className="flex items-center">
                               <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
                               <h3 className={`font-medium ${textColor}`}>{store.name}</h3>
-                            </div>
+                      </div>
                             <div className="text-2xl font-bold">{storeProducts.length}</div>
-                          </div>
+                    </div>
                           <div className="mt-2 text-xs text-muted-foreground">
                             {storeProducts.length > 0 
                               ? `${((storeProducts.length / allProducts.length) * 100).toFixed(1)}% of total products` 
                               : 'No products'}
-                          </div>
+                  </div>
                         </CardContent>
                       </Card>
                     );
                   })}
-                </div>
+              </div>
                 
                 <div className="overflow-x-auto rounded-lg border mt-4">
                   <table className="w-full text-sm">
@@ -967,7 +967,7 @@ const Dashboard = () => {
                       })}
                     </tbody>
                   </table>
-                </div>
+              </div>
               </>
             )}
           </CardContent>
@@ -984,20 +984,20 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <div>
+                    <div>
                 <CardTitle>Suppliers by Store</CardTitle>
                 <CardDescription>Distribution of suppliers across all stores</CardDescription>
-              </div>
+                      </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/suppliers'}>
                 View All Suppliers
               </Button>
-            </div>
+                    </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-              </div>
+                  </div>
             ) : allSuppliers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No supplier data available</p>
@@ -1029,7 +1029,7 @@ const Dashboard = () => {
                             <div className="flex items-center">
                               <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
                               <h3 className={`font-medium text-sm ${textColor}`}>{store.name}</h3>
-                            </div>
+              </div>
                             <div className="text-xl font-bold">{storeSuppliers.length}</div>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
@@ -1098,20 +1098,20 @@ const Dashboard = () => {
         <Card>
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
-              <div>
+                    <div>
                 <CardTitle>Customers by Store</CardTitle>
                 <CardDescription>Distribution of customers across all stores</CardDescription>
-              </div>
+                      </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/customers'}>
                 View All Customers
               </Button>
-            </div>
+                    </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-              </div>
+                  </div>
             ) : allCustomers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No customer data available</p>
@@ -1143,7 +1143,7 @@ const Dashboard = () => {
                             <div className="flex items-center">
                               <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
                               <h3 className={`font-medium text-sm ${textColor}`}>{store.name}</h3>
-                            </div>
+              </div>
                             <div className="text-xl font-bold">{storeCustomers.length}</div>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
