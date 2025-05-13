@@ -324,7 +324,7 @@ const Landing = () => {
               <h3 className="text-lg font-medium mb-4 text-white">Admin</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link to="/select-role" className="text-slate-400 hover:text-orange-400 transition-colors">Dashboard</Link>
+                  <Link to="/role-selection" className="text-slate-400 hover:text-orange-400 transition-colors">Dashboard</Link>
                 </li>
                 <li><Link to="/admin/inventory" className="text-slate-400 hover:text-orange-400 transition-colors">Inventory</Link></li>
                 <li><Link to="/admin/products" className="text-slate-400 hover:text-orange-400 transition-colors">Products</Link></li>

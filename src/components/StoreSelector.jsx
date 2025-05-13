@@ -379,61 +379,61 @@ const StoreSelector = () => {
 
   // Multiple stores, show the selector
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4 md:p-8 bg-gradient-to-br from-emerald-50 via-gray-50 to-blue-50">
+    <div className="flex flex-col items-center justify-center min-h-screen p-3 sm:p-4 md:p-8 bg-gradient-to-br from-emerald-50 via-gray-50 to-blue-50">
       <div className="w-full max-w-4xl">
-        <div className="mb-6 md:mb-8 text-center">
-          <div className="bg-gradient-to-r from-green-600 to-emerald-500 w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <Store className="h-8 w-8 md:h-10 md:w-10 text-white" />
+        <div className="mb-4 sm:mb-6 md:mb-8 text-center">
+          <div className="bg-gradient-to-r from-green-600 to-emerald-500 w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 shadow-lg">
+            <Store className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 text-white" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Store Selection</h1>
-          <p className="text-gray-600 max-w-md mx-auto text-sm md:text-base">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-1 sm:mb-2">Store Selection</h1>
+          <p className="text-gray-600 max-w-md mx-auto text-xs sm:text-sm md:text-base px-2">
             Choose a store to manage or request access to a new one
           </p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div className="md:col-span-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 md:gap-6">
+          <div className="lg:col-span-2">
             <Card className="shadow-xl border-0 overflow-hidden">
-              <div className="bg-gradient-to-r from-green-600 to-emerald-500 p-4 md:p-6">
-                <h2 className="text-lg md:text-xl font-bold text-white flex items-center">
-                  <Store className="mr-2 h-5 w-5" /> Your Stores
+              <div className="bg-gradient-to-r from-green-600 to-emerald-500 p-3 sm:p-4 md:p-6">
+                <h2 className="text-base sm:text-lg md:text-xl font-bold text-white flex items-center">
+                  <Store className="mr-2 h-4 w-4 sm:h-5 sm:w-5" /> Your Stores
                 </h2>
-                <p className="text-green-100 text-xs md:text-sm mt-1">
+                <p className="text-green-100 text-xs sm:text-xs md:text-sm mt-1">
                   Select a store to access its dashboard
                 </p>
               </div>
               
-              <CardContent className="p-4 md:p-6">
+              <CardContent className="p-3 sm:p-4 md:p-6">
                 {isLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <Loader className="h-8 w-8 text-green-600 animate-spin" />
-                    <span className="ml-2 text-gray-600">Loading your stores...</span>
+                  <div className="flex items-center justify-center py-8 sm:py-10">
+                    <Loader className="h-6 w-6 sm:h-8 sm:w-8 text-green-600 animate-spin" />
+                    <span className="ml-2 text-sm sm:text-base text-gray-600">Loading your stores...</span>
                   </div>
                 ) : error ? (
-                  <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start">
-                    <AlertCircle className="h-5 w-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3 sm:p-4 flex items-start">
+                    <AlertCircle className="h-5 w-5 text-red-500 mr-2 sm:mr-3 mt-0.5 flex-shrink-0" />
                     <div>
-                      <h3 className="font-medium text-red-800">Error Loading Stores</h3>
-                      <p className="text-sm text-red-700 mt-1">{error}</p>
+                      <h3 className="font-medium text-sm sm:text-base text-red-800">Error Loading Stores</h3>
+                      <p className="text-xs sm:text-sm text-red-700 mt-1">{error}</p>
                     </div>
                   </div>
                 ) : stores.length === 0 ? (
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-6 text-center">
-                    <Store className="h-12 w-12 text-amber-500 mx-auto mb-3" />
-                    <h3 className="text-lg font-medium text-amber-800">No Stores Available</h3>
-                    <p className="text-amber-700 mt-2 mb-4">
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 sm:p-6 text-center">
+                    <Store className="h-10 w-10 sm:h-12 sm:w-12 text-amber-500 mx-auto mb-2 sm:mb-3" />
+                    <h3 className="text-base sm:text-lg font-medium text-amber-800">No Stores Available</h3>
+                    <p className="text-xs sm:text-sm text-amber-700 mt-2 mb-3 sm:mb-4">
                       You don't have any stores assigned to your account yet.
                     </p>
                     <Button 
                       onClick={handleOpenRequestDialog}
-                      className="bg-amber-600 hover:bg-amber-700 text-white"
+                      className="bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm py-1 h-8 sm:h-9"
                     >
-                      <Plus className="h-4 w-4 mr-2" />
+                      <Plus className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                       Request New Store
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3 md:space-y-4">
+                  <div className="space-y-2 sm:space-y-3 md:space-y-4">
                     {stores.map((store) => (
                       <div 
                         key={store._id}
@@ -444,32 +444,32 @@ const StoreSelector = () => {
                         }`}
                         onClick={() => handleStoreChange(store._id)}
                       >
-                        <div className="p-3 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between">
-                          <div className="flex items-center mb-3 sm:mb-0">
-                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center ${
+                        <div className="p-2 sm:p-3 md:p-5 flex flex-row items-center justify-between">
+                          <div className="flex items-center">
+                            <div className={`w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center ${
                               selectedStore && selectedStore._id === store._id 
                                 ? 'bg-green-500 text-white' 
                                 : 'bg-gray-100 text-gray-600'
                             }`}>
-                              <Store className="h-5 w-5 sm:h-6 sm:w-6" />
+                              <Store className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                             </div>
-                            <div className="ml-3 md:ml-4">
-                              <h3 className="font-semibold text-base md:text-lg text-gray-900">{store.name}</h3>
-                              <p className="text-xs md:text-sm text-gray-500">{store.address?.city || 'Location not available'}{store.address?.state ? `, ${store.address.state}` : ''}</p>
+                            <div className="ml-2 sm:ml-3 md:ml-4">
+                              <h3 className="font-semibold text-sm sm:text-base md:text-lg text-gray-900">{store.name}</h3>
+                              <p className="text-xs md:text-sm text-gray-500 truncate max-w-[12rem] sm:max-w-[16rem] md:max-w-none">{store.address?.city || 'Location not available'}{store.address?.state ? `, ${store.address.state}` : ''}</p>
                             </div>
                           </div>
-                          <div className="ml-13 sm:ml-0">
+                          <div>
                             {selectedStore && selectedStore._id === store._id ? (
-                              <span className="inline-flex items-center px-2 py-1 md:px-3 md:py-1 rounded-full text-xs md:text-sm font-medium bg-green-100 text-green-800">
-                                <CheckCircle2 className="h-3 w-3 md:h-4 md:w-4 mr-1" /> Selected
+                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle2 className="h-3 w-3 mr-1" /> Selected
                               </span>
                             ) : (
                               <Button 
                                 variant="outline" 
-                                className="border-green-500 text-green-600 hover:bg-green-50 w-full sm:w-auto text-xs md:text-sm h-8 md:h-10"
+                                className="border-green-500 text-green-600 hover:bg-green-50 text-xs h-7 sm:h-8 px-2 sm:px-3"
                                 onClick={() => handleStoreChange(store._id)}
                               >
-                                Select Store
+                                Select
                               </Button>
                             )}
                           </div>
@@ -480,23 +480,23 @@ const StoreSelector = () => {
                 )}
               </CardContent>
               
-              <CardFooter className="bg-gray-50 p-4 md:p-6 flex flex-col sm:flex-row justify-between gap-3 border-t">
+              <CardFooter className="bg-gray-50 p-3 sm:p-4 md:p-6 flex flex-col sm:flex-row justify-between gap-2 sm:gap-3 border-t">
                 <Button 
                   variant="outline"
-                  className="w-full sm:w-auto text-xs md:text-sm h-10 md:h-11"
-                  onClick={() => navigate('/select-role')}
+                  className="w-full sm:w-auto text-xs md:text-sm h-9 sm:h-10 md:h-11"
+                  onClick={() => navigate('/role-selection')}
                 >
-                  <ArrowLeft className="mr-2 h-4 w-4" />
+                  <ArrowLeft className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                   Back to Role Selection
                 </Button>
                 
                 {selectedStore && (
                   <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs md:text-sm h-10 md:h-11"
+                    className="bg-green-600 hover:bg-green-700 text-white w-full sm:w-auto text-xs md:text-sm h-9 sm:h-10 md:h-11"
                     onClick={() => navigate('/storeowner')}
                   >
                     Go to Dashboard
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    <ArrowRight className="ml-1 sm:ml-2 h-3 w-3 sm:h-4 sm:w-4" />
                   </Button>
                 )}
               </CardFooter>
@@ -505,23 +505,23 @@ const StoreSelector = () => {
           
           <div>
             <Card className="shadow-lg border-0 h-full bg-gradient-to-b from-blue-50 to-white">
-              <CardHeader className="pb-2 pt-5 px-4 md:px-6">
-                <div className="mx-auto bg-blue-500 w-14 h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-3 md:mb-4 shadow-md">
-                  <Plus className="h-7 w-7 md:h-8 md:w-8 text-white" />
+              <CardHeader className="pb-2 pt-4 sm:pt-5 px-3 sm:px-4 md:px-6">
+                <div className="mx-auto bg-blue-500 w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full flex items-center justify-center mb-2 sm:mb-3 md:mb-4 shadow-md">
+                  <Plus className="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-white" />
                 </div>
-                <CardTitle className="text-center text-lg md:text-xl">Request Access</CardTitle>
-                <CardDescription className="text-center text-sm md:text-base">
+                <CardTitle className="text-center text-base sm:text-lg md:text-xl">Request Access</CardTitle>
+                <CardDescription className="text-center text-xs sm:text-sm md:text-base">
                   Need access to a new store?
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="text-center pt-2 px-4 md:px-6">
-                <p className="text-gray-600 text-xs md:text-sm mb-5 md:mb-6">
+              <CardContent className="text-center pt-2 px-3 sm:px-4 md:px-6">
+                <p className="text-gray-600 text-xs md:text-sm mb-3 sm:mb-4 md:mb-6">
                   Don't see your store? Request access to a new one from the administrator.
                 </p>
                 <Button 
                   onClick={handleOpenRequestDialog} 
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm h-10 md:h-11"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm h-9 sm:h-10 md:h-11"
                 >
                   Request Store Access
                 </Button>
@@ -530,63 +530,63 @@ const StoreSelector = () => {
           </div>
         </div>
         
-        <div className="mt-8 text-center text-xs text-gray-500">
+        <div className="mt-4 sm:mt-6 md:mt-8 text-center text-xs text-gray-500">
           <p>Having trouble? Contact support at support@agristore.com</p>
         </div>
       </div>
       
       {/* Store Request Dialog */}
       <Dialog open={showRequestDialog} onOpenChange={setShowRequestDialog}>
-        <DialogContent className="sm:max-w-lg max-w-[calc(100%-2rem)] p-0">
-          <div className="bg-gradient-to-r from-blue-600 to-blue-500 p-6 text-white">
-            <DialogTitle className="text-2xl font-bold flex items-center">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+          <DialogHeader className="pb-4 border-b border-gray-700">
+            <DialogTitle className="text-2xl font-bold flex items-center text-primary">
               <Plus className="h-5 w-5 mr-2" /> Request New Store
             </DialogTitle>
-            <DialogDescription className="text-blue-100 mt-1">
+            <DialogDescription className="text-gray-300 mt-1">
               Fill in the details below to request access to a new store
             </DialogDescription>
-          </div>
+          </DialogHeader>
 
-          <div className="p-6">
+          <div className="py-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div className="space-y-3">
-                <Label htmlFor="name" className="text-sm font-medium">Store Name *</Label>
+                <Label htmlFor="name" className="text-sm font-medium text-gray-200">Store Name *</Label>
                 <Input
                   id="name"
                   name="name"
                   placeholder="Enter store name"
                   value={requestData.name}
                   onChange={handleRequestInputChange}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="border-gray-700 bg-gray-800/50 focus:border-primary focus:ring-primary text-white"
                 />
               </div>
               
               <div className="space-y-3 md:col-span-2">
-                <Label htmlFor="description" className="text-sm font-medium">Store Description</Label>
+                <Label htmlFor="description" className="text-sm font-medium text-gray-200">Store Description</Label>
                 <Textarea
                   id="description"
                   name="description"
                   placeholder="Brief description of the store"
                   value={requestData.description}
                   onChange={handleRequestInputChange}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[100px]"
+                  className="border-gray-700 bg-gray-800/50 focus:border-primary focus:ring-primary text-white min-h-[100px]"
                 />
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="requestorName" className="text-sm font-medium">Your Name *</Label>
+                <Label htmlFor="requestorName" className="text-sm font-medium text-gray-200">Your Name *</Label>
                 <Input
                   id="requestorName"
                   name="requestorName"
                   placeholder="Your full name"
                   value={requestData.requestorName}
                   onChange={handleRequestInputChange}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="border-gray-700 bg-gray-800/50 focus:border-primary focus:ring-primary text-white"
                 />
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="requestorEmail" className="text-sm font-medium">Your Email *</Label>
+                <Label htmlFor="requestorEmail" className="text-sm font-medium text-gray-200">Your Email *</Label>
                 <Input
                   id="requestorEmail"
                   name="requestorEmail"
@@ -594,53 +594,53 @@ const StoreSelector = () => {
                   placeholder="your.email@example.com"
                   value={requestData.requestorEmail}
                   onChange={handleRequestInputChange}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="border-gray-700 bg-gray-800/50 focus:border-primary focus:ring-primary text-white"
                 />
               </div>
               
               <div className="space-y-3">
-                <Label htmlFor="requestorPhone" className="text-sm font-medium">Phone Number (Optional)</Label>
+                <Label htmlFor="requestorPhone" className="text-sm font-medium text-gray-200">Phone Number (Optional)</Label>
                 <Input
                   id="requestorPhone"
                   name="requestorPhone"
                   placeholder="Your contact number"
                   value={requestData.requestorPhone}
                   onChange={handleRequestInputChange}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  className="border-gray-700 bg-gray-800/50 focus:border-primary focus:ring-primary text-white"
                 />
               </div>
               
               <div className="space-y-3 md:col-span-2">
-                <Label htmlFor="reasonForRequest" className="text-sm font-medium">Reason for Request *</Label>
+                <Label htmlFor="reasonForRequest" className="text-sm font-medium text-gray-200">Reason for Request *</Label>
                 <Textarea
                   id="reasonForRequest"
                   name="reasonForRequest"
                   placeholder="Why do you need access to this store?"
                   value={requestData.reasonForRequest}
                   onChange={handleRequestInputChange}
-                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500 min-h-[100px]"
+                  className="border-gray-700 bg-gray-800/50 focus:border-primary focus:ring-primary text-white min-h-[100px]"
                 />
               </div>
               
               <div className="md:col-span-2 mt-2">
-                <p className="text-sm text-gray-500">Fields marked with * are required</p>
+                <p className="text-sm text-gray-400">Fields marked with * are required</p>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="flex justify-end p-6 border-t bg-gray-50">
+          <DialogFooter className="flex justify-end pt-4 border-t border-gray-700 bg-gray-800/50">
             <div className="flex flex-col-reverse sm:flex-row gap-3 w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 onClick={() => setShowRequestDialog(false)}
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white"
               >
                 Cancel
               </Button>
               <Button 
                 disabled={isSubmitting} 
                 onClick={handleSubmitRequest}
-                className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto"
+                className="bg-primary hover:bg-primary/90 text-white w-full sm:w-auto"
               >
                 {isSubmitting ? (
                   <>

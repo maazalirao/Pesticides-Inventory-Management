@@ -50,9 +50,6 @@ function App() {
         {/* New unified role selection page */}
         <Route path="/role-selection" element={<RoleSelection />} />
         
-        {/* Legacy role selection after login */}
-        <Route path="/select-role" element={<RoleSelector />} />
-        
         {/* Store selection for store owners */}
         <Route path="/select-store" element={<StoreSelector />} />
         
