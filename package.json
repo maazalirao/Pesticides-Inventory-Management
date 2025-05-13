@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "vite",
     "build": "vite build",
     "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
@@ -15,7 +15,7 @@
     "seed:customers": "node scripts/seedCustomers.js",
     "seed:invoices": "node scripts/seedInvoices.js",
     "client": "vite",
-    "dev:full": "concurrently \"npm run server\" \"npm run client\"",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
     "seed:suppliers": "node scripts/seedSuppliers.js",
     "seed:all": "node scripts/seedSuppliers.js && node scripts/seedCustomers.js && node scripts/seedProducts.js && node scripts/seedInventory.js",
     "vercel-build": "vite build",

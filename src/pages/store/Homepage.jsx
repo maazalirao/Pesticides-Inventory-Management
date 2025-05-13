@@ -19,7 +19,8 @@ import {
   Users,
   Sparkles,
   BarChart,
-  Phone
+  Phone,
+  Package
 } from 'lucide-react';
 
 const Homepage = () => {
@@ -28,6 +29,7 @@ const Homepage = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [selectedStoreId, setSelectedStoreId] = useState(localStorage.getItem('selectedStoreId'));
   const [testimonials, setTestimonials] = useState([
     {
       id: 1,
@@ -66,17 +68,29 @@ const Homepage = () => {
       try {
         setLoading(true);
         
-        // Fetch products from the database - using the same endpoint as in ProductListing
-        const productsResponse = await axios.get('/api/products');
+        // Get the selected store ID from localStorage
+        const selectedStoreId = localStorage.getItem('selectedStoreId');
+        
+        // Fetch products from the database with store filter if available
+        let productsEndpoint = '/api/products';
+        if (selectedStoreId) {
+          productsEndpoint = `/api/products?store=${selectedStoreId}`;
+          console.log('Fetching featured products from store:', selectedStoreId);
+        }
+        
+        const productsResponse = await axios.get(productsEndpoint);
         
         // Filter to only get featured products or limit to recent 4
         let products = productsResponse.data;
+        console.log(`Total products fetched: ${products.length}`);
+        
         // Either filter featured products or just take the most recent 4
         const featuredProducts = products.filter(p => p.featured).length > 0 
           ? products.filter(p => p.featured).slice(0, 4) 
-          : products.slice(0, 4);
+          : products.slice(0, Math.min(4, products.length));
         
         setFeaturedProducts(featuredProducts);
+        console.log(`Featured products: ${featuredProducts.length}`);
         
         // Extract unique categories and count products in each
         const categoriesMap = products.reduce((acc, product) => {
@@ -105,91 +119,32 @@ const Homepage = () => {
         console.error('Error fetching data:', error);
         setError('Failed to load products. Please try again.');
         
-        // Fallback to mock data if API fails
-        setFeaturedProducts([
-          { 
-            _id: '1', 
-            name: "MaxKill Insecticide", 
-            category: "Insecticide", 
-            description: "Effective against a wide range of insects",
-            price: 49.99,
-            image: "https://placehold.co/300x300/22c55e/FFFFFF/png?text=MaxKill",
-            rating: 4.5,
-            reviews: 28,
-            stockQuantity: 45,
-            featured: true
-          },
-          { 
-            _id: '2', 
-            name: "HerbControl Plus", 
-            category: "Herbicide", 
-            description: "Eliminates weeds while preserving crops",
-            price: 38.50,
-            image: "https://placehold.co/300x300/3b82f6/FFFFFF/png?text=HerbControl",
-            rating: 4.2,
-            reviews: 19,
-            stockQuantity: 28,
-            featured: true
-          },
-          { 
-            _id: '3', 
-            name: "WeedBGone", 
-            category: "Herbicide", 
-            description: "Fast-acting weed elimination solution",
-            price: 27.99,
-            image: "https://placehold.co/300x300/3b82f6/FFFFFF/png?text=WeedBGone",
-            rating: 3.8,
-            reviews: 14,
-            stockQuantity: 6,
-            featured: true
-          },
-          { 
-            _id: '4', 
-            name: "FungoClear Solution", 
-            category: "Fungicide", 
-            description: "Prevents and treats fungal infections in plants",
-            price: 65.00,
-            image: "https://placehold.co/300x300/8b5cf6/FFFFFF/png?text=FungoClear",
-            rating: 4.7,
-            reviews: 32,
-            stockQuantity: 16,
-            featured: true
-          }
-        ]);
-        
-        setCategories([
-          { 
-            id: '1', 
-            name: "Insecticides", 
-            image: "https://placehold.co/400x300/22c55e/FFFFFF/png?text=Insecticides",
-            count: 12
-          },
-          { 
-            id: '2', 
-            name: "Herbicides", 
-            image: "https://placehold.co/400x300/3b82f6/FFFFFF/png?text=Herbicides",
-            count: 8
-          },
-          { 
-            id: '3', 
-            name: "Fungicides", 
-            image: "https://placehold.co/400x300/8b5cf6/FFFFFF/png?text=Fungicides",
-            count: 5
-          },
-          { 
-            id: '4', 
-            name: "Rodenticides", 
-            image: "https://placehold.co/400x300/f97316/FFFFFF/png?text=Rodenticides",
-            count: 4
-          }
-        ]);
+        // Fallback to empty arrays rather than mock data
+        setFeaturedProducts([]);
+        setCategories([]);
         
         setLoading(false);
       }
     };
     
     fetchData();
-  }, []);
+  }, [selectedStoreId]);
+  
+  // Listen for localStorage changes
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newStoreId = localStorage.getItem('selectedStoreId');
+      if (newStoreId !== selectedStoreId) {
+        setSelectedStoreId(newStoreId);
+      }
+    };
+
+    // Check for changes every second
+    const interval = setInterval(handleStorageChange, 1000);
+    
+    // Clean up
+    return () => clearInterval(interval);
+  }, [selectedStoreId]);
   
   // Get a color based on category name for placeholder images
   const getCategoryColor = (categoryName) => {
@@ -268,7 +223,7 @@ const Homepage = () => {
                 <div className="relative block w-full bg-white rounded-lg overflow-hidden">
                   <img 
                     className="w-full" 
-                    src="https://images.unsplash.com/photo-1635035908273-d567b8373c36?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80" 
+                    src="https://images.unsplash.com/photo-1605000797499-95a51c5269ae?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=880&q=80" 
                     alt="Person spraying pesticide on crops"
                   />
                   <div className="absolute inset-0 bg-green-600 mix-blend-multiply opacity-30"></div>
@@ -295,8 +250,8 @@ const Homepage = () => {
             <p className="text-gray-600 max-w-2xl mx-auto">
               Discover our top-rated and most popular agricultural products trusted by farmers worldwide.
             </p>
-          </div>
-          
+        </div>
+
           {loading ? (
             <div className="flex justify-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-green-500"></div>
@@ -311,6 +266,24 @@ const Homepage = () => {
               >
                 Retry
               </button>
+              </div>
+          ) : featuredProducts.length === 0 ? (
+            <div className="bg-white rounded-xl border p-8 text-center shadow-sm">
+              <Package size={36} className="mx-auto text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium mb-2 text-gray-800">No Products Available</h3>
+              <p className="text-gray-600 mb-4">
+                {localStorage.getItem('selectedStoreId') 
+                  ? "There are currently no products available from this store." 
+                  : "There are currently no products available."}
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Link 
+                  to="/store/products" 
+                  className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  Browse All Products
+                </Link>
+              </div>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -375,8 +348,8 @@ const Homepage = () => {
                               Out of Stock
                             </span>
                           )}
-                        </div>
-                      </div>
+              </div>
+            </div>
                       <button 
                         className="w-full py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center"
                         onClick={(e) => handleAddToCart(product, e)}
@@ -384,7 +357,7 @@ const Homepage = () => {
                         <ShoppingCart className="h-4 w-4 mr-2" />
                         Add to Cart
                       </button>
-                    </div>
+                  </div>
                   </div>
                 </div>
               ))}

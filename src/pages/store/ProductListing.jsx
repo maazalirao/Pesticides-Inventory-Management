@@ -34,26 +34,38 @@ const ProductListing = () => {
       try {
         setLoading(true);
         
-        // Get selected store from localStorage or URL param
+        // Get selected store from URL param or localStorage, prioritize URL param
         const storeId = storeParam || localStorage.getItem('selectedStoreId');
+        console.log('Current storeId:', storeId);
         
         if (storeId) {
           try {
+            // Get store details
             const storeResponse = await axios.get(`/api/stores/${storeId}`);
             setSelectedStore(storeResponse.data);
+            console.log('Selected store:', storeResponse.data.name);
+            
+            // Update localStorage with current store
+            localStorage.setItem('selectedStoreId', storeId);
+            
+            // Fetch products from this specific store
+            const productsResponse = await axios.get(`/api/products?store=${storeId}`);
+            console.log(`Fetched ${productsResponse.data.length} products from store:`, storeId);
+            setProducts(productsResponse.data);
           } catch (err) {
-            console.error('Error fetching store:', err);
+            console.error('Error fetching store data:', err);
+            setError('Could not load store information');
+            
+            // Fallback to fetching all products
+            const productResponse = await axios.get('/api/products');
+            setProducts(productResponse.data);
           }
+        } else {
+          // No store selected, fetch all products
+          const productResponse = await axios.get('/api/products');
+          setProducts(productResponse.data);
         }
         
-        // Fetch products with store filter if a store is selected
-        let productsEndpoint = '/api/products';
-        if (storeId) {
-          productsEndpoint = `/api/products?store=${storeId}`;
-        }
-        
-        const productResponse = await axios.get(productsEndpoint);
-        setProducts(productResponse.data);
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
@@ -67,6 +79,11 @@ const ProductListing = () => {
     // Update category if provided in URL
     if (categoryParam) {
       setSelectedCategory(categoryParam.toLowerCase());
+    }
+    
+    // If store param is provided in URL, update localStorage
+    if (storeParam) {
+      localStorage.setItem('selectedStoreId', storeParam);
     }
   }, [categoryParam, storeParam]);
   
@@ -83,7 +100,7 @@ const ProductListing = () => {
     // Filter by category
     const categoryMatch = 
       selectedCategory === 'all' || 
-      product.category.toLowerCase() === selectedCategory;
+      (product.category && product.category.toLowerCase() === selectedCategory);
     
     // Filter by price
     const priceMatch = 
@@ -95,11 +112,23 @@ const ProductListing = () => {
       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
     
-    // Filter by store (if selected)
-    const storeMatch = !selectedStore || (product.store && product.store.toString() === selectedStore._id);
+    // We don't need to filter by store anymore as we're fetching store-specific products
+    // from the API already
     
-    return categoryMatch && priceMatch && searchMatch && storeMatch;
+    return categoryMatch && priceMatch && searchMatch;
   });
+  
+  // Debug product data
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log('Products loaded:', products.length);
+      console.log('Filtered products:', filteredProducts.length);
+      console.log('Selected store:', selectedStore?.name);
+      console.log('Selected category:', selectedCategory);
+      // Log a sample product to check structure
+      console.log('Sample product:', products[0]);
+    }
+  }, [products, filteredProducts, selectedStore, selectedCategory]);
   
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -185,10 +214,10 @@ const ProductListing = () => {
         <div className="container mx-auto px-4 relative z-20">
           <div className="max-w-2xl">
             {selectedStore && (
-              <div className="inline-flex items-center px-3 py-1 rounded-full bg-white text-green-700 text-xs font-medium mb-4 shadow-sm">
+            <div className="inline-flex items-center px-3 py-1 rounded-full bg-white text-green-700 text-xs font-medium mb-4 shadow-sm">
                 <Store className="w-3 h-3 mr-1 text-green-700" />
                 Browsing {selectedStore.name}
-              </div>
+            </div>
             )}
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               Shop Our Premium <span className="text-green-300">Agricultural Products</span>
@@ -502,7 +531,12 @@ const ProductListing = () => {
                 <div className="bg-white rounded-xl border p-8 text-center shadow-sm">
                   <Package size={36} className="mx-auto text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium mb-2 text-gray-800">No Products Found</h3>
-                  <p className="text-gray-600 mb-4">Try adjusting your filters or search to find what you're looking for.</p>
+                  <p className="text-gray-600 mb-4">
+                    {selectedStore 
+                      ? `There are no products available from ${selectedStore.name} that match your current filters.` 
+                      : "There are no products that match your current filters."}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <button 
                     onClick={() => {
                       setSelectedCategory('all');
@@ -514,6 +548,15 @@ const ProductListing = () => {
                   >
                     Reset Filters
                   </button>
+                    {selectedStore && (
+                      <Link
+                        to="/store"
+                        className="px-4 py-2 border border-green-700 text-green-700 rounded-lg hover:bg-green-50 transition-colors"
+                      >
+                        Return to Homepage
+                      </Link>
+                    )}
+                  </div>
                 </div>
               ) : viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">

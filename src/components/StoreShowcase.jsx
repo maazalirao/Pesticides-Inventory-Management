@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Store, MapPin, Phone, Mail, ChevronRight, ShieldCheck } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
@@ -14,6 +14,7 @@ const API_URL = process.env.NODE_ENV === 'development'
 
 const StoreShowcase = () => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [stores, setStores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -85,17 +86,25 @@ const StoreShowcase = () => {
   }, []);
 
   const handleStoreSelect = (store) => {
+    console.log('Store selected:', store.name, store._id);
+    
+    // Update state
     setSelectedStore(store);
+    
+    // Save to localStorage
     localStorage.setItem('selectedStoreId', store._id);
     
+    // Show toast notification
     toast({
       title: 'Store Selected',
       description: `You are now browsing products from ${store.name}`,
     });
     
-    // Redirect to the store's homepage or refresh current page with selected store
-    // This can be implemented based on the application's routing structure
-    // window.location.href = `/store/${store._id}`;
+    // Force a complete page reload to ensure all components reflect the new store
+    console.log('Redirecting to products with store filter:', store._id);
+    
+    // Use window.location for a complete page reload
+    window.location.href = `/store/products?store=${store._id}`;
   };
 
   if (loading) {

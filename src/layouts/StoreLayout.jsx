@@ -61,12 +61,12 @@ const StoreLayout = () => {
 
             {/* Logo */}
             <div className="flex items-center space-x-2">
-              <a href="/" className="flex items-center">
+              <Link to="/store" className="flex items-center">
                 <Leaf size={28} className="text-green-300 mr-2" />
                 <span className="text-xl sm:text-2xl font-bold text-white">
                   Agri<span className="text-green-300">Store</span>
                 </span>
-              </a>
+              </Link>
             </div>
 
             {/* Main Navigation - Desktop */}

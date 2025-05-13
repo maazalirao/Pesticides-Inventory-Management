@@ -21,29 +21,12 @@ const RoleSelection = () => {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 to-slate-800 text-white">
-      {/* Header */}
-      <header className="py-6 border-b border-white/10">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center space-x-2">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-orange-600 to-orange-400 flex items-center justify-center shadow-lg">
-              <Package className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-orange-400 via-amber-300 to-orange-500 bg-clip-text text-transparent">
-                Pesticide Inventory
-              </span>
-              <div className="text-xs text-slate-400 mt-0.5">Management System</div>
-            </div>
-          </div>
-        </div>
-      </header>
-
       {/* Main Content */}
-      <main className="py-20">
+      <main className="py-10">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             {/* Title Section */}
-            <div className="text-center mb-16">
+            <div className="text-center mb-12">
               <div className="inline-block px-4 py-1 bg-orange-500/20 text-orange-300 rounded-full mb-4 font-medium text-sm border border-orange-500/30">
                 Welcome to Pesticide Inventory System
               </div>
