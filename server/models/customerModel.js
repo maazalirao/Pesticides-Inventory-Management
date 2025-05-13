@@ -14,6 +14,11 @@ const customerSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    store: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Store',
+      required: true,
+    },
     address: {
       street: String,
       city: String,
@@ -39,6 +44,9 @@ const customerSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Compound index for email uniqueness within a store
+customerSchema.index({ email: 1, store: 1 }, { unique: true });
 
 const Customer = mongoose.model('Customer', customerSchema);
 

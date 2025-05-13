@@ -1,12 +1,13 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Inventory from '../server/models/inventoryModel.js';
+import Store from '../server/models/storeModel.js';
 import connectDB from '../server/config/db.js';
 
 dotenv.config();
 
-// Sample inventory data with various categories, statuses, and some with batches
-const sampleInventory = [
+// Sample inventory data templates (without store reference)
+const inventoryTemplates = [
   {
     name: 'EcoGuard Plus',
     sku: 'ECO-INV-001',
@@ -67,22 +68,22 @@ const sampleInventory = [
     name: 'WeedClear Pro',
     sku: 'WCP-INV-003',
     category: 'Herbicide',
-    quantity: 8,
+    quantity: 60,
     unit: 'Bottles',
     price: 1875.25,
     threshold: 15,
-    status: 'Low Stock',
+    status: 'In Stock',
     supplier: 'FarmChem Industries',
     batches: [
       {
         batchId: 'WCP-B001',
         lotNumber: 'HRB-789-12',
-        quantity: 8,
+        quantity: 60,
         manufacturingDate: new Date('2023-07-05'),
         expiryDate: new Date('2025-01-05'),
         supplier: 'FarmChem Industries',
         locationCode: 'W2-A3-S4',
-        notes: 'Need to reorder soon'
+        notes: 'Fresh stock'
       }
     ]
   },
@@ -90,13 +91,24 @@ const sampleInventory = [
     name: 'FungoCure 250SC',
     sku: 'FGC-INV-004',
     category: 'Fungicide',
-    quantity: 0,
+    quantity: 30,
     unit: 'Packets',
     price: 3250.00,
     threshold: 20,
-    status: 'Out of Stock',
+    status: 'In Stock',
     supplier: 'BioDefend Ltd',
-    batches: []
+    batches: [
+      {
+        batchId: 'FGC-B001',
+        lotNumber: 'FGC-123-45',
+        quantity: 30,
+        manufacturingDate: new Date('2023-09-05'),
+        expiryDate: new Date('2025-09-05'),
+        supplier: 'BioDefend Ltd',
+        locationCode: 'W2-B2-S1',
+        notes: 'New fungicide formula'
+      }
+    ]
   },
   {
     name: 'TermiShield Pro',
@@ -423,19 +435,87 @@ const sampleInventory = [
   }
 ];
 
+// Function to import inventory data with store references
 const importInventory = async () => {
   try {
-    // Connect to MongoDB using the existing configuration
+    // Connect to the database
     await connectDB();
     console.log('MongoDB Connected');
+    
+    // Get all stores
+    const stores = await Store.find({});
+    
+    if (stores.length === 0) {
+      console.error('No stores found. Please run seedStores.js first.');
+      process.exit(1);
+    }
+    
+    console.log(`Found ${stores.length} stores for inventory distribution`);
     
     // Clear existing inventory
     await Inventory.deleteMany({});
     console.log('Cleared existing inventory');
     
-    // Insert sample inventory
-    const createdInventory = await Inventory.insertMany(sampleInventory);
-    console.log(`${createdInventory.length} inventory items created`);
+    // Array to hold all inventory items with store assignments
+    const allInventoryItems = [];
+    
+    // Track used batch IDs to ensure uniqueness
+    const usedBatchIds = new Set();
+    
+    // Loop through each store
+    for (const store of stores) {
+      console.log(`Creating 5 inventory items for store: ${store.name}`);
+      
+      // Create exactly 5 inventory items per store
+      for (let i = 0; i < 5; i++) {
+        const template = inventoryTemplates[i % inventoryTemplates.length];
+        
+        // Create store-specific SKU to ensure uniqueness
+        const storePrefix = store._id.toString().substring(0, 3);
+        const sku = `${storePrefix}-${template.sku}`;
+        
+        // Create store-specific inventory name
+        const inventoryName = `${store.name.split(' ')[0]}'s ${template.name}`;
+        
+        // Modify batch IDs to be store-specific and unique across stores
+        const modifiedBatches = template.batches.map(batch => {
+          // Use store prefix, batch ID, and i to ensure uniqueness
+          const uniqueBatchId = `${storePrefix}-${i}-${batch.batchId}`;
+          
+          // Make sure we haven't used this ID before
+          if (usedBatchIds.has(uniqueBatchId)) {
+            // If it's already used, add a random number
+            const randomSuffix = Math.floor(Math.random() * 1000);
+            const alternativeBatchId = `${uniqueBatchId}-${randomSuffix}`;
+            usedBatchIds.add(alternativeBatchId);
+            return {
+              ...batch,
+              batchId: alternativeBatchId
+            };
+          }
+          
+          usedBatchIds.add(uniqueBatchId);
+          return {
+            ...batch,
+            batchId: uniqueBatchId
+          };
+        });
+        
+        allInventoryItems.push({
+          ...template,
+          name: inventoryName,
+          sku,
+          price: template.price,
+          priceLabel: `PKR ${template.price.toFixed(2)}`,
+          store: store._id,
+          batches: modifiedBatches
+        });
+      }
+    }
+    
+    // Insert all inventory items
+    const insertedItems = await Inventory.insertMany(allInventoryItems);
+    console.log(`Successfully inserted ${insertedItems.length} inventory items with ${usedBatchIds.size} unique batch IDs`);
     
     // Close the connection
     await mongoose.connection.close();
@@ -443,7 +523,7 @@ const importInventory = async () => {
     
     process.exit(0);
   } catch (error) {
-    console.error(`Error importing inventory: ${error.message}`);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 };

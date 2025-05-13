@@ -7,6 +7,11 @@ const orderSchema = mongoose.Schema(
       required: true,
       ref: 'User',
     },
+    store: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
+      ref: 'Store',
+    },
     orderItems: [
       {
         name: { type: String, required: true },
@@ -90,6 +95,9 @@ const orderSchema = mongoose.Schema(
   }
 );
 
+// Create compound index for store-scoped uniqueness
+orderSchema.index({ store: 1, user: 1, createdAt: 1 });
+
 // Update inventory when order is placed
 orderSchema.post('save', async function() {
   const Product = mongoose.model('Product');
@@ -101,8 +109,11 @@ orderSchema.post('save', async function() {
     if (product) {
       // Only update if the order is new (not already processed)
       if (this.isNew) {
-        // Find inventory items for this product
-        const inventoryItems = await Inventory.find({ product: item.product });
+        // Find inventory items for this product and store
+        const inventoryItems = await Inventory.find({ 
+          product: item.product,
+          store: this.store
+        });
         
         let remainingQuantity = item.quantity;
         for (const invItem of inventoryItems) {

@@ -1,9 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Search, Plus, Edit, Trash, Phone, Mail, MapPin } from 'lucide-react';
+import { Search, Plus, Edit, Trash, Phone, Mail, MapPin, Store as StoreIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../../lib/api';
+import { getSuppliers, createSupplier, updateSupplier, deleteSupplier, getAllStoresSuppliers } from '../../lib/api';
+import { Badge } from '../../components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+
+// StoreBadge component for consistent store display
+const StoreBadge = ({ store }) => {
+  if (!store || !store.name) return <Badge variant="outline">Unknown Store</Badge>;
+  
+  // Generate color based on store name (consistent coloring)
+  const storeColors = {
+    default: { bg: "bg-blue-100", text: "text-blue-800" },
+    store1: { bg: "bg-green-100", text: "text-green-800" },
+    store2: { bg: "bg-purple-100", text: "text-purple-800" },
+    store3: { bg: "bg-amber-100", text: "text-amber-800" },
+    store4: { bg: "bg-pink-100", text: "text-pink-800" },
+    store5: { bg: "bg-teal-100", text: "text-teal-800" }
+  };
+  
+  // Use hash of store name to pick a consistent color
+  const hash = store.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 6;
+  const colorKey = `store${hash}` in storeColors ? `store${hash}` : 'default';
+  const { bg, text } = storeColors[colorKey];
+  
+  return (
+    <Badge variant="outline" className={`${bg} ${text} border-0`}>
+      <StoreIcon className="mr-1 h-3 w-3" />
+      {store.name}
+    </Badge>
+  );
+};
 
 const Suppliers = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -28,38 +57,108 @@ const Suppliers = () => {
     taxId: '',
     paymentTerms: '',
     notes: '',
-    isActive: true
+    isActive: true,
+    storeId: ''
   });
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [stores, setStores] = useState([]);
+  const [filterStore, setFilterStore] = useState('All');
+
+  // Helper function to get a consistent color for each store
+  const getStoreColor = (store) => {
+    if (!store || !store.name) return 'gray';
+    
+    const storeColors = ['blue', 'green', 'purple', 'amber', 'pink', 'teal'];
+    const hash = store.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % storeColors.length;
+    return storeColors[hash];
+  };
 
   // Fetch suppliers on component mount
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchSuppliers = async () => {
+      try {
+        setLoading(true);
+        
+        // Check if we're in admin path
+        const isAdminPath = window.location.pathname.includes('/admin');
+        
+        let data;
+        let storesList = [];
+        
+        if (isAdminPath) {
+          // Use the admin-specific endpoint for all suppliers across stores
+          console.log('Fetching suppliers for admin dashboard');
+          const response = await getAllStoresSuppliers();
+          
+          // Handle different response formats
+          if (Array.isArray(response)) {
+            data = response;
+          } else if (response && response.suppliers && Array.isArray(response.suppliers)) {
+            data = response.suppliers;
+            // Extract stores from response if available
+            if (response.stores && Array.isArray(response.stores)) {
+              storesList = response.stores;
+            }
+          } else {
+            console.error('Unexpected format from getAllStoresSuppliers:', response);
+            data = [];
+          }
+        } else {
+          // Regular store-specific endpoint
+          data = await getSuppliers();
+        }
+        
+        if (isMounted) {
+          setSuppliers(data);
+          
+          // Extract unique stores from suppliers if not already set
+          if (storesList.length === 0 && data.length > 0) {
+            const uniqueStores = [...new Map(
+              data
+                .filter(supplier => supplier.store && supplier.store.name)
+                .map(supplier => [supplier.store._id, supplier.store])
+            ).values()];
+            
+            setStores(uniqueStores);
+          } else {
+            setStores(storesList);
+          }
+          
+          setError('');
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError('Failed to fetch suppliers');
+          console.error(err);
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchSuppliers();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
-  const fetchSuppliers = async () => {
-    try {
-      setLoading(true);
-      const data = await getSuppliers();
-      setSuppliers(data);
-      setError('');
-    } catch (err) {
-      console.error('Suppliers fetch error:', err);
-      setError('Failed to fetch suppliers. Please try again later.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Filter suppliers based on search term
-  const filteredSuppliers = suppliers.filter((supplier) => {
-    return (
-      searchTerm === '' ||
+  // Filter suppliers based on search term and store filter
+  const filteredSuppliers = suppliers.filter(supplier => {
+    const matchesSearch = 
       supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       supplier.contactPerson?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      supplier.email?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+      supplier.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesStore = filterStore === 'All' || 
+      (supplier.store && (supplier.store._id === filterStore || supplier.store.name === filterStore));
+    
+    return matchesSearch && matchesStore;
   });
 
   const handleDeleteSupplier = async (id) => {
@@ -92,7 +191,8 @@ const Suppliers = () => {
       taxId: supplier.taxId || '',
       paymentTerms: supplier.paymentTerms || '',
       notes: supplier.notes || '',
-      isActive: supplier.isActive !== undefined ? supplier.isActive : true
+      isActive: supplier.isActive !== undefined ? supplier.isActive : true,
+      storeId: supplier.store ? supplier.store._id : ''
     });
     setIsDialogOpen(true);
   };
@@ -115,7 +215,8 @@ const Suppliers = () => {
       taxId: '',
       paymentTerms: '',
       notes: '',
-      isActive: true
+      isActive: true,
+      storeId: ''
     });
     setIsDialogOpen(true);
   };
@@ -148,7 +249,7 @@ const Suppliers = () => {
 
     try {
       // Validate required fields
-      if (!newSupplier.name || !newSupplier.contactPerson || !newSupplier.email || !newSupplier.phone) {
+      if (!newSupplier.name || !newSupplier.contactPerson || !newSupplier.email || !newSupplier.phone || !newSupplier.storeId) {
         setFormError('Please fill in all required fields');
         setIsSubmitting(false);
         return;
@@ -181,7 +282,8 @@ const Suppliers = () => {
         taxId: '',
         paymentTerms: '',
         notes: '',
-        isActive: true
+        isActive: true,
+        storeId: ''
       });
       setIsDialogOpen(false);
     } catch (error) {
@@ -251,6 +353,24 @@ const Suppliers = () => {
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
+                </div>
+                <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="storeId" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Store <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <select
+                    id="storeId"
+                    name="storeId"
+                    value={newSupplier.storeId}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  >
+                    <option value="" disabled>Select a store</option>
+                    {stores.map(store => (
+                      <option key={store._id} value={store._id}>{store.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="contactPerson" className="text-sm font-semibold text-gray-200">
@@ -400,6 +520,41 @@ const Suppliers = () => {
         </Dialog>
       </div>
 
+      {/* Store distribution summary - moved from bottom to top */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stores.map((store) => {
+          const storeSuppliers = suppliers.filter(supplier => 
+            supplier.store?._id === store._id || supplier.storeId === store._id
+          );
+          const percentage = suppliers.length > 0 
+            ? Math.round((storeSuppliers.length / suppliers.length) * 100) 
+            : 0;
+          
+          return (
+            <Card key={store._id} className={`hover:shadow-md transition-shadow border-l-4 border-l-${getStoreColor(store)}-400`}>
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <StoreBadge store={store} />
+                  <span className="text-2xl font-bold">{storeSuppliers.length}</span>
+                </div>
+                <div className="mt-2 text-xs text-muted-foreground">
+                  {percentage}% of total suppliers
+                </div>
+                <div className="mt-2">
+                  <Button 
+                    variant="ghost" 
+                    className="p-0 h-auto text-xs underline text-primary" 
+                    onClick={() => setFilterStore(store._id)}
+                  >
+                    View suppliers
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
       {error && (
         <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
           {error}
@@ -411,18 +566,33 @@ const Suppliers = () => {
           <CardTitle>Suppliers</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex mb-6">
-            <div className="relative flex-1">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="h-4 w-4 text-muted-foreground" />
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <div className="relative w-full sm:w-auto">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
                 type="text"
+                placeholder="Search suppliers..."
+                className="pl-10 pr-4 py-2 border rounded-md w-full sm:w-64"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Search suppliers..."
-                className="pl-10 w-full rounded-md border border-input bg-background py-2 text-sm focus:outline-none focus:ring-1 focus:ring-orange-500"
               />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Select value={filterStore} onValueChange={setFilterStore}>
+                <SelectTrigger className="w-[180px] border-2 bg-primary/10 border-primary/30 hover:bg-primary/15 transition-colors">
+                  <StoreIcon className="mr-2 h-4 w-4 text-primary" />
+                  <span className="font-medium">{filterStore === 'All' ? 'All Stores' : stores.find(s => s._id === filterStore)?.name || filterStore}</span>
+                </SelectTrigger>
+                <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                  <SelectItem value="All" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">All Stores</SelectItem>
+                  {stores.map(store => (
+                    <SelectItem key={store._id} value={store._id} className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
+                      {store.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

@@ -1,11 +1,14 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Product from '../server/models/productModel.js';
+import Store from '../server/models/storeModel.js';
+import Supplier from '../server/models/supplierModel.js';
 import connectDB from '../server/config/db.js';
 
 dotenv.config();
 
-const sampleProducts = [
+// Define products without store reference
+const productTemplates = [
   {
     name: 'EcoGuard Plus',
     description: 'Organic pesticide for vegetables and fruits. Safe for use up to day of harvest.',
@@ -203,25 +206,74 @@ const sampleProducts = [
   }
 ];
 
-// Connect to MongoDB
+// Function to create products for each store with specific suppliers
 const importProducts = async () => {
   try {
-    // Connect to the database
     await connectDB();
+    console.log('MongoDB Connected');
     
-    // Clear the existing data
+    // Get all stores
+    const stores = await Store.find({});
+    if (stores.length === 0) {
+      console.error('No stores found. Please run seedStores.js first.');
+      process.exit(1);
+    }
+    console.log(`Found ${stores.length} stores`);
+    
+    // Clear existing products
     await Product.deleteMany({});
+    console.log('Cleared existing products');
     
-    // Insert the sample products
-    await Product.insertMany(sampleProducts);
+    const allProducts = [];
     
-    console.log('Products imported successfully!');
-    process.exit();
+    // For each store, create 5 products
+    for (const store of stores) {
+      console.log(`Creating 5 products for store: ${store.name}`);
+      
+      // Get suppliers for this store to assign to products
+      const storeSuppliers = await Supplier.find({ store: store._id });
+      if (storeSuppliers.length === 0) {
+        console.warn(`No suppliers found for store: ${store.name}. Using null for supplier references.`);
+      }
+      
+      // Assign 5 products to this store
+      for (let i = 0; i < 5; i++) {
+        const template = productTemplates[i % productTemplates.length];
+        const supplier = storeSuppliers.length > 0 ? storeSuppliers[i % storeSuppliers.length]._id : null;
+        
+        // Create a unique SKU for this store-product combination
+        const storePrefix = store._id.toString().substring(0, 3);
+        const sku = `${storePrefix}-${template.sku}`;
+        
+        // Create a unique product name for this store
+        const productName = `${store.name.split(' ')[0]}'s ${template.name}`;
+        
+        allProducts.push({
+          ...template,
+          name: productName,
+          sku,
+          price: template.price,
+          priceLabel: `PKR ${template.price.toFixed(2)}`,
+          store: store._id,
+          supplier: supplier
+        });
+      }
+    }
+    
+    // Insert all products
+    const insertedProducts = await Product.insertMany(allProducts);
+    console.log(`Successfully inserted ${insertedProducts.length} products`);
+    
+    // Close connection
+    await mongoose.connection.close();
+    console.log('Database connection closed');
+    
+    process.exit(0);
   } catch (error) {
     console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 };
 
-// Run the script
+// Run the import function
 importProducts(); 

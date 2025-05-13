@@ -9,32 +9,77 @@ import {
   getExpiringProducts,
   getRecentSales
 } from '../controllers/analyticsController.js';
-import { protectWithClerk, admin, staff } from '../middleware/authMiddleware.js';
+import { protect, admin, storeOwner, checkStoreAccess } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Dashboard statistics - temporarily remove auth requirements
-router.get('/dashboard-stats', getDashboardStats);
+// Store-specific analytics routes
+// All routes require store access verification
+router.get('/store/:storeId/dashboard-stats', protect, checkStoreAccess, getDashboardStats);
+router.get('/store/:storeId/sales-data', protect, checkStoreAccess, getSalesData);
+router.get('/store/:storeId/inventory-distribution', protect, checkStoreAccess, getInventoryDistribution);
+router.get('/store/:storeId/customer-segments', protect, checkStoreAccess, getCustomerSegments);
+router.get('/store/:storeId/sales-forecast', protect, checkStoreAccess, getSalesForecast);
+router.get('/store/:storeId/low-stock', protect, checkStoreAccess, getLowStockProducts);
+router.get('/store/:storeId/expiring-products', protect, checkStoreAccess, getExpiringProducts);
+router.get('/store/:storeId/recent-sales', protect, checkStoreAccess, getRecentSales);
 
-// Sales data for charts
-router.get('/sales-data', getSalesData);
+// Legacy routes - these should be deprecated and removed once frontend is updated
+// They will fall back to the first store the user has access to
+router.get('/dashboard-stats', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getDashboardStats);
 
-// Inventory distribution
-router.get('/inventory-distribution', getInventoryDistribution);
+router.get('/sales-data', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getSalesData);
 
-// Customer segments
-router.get('/customer-segments', getCustomerSegments);
+router.get('/inventory-distribution', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getInventoryDistribution);
 
-// Sales forecast
-router.get('/sales-forecast', getSalesForecast);
+router.get('/customer-segments', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getCustomerSegments);
 
-// Low stock products
-router.get('/low-stock', getLowStockProducts);
+router.get('/sales-forecast', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getSalesForecast);
 
-// Expiring products
-router.get('/expiring-products', getExpiringProducts);
+router.get('/low-stock', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getLowStockProducts);
 
-// Recent sales
-router.get('/recent-sales', getRecentSales);
+router.get('/expiring-products', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getExpiringProducts);
+
+router.get('/recent-sales', protect, (req, res, next) => {
+  if (req.user.stores && req.user.stores.length > 0) {
+    req.params.storeId = req.user.stores[0]._id;
+  }
+  next();
+}, getRecentSales);
 
 export default router; 

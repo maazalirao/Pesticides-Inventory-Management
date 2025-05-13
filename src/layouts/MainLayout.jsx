@@ -19,11 +19,11 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  ShieldCheck
+  ShieldCheck,
+  Building2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,6 +63,11 @@ const MainLayout = () => {
       title: 'Dashboard', 
       icon: <Home className="h-5 w-5" />, 
       path: '/admin' 
+    },
+    { 
+      title: 'Store Management', 
+      icon: <Building2 className="h-5 w-5" />, 
+      path: '/admin/stores' 
     },
     { 
       title: 'Inventory', 
@@ -109,8 +114,20 @@ const MainLayout = () => {
   // Get current page title from navItems
   const currentPageTitle = navItems.find(item => item.path === location.pathname)?.title || 'Dashboard';
 
+  // Handle user dropdown toggle
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  
+  const toggleUserMenu = () => {
+    setUserMenuOpen(!userMenuOpen);
+  };
+  
+  const handleLogout = () => {
+    // Simple logout - just navigate to home
+    navigate('/');
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-background">
+    <div className="flex h-screen overflow-hidden bg-white">
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div 
@@ -236,110 +253,96 @@ const MainLayout = () => {
 
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Top Navigation */}
-        <header className="border-b bg-gradient-to-r from-slate-800 to-slate-900 sticky top-0 z-10 shadow-md">
+        <header className="border-b bg-white sticky top-0 z-10 shadow-md">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="text-white hover:text-orange-300 p-2 rounded-lg bg-slate-800/50 hover:bg-slate-700 transition-all md:hidden"
-                aria-label="Open navigation menu"
+                className="text-gray-700 hover:text-orange-500 p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-all md:hidden"
               >
                 <Menu className="h-6 w-6" />
               </button>
-              
-              {/* Mobile page title */}
-              <div className="flex items-center ml-3 md:hidden">
-                <h1 className="text-lg font-medium text-white">{currentPageTitle}</h1>
-              </div>
-
-              <div className="ml-4 hidden md:block">
-                <div className="relative">
-                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                    <Search className="h-4 w-4 text-slate-400" />
-                  </div>
-                  <input 
-                    type="text"
-                    placeholder="Search..." 
-                    className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-10 text-sm text-white focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-                  />
-                </div>
+              <div className="ml-4 md:hidden">
+                <span className="text-xs font-medium text-gray-700">Admin Dashboard</span>
               </div>
             </div>
+            
             <div className="flex items-center gap-3">
-              {/* Mobile search button */}
-              <button 
-                className="rounded-lg p-2 text-white hover:bg-slate-700 hover:text-orange-300 transition-all md:hidden"
-                onClick={() => {
-                  // In a real app, this would open a search modal or expand a search input
-                  alert('Search functionality would open here');
-                }}
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-
-              {/* Admin indicator badge */}
-              <div className="hidden md:flex items-center px-3 py-1.5 bg-orange-500/20 border border-orange-500/30 rounded-full">
-                <ShieldCheck className="h-4 w-4 text-orange-500 mr-1.5" />
-                <span className="text-xs font-medium text-orange-200">Admin Dashboard</span>
-              </div>
-
-              <div className="flex items-center space-x-4">
-                {/* Notification button */}
-                <button className="relative p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-full transition-colors">
-                  <Bell className="h-5 w-5" />
-                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-orange-500"></span>
-                </button>
-                
-                {/* Visit Store button */}
-                <Link 
-                  to="/store" 
-                  className="hidden md:flex items-center px-3 py-1.5 text-sm text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
-                >
-                  <Store className="h-4 w-4 mr-1.5" />
-                  Visit Store
-                </Link>
-                
-                {/* User button */}
-                <UserButton
-                  appearance={{
-                    elements: {
-                      userButtonAvatarBox: "h-8 w-8"
-                    }
-                  }}
+              {/* Search */}
+              <div className="relative hidden md:flex">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Search className="h-4 w-4 text-gray-400" />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Search..." 
+                  className="pl-10 pr-4 py-2 bg-gray-100 text-sm text-gray-700 rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-orange-500 w-48 focus:bg-white"
                 />
               </div>
-            </div>
-          </div>
-          
-          {/* Mobile search bar - collapsible */}
-          <div className="px-4 pb-3 md:hidden">
-            <div className="relative">
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Search className="h-4 w-4 text-slate-400" />
+              
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-gray-600 hover:text-orange-500 rounded-lg hover:bg-gray-100 transition-all"
+              >
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              
+              {/* Notifications */}
+              <button className="p-2 text-gray-600 hover:text-orange-500 rounded-lg hover:bg-gray-100 transition-all relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-orange-500 rounded-full border-2 border-white"></span>
+              </button>
+              
+              {/* User menu */}
+              <div className="relative">
+                <button 
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-100 transition-all"
+                >
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 to-indigo-500 flex items-center justify-center text-white font-medium">
+                    A
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <div className="text-sm font-medium text-gray-800">Admin User</div>
+                    <div className="text-xs text-gray-500">admin@example.com</div>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                </button>
+                
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                    <div className="px-4 py-3 border-b border-gray-200">
+                      <div className="text-sm font-medium text-gray-800">Admin User</div>
+                      <div className="text-xs text-gray-500">admin@example.com</div>
+                    </div>
+                    <div className="py-1">
+                      <Link 
+                        to="/admin/settings" 
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-orange-500"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="flex items-center px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 hover:text-orange-500 w-full text-left"
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2 pl-10 text-sm text-white focus:outline-none focus:ring-1 focus:ring-orange-500 focus:border-orange-500"
-              />
             </div>
           </div>
         </header>
 
-        {/* Back navigation for mobile */}
-        {isMobile && location.pathname !== '/admin' && (
-          <div className="p-3 flex items-center bg-slate-800/10">
-            <Link to="/admin" className="flex items-center text-sm text-slate-400 hover:text-slate-300 transition-colors">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Back to Dashboard
-            </Link>
-          </div>
-        )}
-
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto bg-gradient-to-b from-background to-slate-900/10 scrollbar-hide">
-          <div className="container mx-auto p-4 md:p-6 max-w-7xl">
+        <main className="flex-1 overflow-y-auto bg-white">
+          <div className="container mx-auto py-6 px-4 md:px-6">
             <Outlet />
           </div>
         </main>

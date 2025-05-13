@@ -18,9 +18,13 @@ const userSchema = mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['admin', 'staff', 'customer'],
-      default: 'customer',
+      enum: ['admin', 'store_owner', 'employee'],
+      default: 'employee',
     },
+    stores: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Store',
+    }],
     address: {
       street: { type: String },
       city: { type: String },
@@ -65,9 +69,18 @@ userSchema.methods.isAdmin = function () {
   return this.role === 'admin';
 };
 
-// Check if user has staff permissions
-userSchema.methods.isStaff = function () {
-  return this.role === 'admin' || this.role === 'staff';
+// Check if user has store owner permissions
+userSchema.methods.isStoreOwner = function () {
+  return this.role === 'admin' || this.role === 'store_owner';
+};
+
+// Check if user has access to a specific store
+userSchema.methods.hasStoreAccess = function (storeId) {
+  // Admin has access to all stores
+  if (this.role === 'admin') return true;
+  
+  // Check if store is in user's stores array
+  return this.stores.some(store => store.equals(storeId));
 };
 
 const User = mongoose.model('User', userSchema);

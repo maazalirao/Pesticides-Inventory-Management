@@ -1,11 +1,13 @@
 import asyncHandler from 'express-async-handler';
 import Order from '../models/orderModel.js';
 import Product from '../models/productModel.js';
+import Store from '../models/storeModel.js';
 
 // @desc    Create new order
-// @route   POST /api/orders
+// @route   POST /api/orders/store/:storeId
 // @access  Private
 const createOrder = asyncHandler(async (req, res) => {
+  const storeId = req.params.storeId;
   const {
     orderItems,
     shippingAddress,
@@ -16,16 +18,27 @@ const createOrder = asyncHandler(async (req, res) => {
     totalPrice,
   } = req.body;
 
+  // Validate store exists
+  const store = await Store.findById(storeId);
+  if (!store) {
+    res.status(404);
+    throw new Error('Store not found');
+  }
+
   if (orderItems && orderItems.length === 0) {
     res.status(400);
     throw new Error('No order items');
   } else {
-    // Check if all items are in stock
+    // Check if all items are in stock and belong to the correct store
     for (const item of orderItems) {
-      const product = await Product.findById(item.product);
+      const product = await Product.findOne({ 
+        _id: item.product,
+        store: storeId
+      });
+      
       if (!product) {
         res.status(404);
-        throw new Error(`Product not found: ${item.name}`);
+        throw new Error(`Product not found or not available in this store: ${item.name}`);
       }
       
       // In a real app, you would check inventory levels here
@@ -36,6 +49,7 @@ const createOrder = asyncHandler(async (req, res) => {
     const order = new Order({
       orderItems,
       user: req.user._id,
+      store: storeId,
       shippingAddress,
       paymentMethod,
       itemsPrice,
@@ -51,19 +65,20 @@ const createOrder = asyncHandler(async (req, res) => {
 });
 
 // @desc    Get order by ID
-// @route   GET /api/orders/:id
+// @route   GET /api/orders/store/:storeId/:id
 // @access  Private
 const getOrderById = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id).populate(
-    'user',
-    'name email'
-  );
+  const order = await Order.findOne({
+    _id: req.params.id,
+    store: req.params.storeId,
+  }).populate('user', 'name email');
 
   if (order) {
-    // Check if the order belongs to the logged-in user or if user is admin
+    // Check if the order belongs to the logged-in user or if user is admin/store owner
     if (
       order.user._id.toString() === req.user._id.toString() ||
-      req.user.role === 'admin'
+      req.user.role === 'admin' ||
+      (req.user.role === 'store_owner' && req.user.stores.some(store => store._id.toString() === req.params.storeId))
     ) {
       res.json(order);
     } else {
@@ -77,10 +92,13 @@ const getOrderById = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update order to paid
-// @route   PUT /api/orders/:id/pay
+// @route   PUT /api/orders/store/:storeId/:id/pay
 // @access  Private
 const updateOrderToPaid = asyncHandler(async (req, res) => {
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findOne({
+    _id: req.params.id,
+    store: req.params.storeId,
+  });
 
   if (order) {
     order.isPaid = true;
@@ -102,11 +120,14 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 });
 
 // @desc    Update order status
-// @route   PUT /api/orders/:id/status
-// @access  Private/Admin
+// @route   PUT /api/orders/store/:storeId/:id/status
+// @access  Private/StoreOwner/Admin
 const updateOrderStatus = asyncHandler(async (req, res) => {
   const { status, trackingNumber, notes } = req.body;
-  const order = await Order.findById(req.params.id);
+  const order = await Order.findOne({
+    _id: req.params.id,
+    store: req.params.storeId,
+  });
 
   if (order) {
     order.status = status || order.status;
@@ -132,19 +153,43 @@ const updateOrderStatus = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Get logged in user orders
-// @route   GET /api/orders/myorders
+// @desc    Get logged in user orders for a specific store
+// @route   GET /api/orders/store/:storeId/myorders
 // @access  Private
-const getMyOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id });
+const getMyStoreOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ 
+    user: req.user._id,
+    store: req.params.storeId 
+  });
   res.json(orders);
 });
 
-// @desc    Get all orders
-// @route   GET /api/orders
+// @desc    Get logged in user orders across all stores
+// @route   GET /api/orders/myorders
+// @access  Private
+const getMyOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ user: req.user._id }).populate('store', 'name');
+  res.json(orders);
+});
+
+// @desc    Get all orders for a specific store
+// @route   GET /api/orders/store/:storeId
+// @access  Private/StoreOwner/Admin
+const getStoreOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({ store: req.params.storeId })
+    .populate('user', 'id name')
+    .sort('-createdAt');
+  res.json(orders);
+});
+
+// @desc    Get all orders across all stores
+// @route   GET /api/orders/admin/all
 // @access  Private/Admin
-const getOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find({}).populate('user', 'id name');
+const getAllOrders = asyncHandler(async (req, res) => {
+  const orders = await Order.find({})
+    .populate('user', 'id name')
+    .populate('store', 'name')
+    .sort('-createdAt');
   res.json(orders);
 });
 
@@ -153,6 +198,8 @@ export {
   getOrderById,
   updateOrderToPaid,
   updateOrderStatus,
+  getMyStoreOrders,
   getMyOrders,
-  getOrders,
+  getStoreOrders,
+  getAllOrders,
 }; 

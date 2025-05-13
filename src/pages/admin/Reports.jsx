@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { 
@@ -8,7 +8,8 @@ import {
   TrendingDown,
   Package,
   AlertTriangle,
-  DollarSign
+  DollarSign,
+  RefreshCw
 } from 'lucide-react';
 import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
 import {
@@ -23,6 +24,17 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import { useAuth } from '../../contexts/AuthContext';
+import { 
+  getSalesReport, 
+  getInventoryReport, 
+  getProductSalesReport, 
+  getCustomerReport, 
+  getExpiryReport,
+  exportReport,
+  clearCache
+} from '../../lib/api';
+import { useToast } from '../../components/ui/use-toast';
 
 // Register ChartJS components
 ChartJS.register(
@@ -38,112 +50,136 @@ ChartJS.register(
 );
 
 const Reports = () => {
+  const { selectedStore } = useAuth();
+  const { toast } = useToast();
   const [reportType, setReportType] = useState('sales');
   const [dateRange, setDateRange] = useState('monthly');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  
+  // State for report data
+  const [salesData, setSalesData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [inventoryData, setInventoryData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [productSalesData, setProductSalesData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [customerData, setCustomerData] = useState({
+    labels: [],
+    datasets: []
+  });
+  const [lowStockProducts, setLowStockProducts] = useState([]);
+  const [expiringProducts, setExpiringProducts] = useState([]);
 
-  // Mock data for sales report
-  const salesData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
-      {
-        label: 'Sales ($)',
-        data: [4500, 5200, 4800, 5800, 6000, 7200, 8500, 9200, 10000, 11500, 11000, 12500],
-        borderColor: 'hsl(var(--primary))',
-        backgroundColor: 'rgba(34, 197, 94, 0.1)',
-        fill: true,
-        tension: 0.4,
-      },
-      {
-        label: 'Expenses ($)',
-        data: [3800, 4500, 4200, 5100, 5300, 6200, 7400, 8000, 8800, 9500, 9200, 10200],
-        borderColor: 'hsl(var(--destructive))',
-        backgroundColor: 'rgba(239, 68, 68, 0.1)',
-        fill: true,
-        tension: 0.4,
+  useEffect(() => {
+    if (!selectedStore) {
+      console.log("No store selected, skipping report data fetch");
+      return;
+    }
+    
+    fetchReportData();
+  }, [selectedStore, reportType, dateRange]);
+  
+  const fetchReportData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      switch (reportType) {
+        case 'sales':
+          const salesReportData = await getSalesReport(dateRange);
+          console.log("Sales report data:", salesReportData);
+          setSalesData(salesReportData || { labels: [], datasets: [] });
+          break;
+          
+        case 'inventory':
+          const inventoryReportData = await getInventoryReport();
+          console.log("Inventory report data:", inventoryReportData);
+          setInventoryData(inventoryReportData || { labels: [], datasets: [] });
+          break;
+          
+        case 'products':
+          const productSalesReportData = await getProductSalesReport(dateRange);
+          console.log("Product sales report data:", productSalesReportData);
+          setProductSalesData(productSalesReportData || { labels: [], datasets: [] });
+          break;
+          
+        case 'customers':
+          const customerReportData = await getCustomerReport();
+          console.log("Customer report data:", customerReportData);
+          setCustomerData(customerReportData || { labels: [], datasets: [] });
+          break;
+          
+        case 'expiry':
+          const expiryReportData = await getExpiryReport();
+          console.log("Expiry report data:", expiryReportData);
+          setLowStockProducts(expiryReportData?.lowStock || []);
+          setExpiringProducts(expiryReportData?.expiring || []);
+          break;
+          
+        default:
+          break;
       }
-    ],
+    } catch (error) {
+      console.error("Error fetching report data:", error);
+      setError("Failed to load report data. Please try again later.");
+      toast({
+        title: "Error",
+        description: "Failed to load report data. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // Mock data for inventory report
-  const inventoryData = {
-    labels: ['Insecticides', 'Herbicides', 'Fungicides', 'Rodenticides', 'Others'],
-    datasets: [
-      {
-        label: 'Inventory Distribution',
-        data: [120, 80, 40, 25, 15],
-        backgroundColor: [
-          'rgba(34, 197, 94, 0.7)',
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(168, 85, 247, 0.7)',
-          'rgba(249, 115, 22, 0.7)',
-          'rgba(156, 163, 175, 0.7)',
-        ],
-        borderColor: [
-          'rgba(34, 197, 94, 1)',
-          'rgba(59, 130, 246, 1)',
-          'rgba(168, 85, 247, 1)',
-          'rgba(249, 115, 22, 1)',
-          'rgba(156, 163, 175, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
+  
+  const handleRefresh = () => {
+    console.log("Refreshing report data...");
+    
+    // Clear the cache for reports
+    clearCache('reports');
+    
+    // Fetch fresh data
+    fetchReportData();
   };
-
-  // Mock data for product sales report
-  const productSalesData = {
-    labels: ['MaxKill', 'HerbControl', 'FungoClear', 'RatAway', 'AntiPest', 'WeedBGone', 'TermiteShield', 'MosquitoKiller', 'AntControl', 'MoldBuster'],
-    datasets: [
-      {
-        label: 'Units Sold',
-        data: [120, 95, 65, 45, 55, 80, 30, 40, 70, 50],
-        backgroundColor: 'rgba(34, 197, 94, 0.7)',
-        borderColor: 'rgba(34, 197, 94, 1)',
-        borderWidth: 1,
-      },
-    ],
+  
+  const handleExport = async () => {
+    try {
+      setLoading(true);
+      
+      const response = await exportReport(reportType, dateRange);
+      
+      // Create blob from response
+      const url = window.URL.createObjectURL(new Blob([response]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${reportType}-report-${dateRange}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      toast({
+        title: "Success",
+        description: "Report exported successfully.",
+        variant: "default",
+      });
+    } catch (error) {
+      console.error("Error exporting report:", error);
+      toast({
+        title: "Error",
+        description: "Failed to export report. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
-
-  // Mock data for customer distribution
-  const customerData = {
-    labels: ['Business', 'Individual', 'Government', 'Educational'],
-    datasets: [
-      {
-        label: 'Customer Distribution',
-        data: [45, 30, 15, 10],
-        backgroundColor: [
-          'rgba(59, 130, 246, 0.7)',
-          'rgba(168, 85, 247, 0.7)',
-          'rgba(34, 197, 94, 0.7)',
-          'rgba(249, 115, 22, 0.7)',
-        ],
-        borderColor: [
-          'rgba(59, 130, 246, 1)',
-          'rgba(168, 85, 247, 1)',
-          'rgba(34, 197, 94, 1)',
-          'rgba(249, 115, 22, 1)',
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // Mock data for low stock and expiry alerts
-  const lowStockProducts = [
-    { id: 1, name: "MaxKill Insecticide", stock: 5, threshold: 10 },
-    { id: 2, name: "GardenGuard Spray", stock: 3, threshold: 15 },
-    { id: 3, name: "TermiteShield", stock: 2, threshold: 8 },
-    { id: 4, name: "MosquitoKiller", stock: 4, threshold: 12 },
-    { id: 5, name: "WeedBGone", stock: 6, threshold: 10 },
-  ];
-
-  const expiringProducts = [
-    { id: 1, name: "MaxKill Insecticide", stock: 45, expiryDate: "2023-12-15" },
-    { id: 2, name: "HerbControl Plus", stock: 28, expiryDate: "2023-12-20" },
-    { id: 3, name: "FungoClear Solution", stock: 16, expiryDate: "2023-12-28" },
-    { id: 4, name: "RatAway Pellets", stock: 34, expiryDate: "2024-01-05" },
-    { id: 5, name: "AntiPest Powder", stock: 22, expiryDate: "2024-01-10" },
-  ];
 
   // Format currency
   const formatCurrency = (amount) => {
@@ -236,6 +272,63 @@ const Reports = () => {
     },
   ];
 
+  const getCurrentReportContent = () => {
+    if (loading) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 py-24">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
+          <p className="text-muted-foreground">Loading report data...</p>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 py-24">
+          <AlertTriangle className="h-12 w-12 text-red-500 mb-4" />
+          <p className="text-muted-foreground">{error}</p>
+          <Button 
+            variant="outline" 
+            className="mt-4"
+            onClick={handleRefresh}
+          >
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Try Again
+          </Button>
+        </div>
+      );
+    }
+
+    switch (reportType) {
+      case 'sales':
+        return (
+          <div className="h-72 md:h-96">
+            <Line data={salesData} options={lineChartOptions} />
+          </div>
+        );
+      case 'inventory':
+        return (
+          <div className="h-72 md:h-96">
+            <Doughnut data={inventoryData} options={pieChartOptions} />
+          </div>
+        );
+      case 'products':
+        return (
+          <div className="h-72 md:h-96">
+            <Bar data={productSalesData} options={barChartOptions} />
+          </div>
+        );
+      case 'customers':
+        return (
+          <div className="h-72 md:h-96">
+            <Pie data={customerData} options={pieChartOptions} />
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -266,7 +359,11 @@ const Reports = () => {
               Yearly
             </button>
           </div>
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleRefresh}>
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+          <Button variant="outline" className="flex items-center gap-2" onClick={handleExport}>
             <Download className="h-4 w-4" />
             Export Report
           </Button>
@@ -346,11 +443,11 @@ const Reports = () => {
         </button>
         <button
           className={`px-4 py-2 font-medium text-sm ${
-            reportType === 'alerts'
+            reportType === 'expiry'
               ? 'border-b-2 border-primary text-primary'
               : 'text-muted-foreground'
           }`}
-          onClick={() => setReportType('alerts')}
+          onClick={() => setReportType('expiry')}
         >
           Stock Alerts
         </button>
@@ -366,9 +463,7 @@ const Reports = () => {
                 <CardDescription>Monthly sales and expenses overview</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-[400px]">
-                  <Line data={salesData} options={lineChartOptions} />
-                </div>
+                {getCurrentReportContent()}
               </CardContent>
             </Card>
             <div className="grid gap-6 md:grid-cols-2">
@@ -417,7 +512,7 @@ const Reports = () => {
               <CardContent>
                 <div className="h-[400px] flex items-center justify-center">
                   <div className="w-2/3">
-                    <Pie data={inventoryData} options={pieChartOptions} />
+                    {getCurrentReportContent()}
                   </div>
                 </div>
               </CardContent>
@@ -492,7 +587,7 @@ const Reports = () => {
               </CardHeader>
               <CardContent>
                 <div className="h-[400px]">
-                  <Bar data={productSalesData} options={barChartOptions} />
+                  {getCurrentReportContent()}
                 </div>
               </CardContent>
             </Card>
@@ -577,7 +672,7 @@ const Reports = () => {
               <CardContent>
                 <div className="h-[400px] flex items-center justify-center">
                   <div className="w-2/3">
-                    <Doughnut data={customerData} options={pieChartOptions} />
+                    {getCurrentReportContent()}
                   </div>
                 </div>
               </CardContent>
@@ -637,7 +732,7 @@ const Reports = () => {
           </>
         )}
 
-        {reportType === 'alerts' && (
+        {reportType === 'expiry' && (
           <>
             <div className="grid gap-6 md:grid-cols-2">
               <Card>

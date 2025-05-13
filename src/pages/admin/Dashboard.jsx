@@ -1,23 +1,36 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../../components/ui/card';
+"// Creating admin dashboard file" 
+
+import React, { useState, useEffect, useMemo } from 'react';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import {
+  Store,
   Package,
-  AlertTriangle,
   DollarSign,
-  TrendingUp,
-  TrendingDown,
   Users,
   ShoppingCart,
-  Calendar,
-  Filter,
+  AlertTriangle,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  ChevronRight,
   RefreshCw,
+  Calendar,
+  ArrowRight,
+  BarChart2,
+  Clock,
+  Info,
+  Truck,
+  ShieldCheck,
+  Check,
+  Eye,
+  Filter,
   Download,
   ChevronDown,
-  ArrowRight,
-  Clock
+  Database,
+  XCircle
 } from 'lucide-react';
-import { Bar, Line, Pie, Doughnut } from 'react-chartjs-2';
+import { Bar, Line, Doughnut, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,16 +45,15 @@ import {
   Legend,
 } from 'chart.js';
 import { 
-  getDashboardStats, 
-  getSalesData, 
-  getInventoryDistribution, 
-  getCustomerSegments,
-  getSalesForecast,
-  getLowStockProducts,
-  getExpiringProducts,
-  getRecentSales,
-  clearAnalyticsCache
+  getAdminDashboardStats, 
+  getAllStoresProducts,
+  getAllStoresInventory,
+  getAllStoresSuppliers,
+  getAllStoresCustomers
 } from '../../lib/api.js';
+import { Loader } from '../../components/ui/loader';
+import StatCard from '../../components/ui/stat-card';
+import { Badge } from '../../components/ui/badge';
 
 // Register ChartJS components
 ChartJS.register(
@@ -56,6 +68,14 @@ ChartJS.register(
   Tooltip,
   Legend
 );
+
+const StoreBadge = ({ storeName }) => {
+  return (
+    <Badge variant="outline" className="bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200">
+      {storeName || "Unknown Store"}
+    </Badge>
+  );
+};
 
 const Dashboard = () => {
   // State for dashboard filters and data
@@ -85,6 +105,13 @@ const Dashboard = () => {
   const [expiringProducts, setExpiringProducts] = useState([]);
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [recentSales, setRecentSales] = useState([]);
+  
+  // New state for global data
+  const [allProducts, setAllProducts] = useState([]);
+  const [allInventory, setAllInventory] = useState([]);
+  const [allSuppliers, setAllSuppliers] = useState([]);
+  const [allCustomers, setAllCustomers] = useState([]);
+  const [allStores, setAllStores] = useState([]);
 
   // Fetch data from API
   useEffect(() => {
@@ -93,140 +120,233 @@ const Dashboard = () => {
       setError(null);
       
       try {
-        // Fetch each data source separately to handle individual failures
-        let statsData = {};
-        let salesChartData = { labels: [], datasets: [] };
-        let inventoryChartData = { labels: [], datasets: [] };
-        let customerSegmentsData = { labels: [], datasets: [] };
-        let forecastChartData = { labels: [], datasets: [] };
-        let lowStockData = [];
-        let expiringProductsData = [];
-        let recentSalesData = [];
+        console.log('Fetching global admin dashboard data...');
+        // Fetch global data from all stores
+        const [dashboardStats, productsData, inventoryData, suppliersData, customersData] = await Promise.all([
+          getAdminDashboardStats(),
+          getAllStoresProducts(),
+          getAllStoresInventory(),
+          getAllStoresSuppliers(),
+          getAllStoresCustomers()
+        ]);
         
-        try {
-          statsData = await getDashboardStats();
-        } catch (err) {
-          console.error('Error fetching dashboard stats:', err);
-          // Continue with other data
+        console.log('Data fetched successfully:', { 
+          dashboardStats: !!dashboardStats,
+          productCount: productsData?.products?.length || productsData?.length || 0,
+          inventoryCount: inventoryData?.inventory?.length || inventoryData?.length || 0,
+          supplierCount: suppliersData?.suppliers?.length || suppliersData?.length || 0,
+          customerCount: customersData?.customers?.length || customersData?.length || 0
+        });
+        
+        // Print detailed debugging for inventory
+        console.log('INVENTORY DATA TYPE:', typeof inventoryData);
+        console.log('INVENTORY DATA:', inventoryData);
+        console.log('IS ARRAY?', Array.isArray(inventoryData));
+        console.log('HAS INVENTORY PROPERTY?', inventoryData && 'inventory' in inventoryData);
+        if (inventoryData && 'inventory' in inventoryData) {
+          console.log('INVENTORY PROPERTY IS ARRAY?', Array.isArray(inventoryData.inventory));
+          console.log('INVENTORY ARRAY LENGTH:', inventoryData.inventory?.length);
         }
         
-        try {
-          salesChartData = await getSalesData(timeRange);
-        } catch (err) {
-          console.error('Error fetching sales data:', err);
-          // Continue with other data
+        // Process products data
+        if (productsData) {
+          if (Array.isArray(productsData)) {
+            // If it's just an array, assume it's the products directly
+            setAllProducts(productsData);
+          } else if (productsData.products && Array.isArray(productsData.products)) {
+            // If it has a products array property
+            setAllProducts(productsData.products);
+          } else {
+            console.warn('Products data in unexpected format:', productsData);
+            setAllProducts([]);
+          }
+          
+          // Store data may be in productsData or dashboardStats
+          if (productsData.stores && Array.isArray(productsData.stores) && productsData.stores.length > 0) {
+            setAllStores(productsData.stores);
+          }
         }
         
-        try {
-          inventoryChartData = await getInventoryDistribution();
-        } catch (err) {
-          console.error('Error fetching inventory distribution:', err);
-          // Continue with other data
-        }
-        
-        try {
-          customerSegmentsData = await getCustomerSegments();
-        } catch (err) {
-          console.error('Error fetching customer segments:', err);
-          // Continue with other data
-        }
-        
-        try {
-          forecastChartData = await getSalesForecast();
-        } catch (err) {
-          console.error('Error fetching sales forecast:', err);
-          // Continue with other data
-        }
-        
-        try {
-          lowStockData = await getLowStockProducts();
-        } catch (err) {
-          console.error('Error fetching low stock products:', err);
-          // Continue with other data
-        }
-        
-        try {
-          expiringProductsData = await getExpiringProducts();
-        } catch (err) {
-          console.error('Error fetching expiring products:', err);
-          // Continue with other data
-        }
-        
-        try {
-          recentSalesData = await getRecentSales();
-        } catch (err) {
-          console.error('Error fetching recent sales:', err);
-          // Continue with other data
-        }
-        
-        // Transform statistics data for UI if it exists
-        const statsArray = Object.values(statsData);
-        if (statsArray.length > 0) {
-          setStatistics(statsArray);
-        } else {
-          // Fallback to default data if API returns empty data
-          setStatistics([
-            {
-              title: "Inventory Items",
-              value: "0",
-              description: "Total pesticide products in stock",
-              icon: "Package",
-              iconClass: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
-              change: "0% from last month",
-              changeType: "positive"
-            },
-            {
-              title: "Low Stock Alerts",
-              value: "0",
-              description: "Products below minimum threshold",
-              icon: "AlertTriangle",
-              iconClass: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300",
-              change: "0% since last week",
-              changeType: "positive"
-            },
-            {
-              title: "Sales This Month",
-              value: "0",
-              description: "Total revenue from sales",
-              icon: "DollarSign",
-              iconClass: "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300",
-              change: "0% from last month",
-              changeType: "positive"
-            },
-            {
-              title: "New Orders",
-              value: "0",
-              description: "Orders received today",
-              icon: "ShoppingCart",
-              iconClass: "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300",
-              change: "0% from yesterday",
-              changeType: "positive"
+        // Process inventory data with expanded errorhandling
+        let processedInventory = [];
+        if (inventoryData) {
+          console.log('Processing inventory data...');
+          
+          if (Array.isArray(inventoryData)) {
+            // If it's just an array, assume it's the inventory directly
+            console.log('Setting inventory directly from array');
+            processedInventory = inventoryData;
+          } else if (inventoryData.inventory && Array.isArray(inventoryData.inventory)) {
+            // If it has an inventory array property
+            console.log('Setting inventory from inventory property');
+            processedInventory = inventoryData.inventory;
+          } else {
+            // Check if it's a different format or structure
+            console.warn('Inventory data in unexpected format:', JSON.stringify(inventoryData).substring(0, 200) + '...');
+            // Try to parse different possible formats
+            if (typeof inventoryData === 'object') {
+              const possibleArrays = Object.values(inventoryData).filter(val => Array.isArray(val));
+              if (possibleArrays.length > 0) {
+                // Use the first array property found
+                console.log('Found possible inventory array with length:', possibleArrays[0].length);
+                processedInventory = possibleArrays[0];
+              } else {
+                processedInventory = [];
+              }
+            } else {
+              processedInventory = [];
             }
-          ]);
+          }
+          
+          console.log(`Processed inventory array length: ${processedInventory.length}`);
+          setAllInventory(processedInventory);
+          
+          // Store data may be in inventoryData if not already set
+          if (inventoryData.stores && Array.isArray(inventoryData.stores) && 
+              inventoryData.stores.length > 0 && allStores.length === 0) {
+            setAllStores(inventoryData.stores);
+          }
+        } else {
+          console.error('No inventory data received from API');
+          setAllInventory([]);
         }
         
-        setSalesData(salesChartData);
-        setInventoryData(inventoryChartData);
-        setCustomerSegmentData(customerSegmentsData);
-        setForecastData(forecastChartData);
-        setLowStockProducts(lowStockData);
-        setExpiringProducts(expiringProductsData);
-        setRecentSales(recentSalesData);
+        // Process suppliers data
+        if (suppliersData) {
+          if (Array.isArray(suppliersData)) {
+            // If it's just an array, assume it's the suppliers directly
+            setAllSuppliers(suppliersData);
+          } else if (suppliersData.suppliers && Array.isArray(suppliersData.suppliers)) {
+            // If it has a suppliers array property
+            setAllSuppliers(suppliersData.suppliers);
+          } else {
+            console.warn('Suppliers data in unexpected format:', suppliersData);
+            setAllSuppliers([]);
+          }
+          
+          // Store data may be in suppliersData if not already set
+          if (suppliersData.stores && Array.isArray(suppliersData.stores) && 
+              suppliersData.stores.length > 0 && allStores.length === 0) {
+            setAllStores(suppliersData.stores);
+          }
+        }
+        
+        // Process customers data
+        if (customersData) {
+          if (Array.isArray(customersData)) {
+            // If it's just an array, assume it's the customers directly
+            setAllCustomers(customersData);
+          } else if (customersData.customers && Array.isArray(customersData.customers)) {
+            // If it has a customers array property
+            setAllCustomers(customersData.customers);
+          } else {
+            console.warn('Customers data in unexpected format:', customersData);
+            setAllCustomers([]);
+          }
+          
+          // Store data may be in customersData if not already set
+          if (customersData.stores && Array.isArray(customersData.stores) && 
+              customersData.stores.length > 0 && allStores.length === 0) {
+            setAllStores(customersData.stores);
+          }
+        }
+        
+        // Ensure we have some default data if necessary
+        if (allStores.length === 0) {
+          console.warn('No stores data found in any API response, using default empty array');
+          setAllStores([]);
+        }
+        
+        // Debug final state
+        console.log('Final state after processing:', {
+          productsCount: processedInventory.length,
+          inventoryCount: processedInventory.length,
+          suppliersCount: suppliersData?.suppliers?.length || suppliersData?.length || 0,
+          customersCount: customersData?.customers?.length || customersData?.length || 0,
+          storesCount: allStores.length
+        });
+        
+        // Process and set dashboard stats
+        if (dashboardStats) {
+          console.log('Processing dashboard stats data');
+          // Set statistics
+          if (dashboardStats.statistics) {
+            setStatistics(dashboardStats.statistics);
+          } else {
+            console.log('No statistics data in dashboardStats');
+          }
+          
+          // Set sales data
+          if (dashboardStats.salesData) {
+            setSalesData(dashboardStats.salesData);
+          } else {
+            console.log('No salesData in dashboardStats');
+          }
+          
+          // Set inventory distribution
+          if (dashboardStats.inventoryDistribution) {
+            setInventoryData(dashboardStats.inventoryDistribution);
+          } else {
+            console.log('No inventoryDistribution in dashboardStats');
+          }
+          
+          // Set customer segments
+          if (dashboardStats.customerSegments) {
+            setCustomerSegmentData(dashboardStats.customerSegments);
+          } else {
+            console.log('No customerSegments in dashboardStats');
+          }
+          
+          // Set sales forecast
+          if (dashboardStats.salesForecast) {
+            setForecastData(dashboardStats.salesForecast);
+          } else {
+            console.log('No salesForecast in dashboardStats');
+          }
+          
+          // Set low stock products
+          if (dashboardStats.lowStockProducts) {
+            setLowStockProducts(dashboardStats.lowStockProducts);
+          } else {
+            console.log('No lowStockProducts in dashboardStats');
+          }
+          
+          // Set expiring products
+          if (dashboardStats.expiringProducts) {
+            setExpiringProducts(dashboardStats.expiringProducts);
+          } else {
+            console.log('No expiringProducts in dashboardStats');
+          }
+          
+          // Set recent sales
+          if (dashboardStats.recentSales) {
+            setRecentSales(dashboardStats.recentSales);
+          } else {
+            console.log('No recentSales in dashboardStats');
+          }
+          
+          // Set stores data if not already set
+          if (dashboardStats.stores && Array.isArray(dashboardStats.stores) && 
+              dashboardStats.stores.length > 0 && allStores.length === 0) {
+            setAllStores(dashboardStats.stores);
+          }
+        } else {
+          console.log('No dashboardStats data received');
+        }
         
         setLoading(false);
-      } catch (err) {
-        console.error('Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data. Please try again.');
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again later.');
         setLoading(false);
       }
     };
-    
+
     fetchDashboardData();
-  }, [timeRange]);
+  }, []);
   
   // Handle refresh button click
   const handleRefresh = () => {
-    clearAnalyticsCache();
     // Refetch data
     const timeRangeValue = timeRange;
     setTimeRange('temp');
@@ -302,282 +422,787 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div className="flex items-center rounded-md border">
-            <Button 
-              variant={timeRange === 'week' ? 'secondary' : 'ghost'} 
-              className="text-xs sm:text-sm px-2 sm:px-3"
-              onClick={() => handleTimeRangeChange('week')}
-            >
-              Weekly
-            </Button>
-            <Button 
-              variant={timeRange === 'month' ? 'secondary' : 'ghost'} 
-              className="text-xs sm:text-sm px-2 sm:px-3"
-              onClick={() => handleTimeRangeChange('month')}
-            >
-              Monthly
-            </Button>
-            <Button 
-              variant={timeRange === 'year' ? 'secondary' : 'ghost'} 
-              className="text-xs sm:text-sm px-2 sm:px-3"
-              onClick={() => handleTimeRangeChange('year')}
-            >
-              Yearly
-            </Button>
+    <div className="container px-4 py-6 space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">Admin Dashboard</h1>
+          <p className="text-muted-foreground">Overview of metrics from all stores</p>
           </div>
-          <Button size="sm" variant="outline" onClick={handleRefresh}>
-            <RefreshCw className="h-4 w-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">Refresh</span>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleRefresh}>
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
           </Button>
         </div>
       </div>
 
-      {/* Statistics cards */}
-      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-2 md:grid-cols-4">
-        {statistics.map((stat, index) => (
-          <Card key={index} className="overflow-hidden relative">
-            <CardContent className="p-0">
-              <div className="p-3 sm:p-4 md:p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs sm:text-sm font-medium text-muted-foreground">{stat.title}</p>
-                    <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mt-1">{stat.value}</h2>
-                  </div>
-                  <div className={`p-1.5 sm:p-2 rounded-full ${stat.iconClass}`}>
-                    {getIcon(stat.icon)}
-                  </div>
-                </div>
-                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{stat.description}</p>
-                <div className={`mt-2 sm:mt-4 flex items-center text-xs ${
-                  stat.changeType === 'positive' ? 'text-orange-600 dark:text-orange-400' : 'text-red-600 dark:text-red-400'
-                }`}>
-                  {stat.changeType === 'positive' ? (
-                    <TrendingUp className="mr-1 h-3 w-3" />
-                  ) : (
-                    <TrendingDown className="mr-1 h-3 w-3" />
-                  )}
-                  <span>{stat.change}</span>
-                </div>
-              </div>
-            </CardContent>
-            
-            {/* Bottom color indicator */}
-            <div className={`absolute bottom-0 left-0 right-0 h-1.5 sm:h-2 ${
-              stat.changeType === 'positive' 
-                ? 'bg-gradient-to-r from-orange-200 to-orange-500 dark:from-orange-900 dark:to-orange-600'
-                : 'bg-gradient-to-r from-red-200 to-red-500 dark:from-red-900 dark:to-red-600'
-            }`}></div>
-          </Card>
-        ))}
+      {/* Error and loading states */}
+      {error && <div className="p-4 bg-red-50 text-red-600 rounded-md">{error}</div>}
+      {loading && <div className="p-4 flex justify-center"><Loader className="animate-spin h-6 w-6" /></div>}
+
+      {/* Admin Dashboard Summary Stats */}
+      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+        <StatCard 
+          title="Total Products" 
+          value={allProducts.length || 0} 
+          icon="Package2" 
+          description={`Across ${allStores.length} stores`}
+          loading={loading}
+        />
+        <StatCard 
+          title="Total Inventory Items" 
+          value={allInventory.length || 0} 
+          icon="Boxes" 
+          description={`${allInventory.filter(i => i.quantity < (i.threshold || 10)).length} low stock items`}
+          loading={loading}
+        />
+        <StatCard 
+          title="Total Suppliers" 
+          value={allSuppliers.length || 0} 
+          icon="Factory" 
+          description={`Across ${allStores.length} stores`}
+          loading={loading}
+        />
+        <StatCard 
+          title="Total Customers" 
+          value={allCustomers.length || 0} 
+          icon="Users" 
+          description={`Across ${allStores.length} stores`}
+          loading={loading}
+        />
       </div>
 
-      {/* Charts */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
-        <Card className="md:col-span-2">
-          <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0 pb-4">
+      {/* New section for global inventory data across all stores */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Business Performance</CardTitle>
-              <CardDescription>Revenue, expenses and profit over time</CardDescription>
+                <CardTitle>Global Inventory Overview</CardTitle>
+                <CardDescription>Comprehensive inventory data across all stores</CardDescription>
             </div>
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              <Button 
-                variant={timeRange === 'month' ? 'secondary' : 'outline'} 
-                size="sm" 
-                className="h-7 px-2 sm:px-3 text-xs"
-                onClick={() => handleTimeRangeChange('month')}
-              >
-                Monthly
-              </Button>
-              <Button 
-                variant={timeRange === 'quarter' ? 'secondary' : 'outline'} 
-                size="sm" 
-                className="h-7 px-2 sm:px-3 text-xs"
-                onClick={() => handleTimeRangeChange('quarter')}
-              >
-                Quarterly
-              </Button>
-              <Button 
-                variant={timeRange === 'year' ? 'secondary' : 'outline'} 
-                size="sm" 
-                className="h-7 px-2 sm:px-3 text-xs"
-                onClick={() => handleTimeRangeChange('year')}
-              >
-                Yearly
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/inventory'}>
+                View Full Inventory
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </CardHeader>
           <CardContent>
-            <div className="h-[250px] sm:h-[300px] md:h-[400px]">
-              <Line data={salesData} options={chartOptions} />
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-8 w-8 animate-spin text-primary/70" />
+              </div>
+            ) : allInventory.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <div className="mb-2">
+                  <Database className="h-12 w-12 mx-auto opacity-20" />
+                </div>
+                <p>No inventory data available across stores</p>
+                <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Data
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                  <Card className="bg-green-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center">
+                        <div className="mr-4 bg-green-100 p-2 rounded-full">
+                          <Check className="h-6 w-6 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-green-700">Total Items</p>
+                          <p className="text-2xl font-bold">{allInventory.length}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="bg-amber-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center">
+                        <div className="mr-4 bg-amber-100 p-2 rounded-full">
+                          <AlertTriangle className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-amber-700">Low Stock Items</p>
+                          <p className="text-2xl font-bold">
+                            {allInventory.filter(item => 
+                              item.quantity < (item.threshold || 10) && item.quantity > 0
+                            ).length}
+                          </p>
+                        </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg">Inventory Distribution</CardTitle>
-            <CardDescription>Breakdown by product category</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
-              <Doughnut data={inventoryData} options={doughnutOptions} />
-            </div>
-          </CardContent>
-          <CardFooter className="border-t px-3 sm:px-6 py-2 sm:py-3">
-            <Button variant="ghost" className="w-full justify-center text-xs text-muted-foreground">
-              View Detailed Inventory Report
-            </Button>
-          </CardFooter>
-        </Card>
+                  <Card className="bg-red-50">
+                    <CardContent className="p-4">
+                      <div className="flex items-center">
+                        <div className="mr-4 bg-red-100 p-2 rounded-full">
+                          <XCircle className="h-6 w-6 text-red-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-red-700">Out of Stock</p>
+                          <p className="text-2xl font-bold">
+                            {allInventory.filter(item => 
+                              !item.quantity || item.quantity === 0
+                            ).length}
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                <h3 className="text-lg font-semibold mb-3">Inventory by Category</h3>
+                <div className="overflow-x-auto rounded-lg border mb-6">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left font-medium py-2 px-4">Category</th>
+                        <th className="text-left font-medium py-2 px-4">Store Distribution</th>
+                        <th className="text-right font-medium py-2 px-4">Items Count</th>
+                        <th className="text-right font-medium py-2 px-4">In Stock Value</th>
+                        <th className="text-right font-medium py-2 px-4">Low Stock</th>
+                        <th className="text-right font-medium py-2 px-4">Out of Stock</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from(new Set(allInventory.map(item => item.category || "Uncategorized"))).map((category, index) => {
+                        const categoryItems = allInventory.filter(item => (item.category || "Uncategorized") === category);
+                        const lowStock = categoryItems.filter(item => 
+                          item.quantity < (item.threshold || 10) && item.quantity > 0
+                        ).length;
+                        const outOfStock = categoryItems.filter(item => 
+                          !item.quantity || item.quantity === 0
+                        ).length;
+                        const totalValue = categoryItems.reduce((sum, item) => 
+                          sum + (item.price || 0) * (item.quantity || 0)
+                        , 0);
+                        
+                        // Count items by store for this category
+                        const storeDistribution = {};
+                        categoryItems.forEach(item => {
+                          const storeName = item.store?.name || "Unknown Store";
+                          if (!storeDistribution[storeName]) storeDistribution[storeName] = 0;
+                          storeDistribution[storeName]++;
+                        });
+                        
+                        return (
+                          <tr key={index} className="border-b hover:bg-muted/50">
+                            <td className="py-2 px-4">{category}</td>
+                            <td className="py-2 px-4">
+                              <div className="flex flex-wrap gap-1">
+                                {Object.entries(storeDistribution).map(([storeName, count], i) => (
+                                  <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700 text-xs">
+                                    {storeName} ({count})
+                                  </Badge>
+                                ))}
+                              </div>
+                            </td>
+                            <td className="py-2 px-4 text-right">{categoryItems.length}</td>
+                            <td className="py-2 px-4 text-right">₨ {totalValue.toLocaleString()}</td>
+                            <td className="py-2 px-4 text-right">
+                              <span className={`${lowStock > 0 ? 'text-amber-600' : ''}`}>
+                                {lowStock}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-right">
+                              <span className={`${outOfStock > 0 ? 'text-red-600' : ''}`}>
+                                {outOfStock}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
 
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-base sm:text-lg">Customer Segmentation</CardTitle>
-            <CardDescription>Sales distribution by customer type</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px] sm:h-[250px] md:h-[300px]">
-              <Pie data={customerSegmentData} options={doughnutOptions} />
+                <h3 className="text-lg font-semibold mb-3">Critical Items</h3>
+                <div className="overflow-x-auto rounded-lg border">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left font-medium py-2 px-4">Product</th>
+                        <th className="text-left font-medium py-2 px-4">Store</th>
+                        <th className="text-left font-medium py-2 px-4">Category</th>
+                        <th className="text-right font-medium py-2 px-4">Quantity</th>
+                        <th className="text-right font-medium py-2 px-4">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Show most critical items first - out of stock or very low stock */}
+                      {allInventory
+                        .filter(item => item.quantity < (item.threshold || 10))
+                        .sort((a, b) => (a.quantity || 0) - (b.quantity || 0))
+                        .slice(0, 10)
+                        .map((item, index) => (
+                        <tr key={index} className="border-b hover:bg-muted/50">
+                          <td className="py-2 px-4">{item.name || item.productName || 'Unnamed'}</td>
+                          <td className="py-2 px-4">
+                            <StoreBadge storeName={item.store?.name} />
+                          </td>
+                          <td className="py-2 px-4">{item.category || "Uncategorized"}</td>
+                          <td className="py-2 px-4 text-right">{item.quantity || 0} {item.unit}</td>
+                          <td className="py-2 px-4 text-right">
+                            {!item.quantity || item.quantity === 0 ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-red-100 text-red-800">
+                                Out of Stock
+                              </span>
+                            ) : item.quantity < (item.threshold || 10) ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800">
+                                Low Stock
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800">
+                                In Stock
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
             </div>
+            )}
           </CardContent>
-          <CardFooter className="border-t px-3 sm:px-6 py-2 sm:py-3">
-            <Button variant="ghost" className="w-full justify-center text-xs text-muted-foreground">
-              View Customer Analytics
-            </Button>
+          <CardFooter className="border-t px-6 py-3">
+            <div className="text-xs text-muted-foreground">
+              Showing critical items from {allStores.length} stores
+            </div>
           </CardFooter>
         </Card>
       </div>
 
-      {/* Sales Forecast */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
-          <div>
-            <CardTitle className="text-base sm:text-lg">6-Month Sales Forecast</CardTitle>
-            <CardDescription>Predicted sales based on historical data</CardDescription>
-          </div>
-          <Button variant="outline" size="sm" className="h-8 gap-1">
-            <Filter className="h-3.5 w-3.5 mr-1" />
-            <span className="text-xs">Adjust Parameters</span>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[250px] sm:h-[300px]">
-            <Line data={forecastData} options={chartOptions} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Tables section */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 xl:grid-cols-3">
-        {/* Expiring Products */}
+      {/* Additional new section for store comparison */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1">
         <Card>
-          <CardHeader>
-            <CardTitle className="text-base sm:text-lg flex items-center">
-              <Clock className="h-5 w-5 mr-2 text-yellow-500" />
-              Expiring Products
-            </CardTitle>
-            <CardDescription>Products expiring in next 60 days</CardDescription>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Store Performance Comparison</CardTitle>
+                <CardDescription>Inventory and business metrics across stores</CardDescription>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/stores'}>
+                  Manage Stores
+                </Button>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            {expiringProducts.length > 0 ? (
-              <div className="space-y-4">
-                {expiringProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-muted-foreground">Stock: {product.stock}</span>
-                        <span className="mx-2 text-muted-foreground">•</span>
-                        <span className="text-xs text-red-500">Expires: {new Date(product.expiryDate).toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline" className="h-8 text-xs">View</Button>
-                  </div>
-                ))}
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-8 w-8 animate-spin text-primary/70" />
+              </div>
+            ) : allStores.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No store data available</p>
+                <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  Refresh Data
+                </Button>
               </div>
             ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-muted-foreground">No expiring products</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Low Stock Alerts */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base sm:text-lg flex items-center">
-              <AlertTriangle className="h-5 w-5 mr-2 text-red-500" />
-              Low Stock Alerts
-            </CardTitle>
-            <CardDescription>Products below minimum threshold</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {lowStockProducts.length > 0 ? (
               <div className="space-y-4">
-                {lowStockProducts.map((product) => (
-                  <div key={product.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{product.name}</p>
-                      <div className="flex items-center mt-1">
-                        <span className="text-xs text-red-500">Stock: {product.stock}</span>
-                        <span className="mx-2 text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">Threshold: {product.threshold}</span>
-                      </div>
-                    </div>
-                    <Button size="sm" variant="outline" className="h-8 text-xs">Restock</Button>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left font-medium py-2 px-4">Store</th>
+                        <th className="text-right font-medium py-2 px-4">Total Products</th>
+                        <th className="text-right font-medium py-2 px-4">Inventory Items</th>
+                        <th className="text-right font-medium py-2 px-4">Inventory Value</th>
+                        <th className="text-right font-medium py-2 px-4">Low Stock</th>
+                        <th className="text-right font-medium py-2 px-4">Out of Stock</th>
+                        <th className="text-right font-medium py-2 px-4"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allStores.map((store, index) => {
+                        const storeInventory = allInventory.filter(item => 
+                          item.store?._id === store._id || item.storeId === store._id
+                        );
+                        const storeProducts = allProducts.filter(item => 
+                          item.store?._id === store._id || item.storeId === store._id
+                        );
+                        const lowStock = storeInventory.filter(item => 
+                          item.quantity < (item.threshold || 10) && item.quantity > 0
+                        ).length;
+                        const outOfStock = storeInventory.filter(item => 
+                          !item.quantity || item.quantity === 0
+                        ).length;
+                        const inventoryValue = storeInventory.reduce((sum, item) => 
+                          sum + (item.price || 0) * (item.quantity || 0)
+                        , 0);
+                        
+                        // Generate a light background color based on store index
+                        const colors = [
+                          'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                          'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                        ];
+                        const bgColor = colors[index % colors.length];
+                        
+                        return (
+                          <tr key={index} className={`border-b hover:${bgColor}`}>
+                            <td className="py-2 px-4">
+                              <div className="flex items-center">
+                                <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
+                                <span className="font-medium">{store.name}</span>
+                              </div>
+                            </td>
+                            <td className="py-2 px-4 text-right">{storeProducts.length}</td>
+                            <td className="py-2 px-4 text-right">{storeInventory.length}</td>
+                            <td className="py-2 px-4 text-right">₨ {inventoryValue.toLocaleString()}</td>
+                            <td className="py-2 px-4 text-right">
+                              <span className={`${lowStock > 0 ? 'text-amber-600' : 'text-gray-500'}`}>
+                                {lowStock}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-right">
+                              <span className={`${outOfStock > 0 ? 'text-red-600' : 'text-gray-500'}`}>
+                                {outOfStock}
+                              </span>
+                            </td>
+                            <td className="py-2 px-4 text-right">
+                              <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => {
+                                localStorage.setItem('selectedStoreId', store._id);
+                                window.location.href = '/inventory';
+                              }}>
+                                View Store
+                              </Button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+                
+                <div className="mt-6">
+                  <h3 className="text-lg font-semibold mb-3">Store Distribution</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {allStores.map((store, index) => {
+                      const storeInventory = allInventory.filter(item => 
+                        item.store?._id === store._id || item.storeId === store._id
+                      );
+                      const storeProducts = allProducts.filter(item => 
+                        item.store?._id === store._id || item.storeId === store._id
+                      );
+                      const storeSuppliers = allSuppliers.filter(item => 
+                        item.store?._id === store._id || item.storeId === store._id
+                      );
+                      const storeCustomers = allCustomers.filter(item => 
+                        item.store?._id === store._id || item.storeId === store._id
+                      );
+                      
+                      // Generate a light background color based on store index
+                      const colors = [
+                        'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                        'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                      ];
+                      const textColors = [
+                        'text-blue-600', 'text-green-600', 'text-purple-600', 
+                        'text-amber-600', 'text-pink-600', 'text-teal-600'
+                      ];
+                      const bgColor = colors[index % colors.length];
+                      const textColor = textColors[index % textColors.length];
+                      
+                      return (
+                        <Card key={index} className={`${bgColor} border-0`}>
+                          <CardContent className="p-4">
+                            <div className="flex items-center mb-3">
+                              <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
+                              <h3 className={`font-medium ${textColor}`}>{store.name}</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-2 text-sm">
+                              <div>
+                                <p className="text-muted-foreground">Products</p>
+                                <p className="font-medium">{storeProducts.length}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Inventory</p>
+                                <p className="font-medium">{storeInventory.length}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Suppliers</p>
+                                <p className="font-medium">{storeSuppliers.length}</p>
+                              </div>
+                              <div>
+                                <p className="text-muted-foreground">Customers</p>
+                                <p className="font-medium">{storeCustomers.length}</p>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-muted-foreground">No low stock alerts</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Sales */}
-        <Card className="md:col-span-2 xl:col-span-1">
-          <CardHeader>
-            <CardTitle className="text-base sm:text-lg flex items-center">
-              <ShoppingCart className="h-5 w-5 mr-2 text-green-500" />
-              Recent Sales
-            </CardTitle>
-            <CardDescription>Latest transactions</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentSales.length > 0 ? (
-              <div className="space-y-4">
-                {recentSales.map((sale) => (
-                  <div key={sale.id} className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{sale.customer}</p>
-                      <div className="flex flex-col sm:flex-row sm:items-center mt-1">
-                        <span className="text-xs text-muted-foreground">{sale.product} x{sale.quantity}</span>
-                        <span className="hidden sm:block mx-2 text-muted-foreground">•</span>
-                        <span className="text-xs text-muted-foreground">{sale.date}</span>
-                      </div>
-                    </div>
-                    <span className="font-medium text-sm">{formatCurrency(sale.total)}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-6">
-                <p className="text-sm text-muted-foreground">No recent sales</p>
+                </div>
               </div>
             )}
           </CardContent>
           <CardFooter className="border-t px-6 py-3">
-            <Button variant="ghost" className="w-full justify-center text-xs">
-              View All Sales
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+            <div className="flex items-center justify-between w-full">
+              <div className="text-xs text-muted-foreground">
+                Showing performance metrics for {allStores.length} stores
+              </div>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Products by Store */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Products by Store</CardTitle>
+                <CardDescription>Distribution of products across all stores</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/products'}>
+                View All Products
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-8 w-8 animate-spin text-primary/70" />
+              </div>
+            ) : allProducts.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No product data available</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                  {allStores.map((store, index) => {
+                    const storeProducts = allProducts.filter(item => 
+                      item.store?._id === store._id || item.storeId === store._id
+                    );
+                    
+                    // Generate a light background color based on store index
+                    const colors = [
+                      'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                      'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                    ];
+                    const textColors = [
+                      'text-blue-600', 'text-green-600', 'text-purple-600', 
+                      'text-amber-600', 'text-pink-600', 'text-teal-600'
+                    ];
+                    const bgColor = colors[index % colors.length];
+                    const textColor = textColors[index % textColors.length];
+                    
+                    return (
+                      <Card key={index} className={`${bgColor} border-0`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
+                              <h3 className={`font-medium ${textColor}`}>{store.name}</h3>
+                            </div>
+                            <div className="text-2xl font-bold">{storeProducts.length}</div>
+                          </div>
+                          <div className="mt-2 text-xs text-muted-foreground">
+                            {storeProducts.length > 0 
+                              ? `${((storeProducts.length / allProducts.length) * 100).toFixed(1)}% of total products` 
+                              : 'No products'}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                
+                <div className="overflow-x-auto rounded-lg border mt-4">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left font-medium py-2 px-4">Product</th>
+                        <th className="text-left font-medium py-2 px-4">Store</th>
+                        <th className="text-left font-medium py-2 px-4">Category</th>
+                        <th className="text-right font-medium py-2 px-4">Price</th>
+                        <th className="text-left font-medium py-2 px-4">Toxicity</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allProducts.slice(0, 10).map((product, index) => {
+                        // Determine the store this product belongs to
+                        const storeIndex = allStores.findIndex(s => 
+                          s._id === product.store?._id || s._id === product.storeId
+                        );
+                        
+                        const colors = [
+                          'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                          'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                        ];
+                        const bgColor = storeIndex >= 0 ? colors[storeIndex % colors.length] : 'bg-gray-50';
+                        
+                        return (
+                          <tr key={index} className={`border-b hover:${bgColor}`}>
+                            <td className="py-2 px-4 font-medium">{product.name}</td>
+                            <td className="py-2 px-4">
+                              <StoreBadge storeName={product.store?.name} />
+                            </td>
+                            <td className="py-2 px-4">{product.category || "Uncategorized"}</td>
+                            <td className="py-2 px-4 text-right">₨ {product.price?.toLocaleString() || 0}</td>
+                            <td className="py-2 px-4">
+                              <span className={`px-1.5 py-0.5 rounded text-xs ${
+                                product.toxicityLevel === 'High' ? 'bg-red-100 text-red-800' : 
+                                product.toxicityLevel === 'Medium' ? 'bg-amber-100 text-amber-800' : 
+                                'bg-green-100 text-green-800'
+                              }`}>
+                                {product.toxicityLevel || 'Low'}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </CardContent>
+          <CardFooter className="border-t px-6 py-3">
+            <div className="text-xs text-muted-foreground">
+              Showing products from {allStores.length} stores
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Suppliers by Store */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Suppliers by Store</CardTitle>
+                <CardDescription>Distribution of suppliers across all stores</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/suppliers'}>
+                View All Suppliers
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-8 w-8 animate-spin text-primary/70" />
+              </div>
+            ) : allSuppliers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No supplier data available</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                  {allStores.map((store, index) => {
+                    const storeSuppliers = allSuppliers.filter(item => 
+                      item.store?._id === store._id || item.storeId === store._id
+                    );
+                    
+                    // Generate a light background color based on store index
+                    const colors = [
+                      'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                      'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                    ];
+                    const textColors = [
+                      'text-blue-600', 'text-green-600', 'text-purple-600', 
+                      'text-amber-600', 'text-pink-600', 'text-teal-600'
+                    ];
+                    const bgColor = colors[index % colors.length];
+                    const textColor = textColors[index % textColors.length];
+                    
+                    return (
+                      <Card key={index} className={`${bgColor} border-0`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
+                              <h3 className={`font-medium text-sm ${textColor}`}>{store.name}</h3>
+                            </div>
+                            <div className="text-xl font-bold">{storeSuppliers.length}</div>
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {storeSuppliers.length > 0 
+                              ? `${((storeSuppliers.length / allSuppliers.length) * 100).toFixed(1)}% of suppliers` 
+                              : 'No suppliers'}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                
+                <div className="overflow-x-auto rounded-lg border mt-4">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left font-medium py-2 px-4">Supplier</th>
+                        <th className="text-left font-medium py-2 px-4">Store</th>
+                        <th className="text-left font-medium py-2 px-4">Contact Person</th>
+                        <th className="text-left font-medium py-2 px-4">Phone</th>
+                        <th className="text-left font-medium py-2 px-4">Email</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allSuppliers.slice(0, 10).map((supplier, index) => {
+                        // Determine the store this supplier belongs to
+                        const storeIndex = allStores.findIndex(s => 
+                          s._id === supplier.store?._id || s._id === supplier.storeId
+                        );
+                        
+                        const colors = [
+                          'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                          'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                        ];
+                        const bgColor = storeIndex >= 0 ? colors[storeIndex % colors.length] : 'bg-gray-50';
+                        
+                        return (
+                          <tr key={index} className={`border-b hover:${bgColor}`}>
+                            <td className="py-2 px-4 font-medium">{supplier.name}</td>
+                            <td className="py-2 px-4">
+                              <StoreBadge storeName={supplier.store?.name} />
+                            </td>
+                            <td className="py-2 px-4">{supplier.contactPerson || "N/A"}</td>
+                            <td className="py-2 px-4">{supplier.phone || "N/A"}</td>
+                            <td className="py-2 px-4">{supplier.email || "N/A"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </CardContent>
+          <CardFooter className="border-t px-6 py-3">
+            <div className="text-xs text-muted-foreground">
+              Showing suppliers from {allStores.length} stores
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Customers by Store */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-1">
+        <Card>
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>Customers by Store</CardTitle>
+                <CardDescription>Distribution of customers across all stores</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/customers'}>
+                View All Customers
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {loading ? (
+              <div className="flex justify-center py-8">
+                <Loader className="h-8 w-8 animate-spin text-primary/70" />
+              </div>
+            ) : allCustomers.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No customer data available</p>
+              </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                  {allStores.map((store, index) => {
+                    const storeCustomers = allCustomers.filter(item => 
+                      item.store?._id === store._id || item.storeId === store._id
+                    );
+                    
+                    // Generate a light background color based on store index
+                    const colors = [
+                      'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                      'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                    ];
+                    const textColors = [
+                      'text-blue-600', 'text-green-600', 'text-purple-600', 
+                      'text-amber-600', 'text-pink-600', 'text-teal-600'
+                    ];
+                    const bgColor = colors[index % colors.length];
+                    const textColor = textColors[index % textColors.length];
+                    
+                    return (
+                      <Card key={index} className={`${bgColor} border-0`}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center">
+                              <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
+                              <h3 className={`font-medium text-sm ${textColor}`}>{store.name}</h3>
+                            </div>
+                            <div className="text-xl font-bold">{storeCustomers.length}</div>
+                          </div>
+                          <div className="mt-1 text-xs text-muted-foreground">
+                            {storeCustomers.length > 0 
+                              ? `${((storeCustomers.length / allCustomers.length) * 100).toFixed(1)}% of customers` 
+                              : 'No customers'}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+                
+                <div className="overflow-x-auto rounded-lg border mt-4">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b bg-muted/50">
+                        <th className="text-left font-medium py-2 px-4">Customer</th>
+                        <th className="text-left font-medium py-2 px-4">Store</th>
+                        <th className="text-left font-medium py-2 px-4">Phone</th>
+                        <th className="text-left font-medium py-2 px-4">Email</th>
+                        <th className="text-left font-medium py-2 px-4">Location</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {allCustomers.slice(0, 10).map((customer, index) => {
+                        // Determine the store this customer belongs to
+                        const storeIndex = allStores.findIndex(s => 
+                          s._id === customer.store?._id || s._id === customer.storeId
+                        );
+                        
+                        const colors = [
+                          'bg-blue-50', 'bg-green-50', 'bg-purple-50', 
+                          'bg-amber-50', 'bg-pink-50', 'bg-teal-50'
+                        ];
+                        const bgColor = storeIndex >= 0 ? colors[storeIndex % colors.length] : 'bg-gray-50';
+                        
+                        return (
+                          <tr key={index} className={`border-b hover:${bgColor}`}>
+                            <td className="py-2 px-4 font-medium">{customer.name}</td>
+                            <td className="py-2 px-4">
+                              <StoreBadge storeName={customer.store?.name} />
+                            </td>
+                            <td className="py-2 px-4">{customer.phone || "N/A"}</td>
+                            <td className="py-2 px-4">{customer.email || "N/A"}</td>
+                            <td className="py-2 px-4">{customer.location || "N/A"}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </>
+            )}
+          </CardContent>
+          <CardFooter className="border-t px-6 py-3">
+            <div className="text-xs text-muted-foreground">
+              Showing customers from {allStores.length} stores
+            </div>
           </CardFooter>
         </Card>
       </div>

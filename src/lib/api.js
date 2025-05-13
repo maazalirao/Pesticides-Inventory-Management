@@ -1,26 +1,54 @@
 import axios from 'axios';
 
-// API URL configuration
-const API_URL = import.meta.env.VITE_API_URL || '/api';
-
-console.log('API URL:', API_URL);
-
-// Create axios instance
+// Create Axios instance with base URL
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: '/api',
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-// Add a request interceptor
+// Helper to get store ID from localStorage
+const getStoreId = () => {
+  return localStorage.getItem('selectedStoreId');
+};
+
+// Request interceptor to add store ID to all requests
 api.interceptors.request.use(
   (config) => {
-    console.log('Request to:', config.url);
+    // Skip store ID interceptor if explicitly requested (for admin global queries)
+    if (config.params && config.params.skipStoreIdInterceptor) {
+      // Remove the skipStoreIdInterceptor param to keep the request clean
+      delete config.params.skipStoreIdInterceptor;
+      return config;
+    }
+    
+    const storeId = getStoreId();
+    
+    if (storeId) {
+      // For GET requests, add storeId as query parameter
+      if (config.method === 'get') {
+        config.params = config.params || {};
+        if (!config.params.storeId) {
+          config.params.storeId = storeId;
+        }
+      } 
+      // For other methods, add to request body if it's an object
+      else if (config.data && typeof config.data === 'object') {
+        if (!config.data.storeId) {
+          config.data.storeId = storeId;
+        }
+      }
+      
+      // If URL has :storeId placeholder, replace it
+      if (config.url && config.url.includes(':storeId')) {
+        config.url = config.url.replace(':storeId', storeId);
+      }
+    }
+    
     return config;
   },
   (error) => {
-    console.error('Request error:', error);
     return Promise.reject(error);
   }
 );
@@ -30,31 +58,57 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     console.error('Response error:', error);
+    
+    // Handle network errors
     if (!error.response) {
+      console.error('Network error or API server not responding');
       throw new Error('Network error. Please check your connection.');
     }
-    throw error.response.data?.message || 'An error occurred. Please try again.';
+    
+    // Log details about the response for debugging
+    const { status, data } = error.response;
+    console.error(`API Error ${status}:`, data);
+    
+    // Handle different error types
+    if (status === 401 || status === 403) {
+      throw 'Authentication error. Please log in again.';
+    }
+    
+    // Structured error messages
+    if (data && typeof data === 'object') {
+      if (data.message) {
+        throw data.message;
+      } else if (data.error) {
+        throw data.error;
+      }
+    }
+    
+    // Default error message
+    throw 'An error occurred. Please try again.';
   }
 );
 
-// Cache configuration
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+// Define the cache structure with separate per-store caches
 const cache = {
-  inventory: {
-    data: null,
-    timestamp: 0
-  },
   products: {
-    data: null,
-    timestamp: 0
+    all: { data: null, timestamp: 0 },
+    byStore: {}
+  },
+  inventory: {
+    all: { data: null, timestamp: 0 },
+    byStore: {}
   },
   suppliers: {
-    data: null,
-    timestamp: 0
+    all: { data: null, timestamp: 0 },
+    byStore: {}
   },
   customers: {
-    data: null,
-    timestamp: 0
+    all: { data: null, timestamp: 0 },
+    byStore: {}
+  },
+  orders: {
+    all: { data: null, timestamp: 0 },
+    byStore: {}
   },
   analytics: {
     dashboardStats: {
@@ -92,488 +146,808 @@ const cache = {
   }
 };
 
-// Helper function to check if cache is valid
-const isCacheValid = (key) => {
-  return cache[key]?.data && (Date.now() - cache[key].timestamp < CACHE_DURATION);
+// Cache validity duration (15 minutes)
+const CACHE_DURATION = 15 * 60 * 1000;
+
+// Check if cache is still valid
+const isCacheValid = (type) => {
+  return cache[type].all.data !== null && 
+    (Date.now() - cache[type].all.timestamp) < CACHE_DURATION;
 };
 
-// Helper function to check if nested cache is valid
+// Check if store-specific cache is still valid
+const isStoreCacheValid = (type, storeId) => {
+  return cache[type].byStore[storeId]?.data !== null && 
+    (Date.now() - cache[type].byStore[storeId]?.timestamp) < CACHE_DURATION;
+};
+
+// Check if nested cache is still valid
 const isNestedCacheValid = (parentKey, childKey) => {
-  return cache[parentKey]?.[childKey]?.data && 
-    (Date.now() - cache[parentKey][childKey].timestamp < CACHE_DURATION);
+  return cache[parentKey]?.[childKey]?.data !== null && 
+    (Date.now() - cache[parentKey][childKey]?.timestamp) < CACHE_DURATION;
 };
 
-// Product API calls
-export const getProducts = async () => {
-  try {
-    console.log('Fetching products...');
-    const { data } = await api.get('/products');
-    console.log('Products fetched:', data.length);
-    return data;
-  } catch (error) {
-    console.error('Error fetching products:', error);
-    throw error;
-  }
-};
-
-export const getProductById = async (id) => {
-  try {
-    const { data } = await api.get(`/products/${id}`);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch product';
-  }
-};
-
-export const createProduct = async (productData) => {
-  try {
-    const { data } = await api.post('/products', productData);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to create product';
-  }
-};
-
-export const updateProduct = async (id, productData) => {
-  try {
-    const { data } = await api.put(`/products/${id}`, productData);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to update product';
-  }
-};
-
-export const deleteProduct = async (id) => {
-  try {
-    const { data } = await api.delete(`/products/${id}`);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to delete product';
-  }
-};
-
-// Inventory API calls
-export const getInventoryItems = async () => {
-  try {
-    console.log('Fetching inventory items...');
-    const { data } = await api.get('/inventory');
-    console.log('Inventory items fetched:', data.length);
-    return data;
-  } catch (error) {
-    console.error('Error fetching inventory:', error);
-    throw error;
-  }
-};
-
-export const getInventoryItemById = async (id) => {
-  try {
-    const { data } = await api.get(`/inventory/${id}`);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch inventory item';
-  }
-};
-
-export const createInventoryItem = async (inventoryData) => {
-  try {
-    const { data } = await api.post('/inventory', inventoryData);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to create inventory item';
-  }
-};
-
-export const updateInventoryItem = async (id, inventoryData) => {
-  try {
-    const { data } = await api.put(`/inventory/${id}`, inventoryData);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to update inventory item';
-  }
-};
-
-export const deleteInventoryItem = async (id) => {
-  try {
-    const { data } = await api.delete(`/inventory/${id}`);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to delete inventory item';
-  }
-};
-
-export const addBatchToInventoryItem = async (id, batchData) => {
-  try {
-    const { data } = await api.post(`/inventory/${id}/batches`, batchData);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to add batch to inventory item';
-  }
-};
-
-// Supplier API calls
-export const getSuppliers = async () => {
-  try {
-    if (isCacheValid('suppliers')) {
-      return cache.suppliers.data;
+// Function to clear all caches for a specific store
+const clearStoreCache = (storeId) => {
+  if (!storeId) return;
+  
+  console.log('Clearing cache for store:', storeId);
+  
+  // Clear cache for each resource type for this specific store
+  Object.keys(cache).forEach(resourceType => {
+    // Only process resources that have a byStore property
+    if (cache[resourceType] && typeof cache[resourceType] === 'object') {
+      if (cache[resourceType].byStore) {
+        console.log(`Clearing ${resourceType} cache for store ${storeId}`);
+        
+        // Create the store cache object if it doesn't exist
+        if (!cache[resourceType].byStore[storeId]) {
+          cache[resourceType].byStore[storeId] = { data: null, timestamp: 0 };
+        } else {
+          // Reset existing cache
+          cache[resourceType].byStore[storeId].data = null;
+          cache[resourceType].byStore[storeId].timestamp = 0;
+        }
+      }
     }
-    
-    const { data } = await api.get('/suppliers');
-    cache.suppliers.data = data;
-    cache.suppliers.timestamp = Date.now();
-    return data;
-  } catch (error) {
-    throw error;
-  }
+  });
 };
 
-export const getSupplierById = async (id) => {
-  try {
-    const { data } = await api.get(`/suppliers/${id}`);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch supplier';
-  }
-};
-
-export const createSupplier = async (supplierData) => {
-  try {
-    const { data } = await api.post('/suppliers', supplierData);
-    cache.suppliers.data = null; // Invalidate cache
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to create supplier';
-  }
-};
-
-export const updateSupplier = async (id, supplierData) => {
-  try {
-    const { data } = await api.put(`/suppliers/${id}`, supplierData);
-    cache.suppliers.data = null; // Invalidate cache
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to update supplier';
-  }
-};
-
-export const deleteSupplier = async (id) => {
-  try {
-    const { data } = await api.delete(`/suppliers/${id}`);
-    cache.suppliers.data = null; // Invalidate cache
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to delete supplier';
-  }
-};
-
-// Customer API calls
-export const getCustomers = async () => {
-  try {
-    if (isCacheValid('customers')) {
-      return cache.customers.data;
-    }
-    
-    const { data } = await api.get('/customers');
-    cache.customers.data = data;
-    cache.customers.timestamp = Date.now();
-    return data;
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const getCustomerById = async (id) => {
-  try {
-    const { data } = await api.get(`/customers/${id}`);
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to fetch customer';
-  }
-};
-
-export const createCustomer = async (customerData) => {
-  try {
-    const { data } = await api.post('/customers', customerData);
-    cache.customers.data = null; // Invalidate cache
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to create customer';
-  }
-};
-
-export const updateCustomer = async (id, customerData) => {
-  try {
-    const { data } = await api.put(`/customers/${id}`, customerData);
-    cache.customers.data = null; // Invalidate cache
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to update customer';
-  }
-};
-
-export const deleteCustomer = async (id) => {
-  try {
-    const { data } = await api.delete(`/customers/${id}`);
-    cache.customers.data = null; // Invalidate cache
-    return data;
-  } catch (error) {
-    throw error.response?.data?.message || 'Failed to delete customer';
-  }
-};
-
-// Cache management
-export const clearCache = (key) => {
-  if (key) {
-    if (cache[key]) {
-      cache[key].data = null;
-      cache[key].timestamp = 0;
-    }
+// Clear all caches or specific store cache
+const clearAllCaches = (storeId = null) => {
+  console.log('Clearing caches', storeId ? `for store: ${storeId}` : 'for all stores');
+  if (storeId) {
+    clearStoreCache(storeId);
   } else {
-    Object.keys(cache).forEach(cacheKey => {
-      cache[cacheKey].data = null;
-      cache[cacheKey].timestamp = 0;
+    // Reset the entire cache
+    Object.keys(cache).forEach(resourceType => {
+      cache[resourceType].all = { data: null, timestamp: 0 };
+      cache[resourceType].byStore = {};
     });
   }
 };
 
-// Invoice API calls
-export const getInvoices = async () => {
-  try {
-    const response = await api.get('/invoices');
-    // The server returns { success: true, data: [...] } so we need to extract the data property
-    return response.data.data || [];
-  } catch (error) {
-    console.error('Error fetching invoices:', error);
-    throw error.response?.data?.message || 'Failed to fetch invoices';
+// Clear analytics data cache
+const clearAnalyticsCache = () => {
+  console.log('Clearing analytics cache');
+  
+  // Reset all analytics cache entries
+  Object.keys(cache.analytics).forEach(key => {
+    cache.analytics[key] = { data: null, timestamp: 0 };
+  });
+  
+  // Also clear store-specific analytics cache if present
+  const storeId = getStoreId();
+  if (storeId && cache.analytics.byStore && cache.analytics.byStore[storeId]) {
+    cache.analytics.byStore[storeId] = {};
   }
+  
+  return true;
 };
 
-export const getInvoice = async (id) => {
-  try {
-    const response = await api.get(`/invoices/${id}`);
-    return response.data.data;
-  } catch (error) {
-    console.error(`Error fetching invoice ${id}:`, error);
-    throw error.response?.data?.message || 'Failed to fetch invoice';
+// Clear cache for a specific resource type
+const clearCache = (resourceType) => {
+  console.log(`Clearing cache for ${resourceType}`);
+  
+  if (!cache[resourceType]) {
+    console.warn(`Cache for ${resourceType} not found`);
+    return false;
   }
+  
+  // Reset the all cache
+  cache[resourceType].all = { data: null, timestamp: 0 };
+  
+  // Reset store-specific cache if a store is selected
+  const storeId = getStoreId();
+  if (storeId && cache[resourceType].byStore) {
+    cache[resourceType].byStore[storeId] = { data: null, timestamp: 0 };
+  }
+  
+  return true;
 };
 
-export const createInvoice = async (invoiceData) => {
-  try {
-    const response = await api.post('/invoices', invoiceData);
-    return response.data.data;
-  } catch (error) {
-    console.error('Error creating invoice:', error);
-    throw error.response?.data?.message || 'Failed to create invoice';
-  }
-};
+// Make cache clearing functions globally available
+window.clearStoreSpecificCache = () => clearAllCaches(localStorage.getItem('selectedStoreId'));
+window.clearAllCaches = clearAllCaches;
+window.storeDataCache = cache;
 
-export const updateInvoice = async (id, invoiceData) => {
-  try {
-    const response = await api.put(`/invoices/${id}`, invoiceData);
-    return response.data.data;
-  } catch (error) {
-    console.error(`Error updating invoice ${id}:`, error);
-    throw error.response?.data?.message || 'Failed to update invoice';
-  }
-};
+// Add event listener for store change events
+window.addEventListener('storeChanged', (event) => {
+  const { storeId } = event.detail;
+  console.log('Store changed event detected:', storeId);
+  clearStoreCache(storeId);
+  console.log('Cache cleared due to store change event for:', storeId);
+});
 
-export const deleteInvoice = async (id) => {
+// Utility functions for common API operations
+export const fetchData = async (endpoint, params = {}) => {
   try {
-    const response = await api.delete(`/invoices/${id}`);
-    return response.data.data;
-  } catch (error) {
-    console.error(`Error deleting invoice ${id}:`, error);
-    throw error.response?.data?.message || 'Failed to delete invoice';
-  }
-};
-
-export const updateInvoiceStatus = async (id, status) => {
-  try {
-    const response = await api.patch(`/invoices/${id}/status`, { status });
-    return response.data.data;
-  } catch (error) {
-    console.error(`Error updating invoice ${id} status:`, error);
-    throw error.response?.data?.message || 'Failed to update invoice status';
-  }
-};
-
-// Analytics API calls
-export const getDashboardStats = async () => {
-  try {
-    // Check cache first
-    if (isNestedCacheValid('analytics', 'dashboardStats')) {
-      return cache.analytics.dashboardStats.data;
+    // Make sure storeId is included in requests if it's needed
+    const storeId = getStoreId();
+    if (storeId && !params.storeId) {
+      params.storeId = storeId;
     }
     
-    const { data } = await api.get('/analytics/dashboard-stats');
-    
-    // Update cache
-    cache.analytics.dashboardStats.data = data;
-    cache.analytics.dashboardStats.timestamp = Date.now();
-    
-    return data;
+    const response = await api.get(endpoint, { params });
+    return response.data;
   } catch (error) {
-    console.error('Error fetching dashboard stats:', error);
+    console.error(`Error fetching data from ${endpoint}:`, error);
     throw error;
   }
 };
 
-export const getSalesData = async (period = 'year') => {
+export const postData = async (endpoint, data = {}) => {
   try {
-    // We don't cache this to ensure fresh data based on period parameter
-    const { data } = await api.get(`/analytics/sales-data?period=${period}`);
-    return data;
-  } catch (error) {
-    console.error('Error fetching sales data:', error);
-    throw error;
-  }
-};
-
-export const getInventoryDistribution = async () => {
-  try {
-    // Check cache first
-    if (isNestedCacheValid('analytics', 'inventoryDistribution')) {
-      return cache.analytics.inventoryDistribution.data;
+    // Make sure storeId is included in requests if it's needed
+    const storeId = getStoreId();
+    if (storeId && !data.storeId) {
+      data.storeId = storeId;
     }
     
-    const { data } = await api.get('/analytics/inventory-distribution');
-    
-    // Update cache
-    cache.analytics.inventoryDistribution.data = data;
-    cache.analytics.inventoryDistribution.timestamp = Date.now();
-    
-    return data;
+    const response = await api.post(endpoint, data);
+    return response.data;
   } catch (error) {
-    console.error('Error fetching inventory distribution:', error);
+    console.error(`Error posting data to ${endpoint}:`, error);
     throw error;
   }
 };
 
-export const getCustomerSegments = async () => {
+export const updateData = async (endpoint, data = {}) => {
   try {
-    // Check cache first
-    if (isNestedCacheValid('analytics', 'customerSegments')) {
-      return cache.analytics.customerSegments.data;
+    // Make sure storeId is included in requests if it's needed
+    const storeId = getStoreId();
+    if (storeId && !data.storeId) {
+      data.storeId = storeId;
     }
     
-    const { data } = await api.get('/analytics/customer-segments');
-    
-    // Update cache
-    cache.analytics.customerSegments.data = data;
-    cache.analytics.customerSegments.timestamp = Date.now();
-    
-    return data;
+    const response = await api.put(endpoint, data);
+    return response.data;
   } catch (error) {
-    console.error('Error fetching customer segments:', error);
+    console.error(`Error updating data at ${endpoint}:`, error);
     throw error;
   }
 };
 
-export const getSalesForecast = async () => {
+export const deleteData = async (endpoint) => {
   try {
-    // Check cache first
-    if (isNestedCacheValid('analytics', 'salesForecast')) {
-      return cache.analytics.salesForecast.data;
+    const response = await api.delete(endpoint);
+    return response.data;
+  } catch (error) {
+    console.error(`Error deleting data at ${endpoint}:`, error);
+    throw error;
+  }
+};
+
+// Store-specific API functions
+
+// Products
+export const getProducts = () => fetchData('/products');
+export const getProduct = (id) => fetchData(`/products/${id}`);
+export const createProduct = (data) => postData('/products', data);
+export const updateProduct = (id, data) => updateData(`/products/${id}`, data);
+export const deleteProduct = (id) => deleteData(`/products/${id}`);
+
+// Inventory
+export const getInventory = () => fetchData('/inventory/store/:storeId');
+export const getInventoryItems = getInventory; // Alias for getInventory
+export const getInventoryItem = (id) => fetchData(`/inventory/store/:storeId/${id}`);
+export const createInventoryItem = (data) => postData('/inventory/store/:storeId', data);
+export const updateInventoryItem = (id, data) => updateData(`/inventory/store/:storeId/${id}`, data);
+export const deleteInventoryItem = (id) => deleteData(`/inventory/store/:storeId/${id}`);
+export const addBatchToInventoryItem = (id, batchData) => postData(`/inventory/store/:storeId/${id}/batches`, batchData);
+
+// Customers
+export const getCustomers = () => fetchData('/customers/store/:storeId');
+export const getCustomer = (id) => fetchData(`/customers/store/:storeId/${id}`);
+export const createCustomer = (data) => postData('/customers/store/:storeId', data);
+export const updateCustomer = (id, data) => updateData(`/customers/store/:storeId/${id}`, data);
+export const deleteCustomer = (id) => deleteData(`/customers/store/:storeId/${id}`);
+
+// Suppliers
+export const getSuppliers = () => fetchData('/suppliers/store/:storeId');
+export const getSupplier = (id) => fetchData(`/suppliers/store/:storeId/${id}`);
+export const createSupplier = (data) => postData('/suppliers/store/:storeId', data);
+export const updateSupplier = (id, data) => updateData(`/suppliers/store/:storeId/${id}`, data);
+export const deleteSupplier = (id) => deleteData(`/suppliers/store/:storeId/${id}`);
+
+// Analytics
+export const getDashboardStats = () => fetchData('/analytics/store/:storeId/dashboard-stats');
+export const getSalesData = (period) => fetchData('/analytics/store/:storeId/sales-data', { period });
+export const getInventoryDistribution = () => fetchData('/analytics/store/:storeId/inventory-distribution');
+export const getCustomerSegments = () => fetchData('/analytics/store/:storeId/customer-segments');
+export const getSalesForecast = () => fetchData('/analytics/store/:storeId/sales-forecast');
+export const getLowStockProducts = () => fetchData('/analytics/store/:storeId/low-stock');
+export const getExpiringProducts = () => fetchData('/analytics/store/:storeId/expiring-products');
+export const getRecentSales = () => fetchData('/analytics/store/:storeId/recent-sales');
+
+// Invoices 
+export const getInvoices = () => fetchData('/invoices/store/:storeId');
+export const createInvoice = (data) => postData('/invoices/store/:storeId', data);
+export const updateInvoice = (id, data) => updateData(`/invoices/store/:storeId/${id}`, data);
+export const deleteInvoice = (id) => deleteData(`/invoices/store/:storeId/${id}`);
+export const updateInvoiceStatus = (id, status) => updateData(`/invoices/store/:storeId/${id}/status`, { status });
+
+// Orders
+export const getOrders = () => fetchData('/orders/store/:storeId');
+export const getOrder = (id) => fetchData(`/orders/store/:storeId/${id}`);
+export const createOrder = (data) => postData('/orders/store/:storeId', data);
+export const updateOrder = (id, data) => updateData(`/orders/store/:storeId/${id}`, data);
+export const deleteOrder = (id) => deleteData(`/orders/store/:storeId/${id}`);
+export const updateOrderStatus = (id, status) => updateData(`/orders/store/:storeId/${id}/status`, { status });
+
+// Reports
+export const getSalesReport = (dateRange) => fetchData('/reports/store/:storeId/sales', { dateRange });
+export const getInventoryReport = () => fetchData('/reports/store/:storeId/inventory');
+export const getProductSalesReport = (dateRange) => fetchData('/reports/store/:storeId/product-sales', { dateRange });
+export const getCustomerReport = () => fetchData('/reports/store/:storeId/customers');
+export const getExpiryReport = () => fetchData('/reports/store/:storeId/expiry');
+export const exportReport = (reportType, dateRange) => fetchData('/reports/store/:storeId/export', { reportType, dateRange }, { responseType: 'blob' });
+
+export { clearAnalyticsCache, clearCache };
+
+// Helper function to get all stores
+export const getAllStores = async () => {
+  try {
+    console.log('Fetching all stores...');
+    
+    // First try the /stores endpoint
+    try {
+      const response = await api.get('/stores', {
+        params: { skipStoreIdInterceptor: true }
+      });
+      console.log('All stores response:', response.data);
+      
+      // Check and normalize the response format
+      if (Array.isArray(response.data)) {
+        return { stores: response.data };
+      }
+      return response.data;
+    } catch (error) {
+      console.log('Primary stores endpoint failed, trying admin endpoint');
+      
+      // Try admin endpoint as fallback
+      const adminResponse = await api.get('/admin/stores', {
+        params: { skipStoreIdInterceptor: true }
+      });
+      
+      if (Array.isArray(adminResponse.data)) {
+        return { stores: adminResponse.data };
+      }
+      return adminResponse.data;
+    }
+  } catch (error) {
+    console.error('Error fetching all stores:', error);
+    
+    // If all attempts fail, return empty array to prevent cascading errors
+    return { stores: [] };
+  }
+};
+
+// Admin API functions to fetch data from all stores
+export const getAllStoresProducts = async () => {
+  try {
+    console.log('Fetching all products from all stores...');
+    
+    // Try multiple endpoint patterns
+    let response = null;
+    
+    // Try different URL patterns in order
+    const endpointsToTry = [
+      '/admin/products/all',
+      '/products/admin/all',
+      '/admin/all/products',
+      '/admin/all'
+    ];
+    
+    // Try each endpoint until one works
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        response = await api.get(endpoint, {
+          params: { skipStoreIdInterceptor: true }
+        });
+        
+        if (response && response.data) {
+          console.log(`Got response from ${endpoint}:`, response.data);
+          break; // We got a response, exit the loop
+        }
+      } catch (err) {
+        console.log(`Endpoint ${endpoint} failed:`, err.message);
+        // Continue to the next endpoint
+      }
     }
     
-    const { data } = await api.get('/analytics/sales-forecast');
-    
-    // Update cache
-    cache.analytics.salesForecast.data = data;
-    cache.analytics.salesForecast.timestamp = Date.now();
-    
-    return data;
-  } catch (error) {
-    console.error('Error fetching sales forecast:', error);
-    throw error;
-  }
-};
-
-export const getLowStockProducts = async () => {
-  try {
-    // This changes frequently, so we use a shorter cache time
-    const shortCacheDuration = 2 * 60 * 1000; // 2 minutes
-    const cacheKey = 'lowStock';
-    
-    if (
-      cache.analytics[cacheKey]?.data && 
-      (Date.now() - cache.analytics[cacheKey].timestamp < shortCacheDuration)
-    ) {
-      return cache.analytics[cacheKey].data;
+    // If we got a response from one of the endpoints
+    if (response && response.data) {
+      // Check if the data is in the expected format, if not, format it properly
+      if (response.data && !response.data.products && Array.isArray(response.data)) {
+        console.log('Data is an array, wrapping in expected format');
+        return { products: response.data, stores: [] };
+      }
+      
+      // Ensure we have valid array properties
+      if (response.data) {
+        if (!response.data.products || !Array.isArray(response.data.products)) {
+          console.log('No products array found, creating empty array');
+          response.data.products = [];
+        }
+        if (!response.data.stores || !Array.isArray(response.data.stores)) {
+          console.log('No stores array found, creating empty array');
+          response.data.stores = [];
+        }
+        
+        console.log(`Found ${response.data.products.length} products from admin endpoint`);
+        return response.data;
+      }
     }
     
-    const { data } = await api.get('/analytics/low-stock');
+    // If we reach here, all endpoints failed - fallback to store-by-store fetching
+    console.log('All admin endpoints failed, falling back to store-by-store fetching');
     
-    // Update cache
-    cache.analytics[cacheKey].data = data;
-    cache.analytics[cacheKey].timestamp = Date.now();
+    // Get all stores first
+    const storesData = await getAllStores();
+    const stores = storesData.stores || [];
     
-    return data;
-  } catch (error) {
-    console.error('Error fetching low stock products:', error);
-    throw error;
-  }
-};
-
-export const getExpiringProducts = async () => {
-  try {
-    // Check cache first
-    if (isNestedCacheValid('analytics', 'expiringProducts')) {
-      return cache.analytics.expiringProducts.data;
-    }
-    
-    const { data } = await api.get('/analytics/expiring-products');
-    
-    // Update cache
-    cache.analytics.expiringProducts.data = data;
-    cache.analytics.expiringProducts.timestamp = Date.now();
-    
-    return data;
-  } catch (error) {
-    console.error('Error fetching expiring products:', error);
-    throw error;
-  }
-};
-
-export const getRecentSales = async () => {
-  try {
-    // This changes frequently, so we use a shorter cache time
-    const shortCacheDuration = 2 * 60 * 1000; // 2 minutes
-    const cacheKey = 'recentSales';
-    
-    if (
-      cache.analytics[cacheKey]?.data && 
-      (Date.now() - cache.analytics[cacheKey].timestamp < shortCacheDuration)
-    ) {
-      return cache.analytics[cacheKey].data;
-    }
-    
-    const { data } = await api.get('/analytics/recent-sales');
-    
-    // Update cache
-    cache.analytics[cacheKey].data = data;
-    cache.analytics[cacheKey].timestamp = Date.now();
-    
-    return data;
-  } catch (error) {
-    console.error('Error fetching recent sales:', error);
-    throw error;
-  }
-};
-
-// Clear specific analytics cache
-export const clearAnalyticsCache = (key) => {
-  if (key && cache.analytics[key]) {
-    cache.analytics[key].data = null;
-    cache.analytics[key].timestamp = 0;
-    console.log(`Analytics cache cleared for ${key}`);
-  } else {
-    // Clear all analytics cache
-    Object.keys(cache.analytics).forEach(k => {
-      cache.analytics[k].data = null;
-      cache.analytics[k].timestamp = 0;
+    // Then fetch products for each store
+    const allProductsPromises = stores.map(store => {
+      return api.get('/products', {
+        params: { storeId: store._id }
+      }).then(res => {
+        // Add store info to each product
+        const products = res.data.products || res.data || [];
+        return products.map(product => ({
+          ...product,
+          store: {
+            _id: store._id,
+            name: store.name
+          }
+        }));
+      }).catch(err => {
+        console.error(`Error fetching products for store ${store.name}:`, err);
+        return [];
+      });
     });
-    console.log('All analytics cache cleared');
+    
+    const productsArrays = await Promise.all(allProductsPromises);
+    const allProducts = productsArrays.flat();
+    
+    console.log(`Total products fetched from individual stores: ${allProducts.length}`);
+    return { products: allProducts, stores };
+  } catch (error) {
+    console.error('Error fetching all products:', error);
+    throw error;
+  }
+};
+
+export const getAllStoresInventory = async () => {
+  try {
+    console.log('Fetching all inventory from all stores...');
+    
+    // Try multiple endpoint variations to find the one that works
+    let response;
+    let error;
+    
+    // Try multiple endpoints in order
+    const endpointsToTry = [
+      '/admin/inventory/all',
+      '/inventory/admin/all',
+      '/admin/all/inventory',
+      '/inventory/admin',
+      '/admin/all'
+    ];
+    
+    // Try each endpoint until one works
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        response = await api.get(endpoint, {
+          params: { skipStoreIdInterceptor: true }
+        });
+        
+        if (response && response.data) {
+          console.log(`Got response from ${endpoint}:`, response.data);
+          break; // We got a response, exit the loop
+        }
+      } catch (err) {
+        console.log(`Endpoint ${endpoint} failed:`, err.message);
+        error = err;
+        // Continue to the next endpoint
+      }
+    }
+    
+    // If we got a response from one of the endpoints
+    if (response && response.data) {
+      console.log('Processing admin inventory data response');
+      
+      // Check if the data is in the expected format, if not, format it properly
+      if (response.data && !response.data.inventory && Array.isArray(response.data)) {
+        console.log('Data is an array of inventory items, wrapping in expected format');
+        return { inventory: response.data, stores: [] };
+      }
+      
+      // Ensure we have valid array properties
+      if (response.data) {
+        if (!response.data.inventory || !Array.isArray(response.data.inventory)) {
+          console.log('No inventory array found or not an array, searching for alternative arrays in response');
+          
+          // Look for any array properties in the response that might contain inventory data
+          const possibleArrays = Object.entries(response.data)
+            .filter(([key, value]) => Array.isArray(value) && value.length > 0)
+            .sort(([, a], [, b]) => b.length - a.length); // Sort by array length (descending)
+          
+          if (possibleArrays.length > 0) {
+            const [arrayKey, arrayValue] = possibleArrays[0];
+            console.log(`Found possible inventory array with key "${arrayKey}" and length ${arrayValue.length}`);
+            response.data.inventory = arrayValue;
+          } else {
+            console.log('No suitable array found in response, creating empty inventory array');
+            response.data.inventory = [];
+          }
+        } else {
+          console.log(`Found inventory array with ${response.data.inventory.length} items`);
+        }
+        
+        if (!response.data.stores || !Array.isArray(response.data.stores)) {
+          console.log('No stores array found, creating empty array');
+          response.data.stores = [];
+        }
+      }
+      
+      console.log(`Returning inventory data with ${response.data.inventory?.length || 0} items`);
+      return response.data;
+    }
+    
+    // If we reach here, all endpoints failed - fallback to store-by-store fetching
+    console.log('All admin endpoints failed, falling back to store-by-store fetching');
+    
+    // Get all stores first
+    const storesData = await getAllStores();
+    const stores = storesData.stores || [];
+    
+    console.log(`Fetching inventory for ${stores.length} individual stores`);
+    
+    // Then fetch inventory for each store
+    const allInventoryPromises = stores.map(store => {
+      return api.get(`/inventory/store/${store._id}`, {
+        params: { storeId: store._id }
+      }).then(res => {
+        // Add store info to each inventory item
+        const inventory = res.data.inventory || res.data || [];
+        console.log(`Got ${inventory.length} inventory items from store ${store.name}`);
+        return inventory.map(item => ({
+          ...item,
+          store: {
+            _id: store._id,
+            name: store.name
+          }
+        }));
+      }).catch(err => {
+        console.error(`Error fetching inventory for store ${store.name}:`, err);
+        return [];
+      });
+    });
+    
+    const inventoryArrays = await Promise.all(allInventoryPromises);
+    const allInventory = inventoryArrays.flat();
+    
+    console.log(`Total inventory items from all stores: ${allInventory.length}`);
+    
+    return { inventory: allInventory, stores };
+  } catch (finalError) {
+    console.error('Error in getAllStoresInventory:', finalError);
+    // Return an empty result rather than throwing error
+    return { inventory: [], stores: [] };
+  }
+};
+
+export const getAllStoresSuppliers = async () => {
+  try {
+    console.log('Fetching all suppliers from all stores...');
+    
+    // Try multiple endpoint patterns
+    let response = null;
+    
+    // Try different URL patterns in order
+    const endpointsToTry = [
+      '/admin/suppliers/all',
+      '/suppliers/admin/all',
+      '/admin/all/suppliers',
+      '/admin/all'
+    ];
+    
+    // Try each endpoint until one works
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        response = await api.get(endpoint, {
+          params: { skipStoreIdInterceptor: true }
+        });
+        
+        if (response && response.data) {
+          console.log(`Got response from ${endpoint}:`, response.data);
+          break; // We got a response, exit the loop
+        }
+      } catch (err) {
+        console.log(`Endpoint ${endpoint} failed:`, err.message);
+        // Continue to the next endpoint
+      }
+    }
+    
+    // If we got a response from one of the endpoints
+    if (response && response.data) {
+      // Check if the data is in the expected format, if not, format it properly
+      if (response.data && !response.data.suppliers && Array.isArray(response.data)) {
+        console.log('Data is an array, wrapping in expected format');
+        return { suppliers: response.data, stores: [] };
+      }
+      
+      // Ensure we have valid array properties
+      if (response.data) {
+        if (!response.data.suppliers || !Array.isArray(response.data.suppliers)) {
+          console.log('No suppliers array found, creating empty array');
+          response.data.suppliers = [];
+        }
+        if (!response.data.stores || !Array.isArray(response.data.stores)) {
+          console.log('No stores array found, creating empty array');
+          response.data.stores = [];
+        }
+        
+        console.log(`Found ${response.data.suppliers.length} suppliers from admin endpoint`);
+        return response.data;
+      }
+    }
+    
+    // If we reach here, all endpoints failed - fallback to store-by-store fetching
+    console.log('All admin endpoints failed, falling back to store-by-store fetching');
+    
+    // Get all stores first
+    const storesData = await getAllStores();
+    const stores = storesData.stores || [];
+    
+    // Then fetch suppliers for each store
+    const allSuppliersPromises = stores.map(store => {
+      return api.get(`/suppliers/store/${store._id}`, {
+        params: { storeId: store._id }
+      }).then(res => {
+        // Add store info to each supplier
+        const suppliers = res.data.suppliers || res.data || [];
+        return suppliers.map(supplier => ({
+          ...supplier,
+          store: {
+            _id: store._id,
+            name: store.name
+          }
+        }));
+      }).catch(err => {
+        console.error(`Error fetching suppliers for store ${store.name}:`, err);
+        return [];
+      });
+    });
+    
+    const suppliersArrays = await Promise.all(allSuppliersPromises);
+    const allSuppliers = suppliersArrays.flat();
+    
+    console.log(`Total suppliers fetched from individual stores: ${allSuppliers.length}`);
+    return { suppliers: allSuppliers, stores };
+  } catch (error) {
+    console.error('Error fetching all suppliers:', error);
+    throw error;
+  }
+};
+
+export const getAllStoresCustomers = async () => {
+  try {
+    console.log('Fetching all customers from all stores...');
+    
+    // Try multiple endpoint patterns
+    let response = null;
+    
+    // Try different URL patterns in order
+    const endpointsToTry = [
+      '/admin/customers/all',
+      '/customers/admin/all',
+      '/admin/all/customers',
+      '/admin/all'
+    ];
+    
+    // Try each endpoint until one works
+    for (const endpoint of endpointsToTry) {
+      try {
+        console.log(`Trying endpoint: ${endpoint}`);
+        response = await api.get(endpoint, {
+          params: { skipStoreIdInterceptor: true }
+        });
+        
+        if (response && response.data) {
+          console.log(`Got response from ${endpoint}:`, response.data);
+          break; // We got a response, exit the loop
+        }
+      } catch (err) {
+        console.log(`Endpoint ${endpoint} failed:`, err.message);
+        // Continue to the next endpoint
+      }
+    }
+    
+    // If we got a response from one of the endpoints
+    if (response && response.data) {
+      // Check if the data is in the expected format, if not, format it properly
+      if (response.data && !response.data.customers && Array.isArray(response.data)) {
+        console.log('Data is an array, wrapping in expected format');
+        return { customers: response.data, stores: [] };
+      }
+      
+      // Ensure we have valid array properties
+      if (response.data) {
+        if (!response.data.customers || !Array.isArray(response.data.customers)) {
+          console.log('No customers array found, creating empty array');
+          response.data.customers = [];
+        }
+        if (!response.data.stores || !Array.isArray(response.data.stores)) {
+          console.log('No stores array found, creating empty array');
+          response.data.stores = [];
+        }
+        
+        console.log(`Found ${response.data.customers.length} customers from admin endpoint`);
+        return response.data;
+      }
+    }
+    
+    // If we reach here, all endpoints failed - fallback to store-by-store fetching
+    console.log('All admin endpoints failed, falling back to store-by-store fetching');
+    
+    // Get all stores first
+    const storesData = await getAllStores();
+    const stores = storesData.stores || [];
+    
+    // Then fetch customers for each store
+    const allCustomersPromises = stores.map(store => {
+      return api.get(`/customers/store/${store._id}`, {
+        params: { storeId: store._id }
+      }).then(res => {
+        // Add store info to each customer
+        const customers = res.data.customers || res.data || [];
+        return customers.map(customer => ({
+          ...customer,
+          store: {
+            _id: store._id,
+            name: store.name
+          }
+        }));
+      }).catch(err => {
+        console.error(`Error fetching customers for store ${store.name}:`, err);
+        return [];
+      });
+    });
+    
+    const customersArrays = await Promise.all(allCustomersPromises);
+    const allCustomers = customersArrays.flat();
+    
+    console.log(`Total customers fetched from individual stores: ${allCustomers.length}`);
+    return { customers: allCustomers, stores };
+  } catch (error) {
+    console.error('Error fetching all customers:', error);
+    throw error;
+  }
+};
+
+export const getAdminDashboardStats = async () => {
+  try {
+    console.log('Fetching admin dashboard stats from all stores...');
+    
+    // Try the direct admin endpoint first
+    try {
+      const response = await api.get('/admin/analytics/dashboard-stats', {
+        params: { skipStoreIdInterceptor: true }
+      });
+      console.log('Admin dashboard stats response from admin endpoint:', response.data);
+      return response.data;
+    } catch (error) {
+      console.log('Admin stats endpoint failed, generating aggregate stats from individual stores');
+      
+      // Fallback: Get all stores first
+      const storesData = await getAllStores();
+      const stores = storesData.stores || [];
+      
+      // Get stats from each store and combine them
+      const allStatsPromises = stores.map(store => {
+        return api.get(`/analytics/store/${store._id}/dashboard-stats`, {
+          params: { storeId: store._id }
+        }).then(res => {
+          return {
+            ...res.data,
+            store: {
+              _id: store._id,
+              name: store.name
+            }
+          };
+        }).catch(err => {
+          console.error(`Error fetching stats for store ${store.name}:`, err);
+          return null;
+        });
+      });
+      
+      const allStoreStats = (await Promise.all(allStatsPromises)).filter(Boolean);
+      
+      // Aggregate stats from all stores to create global stats
+      const aggregateStats = {
+        statistics: [
+          {
+            title: "Total Inventory",
+            value: allStoreStats.reduce((sum, stat) => {
+              const inventoryCount = stat.statistics?.find(s => s.title.includes("Inventory"))?.value || "0";
+              return sum + parseInt(inventoryCount.replace(/,/g, ""), 10);
+            }, 0).toLocaleString(),
+            description: "Total pesticide products across all stores",
+            icon: "Package",
+            iconClass: "bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300",
+            change: "+5% from last month",
+            changeType: "positive"
+          },
+          {
+            title: "Low Stock Items",
+            value: allStoreStats.reduce((sum, stat) => {
+              const lowStockCount = stat.statistics?.find(s => s.title.includes("Low Stock"))?.value || "0";
+              return sum + parseInt(lowStockCount.replace(/,/g, ""), 10);
+            }, 0).toLocaleString(),
+            description: "Products below minimum threshold",
+            icon: "AlertTriangle",
+            iconClass: "bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300",
+            change: "-10% from last month",
+            changeType: "positive"
+          },
+          {
+            title: "Total Revenue",
+            value: `₨ ${allStoreStats.reduce((sum, stat) => {
+              const salesStr = stat.statistics?.find(s => s.title.includes("Sales"))?.value || "₨ 0";
+              const salesNum = parseInt(salesStr.replace(/[^\d]/g, ""), 10);
+              return sum + salesNum;
+            }, 0).toLocaleString()}`,
+            description: "Combined revenue from all stores",
+            icon: "DollarSign",
+            iconClass: "bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300",
+            change: "+12% from last month",
+            changeType: "positive"
+          },
+          {
+            title: "Total Orders",
+            value: allStoreStats.reduce((sum, stat) => {
+              const ordersCount = stat.statistics?.find(s => s.title.includes("Orders"))?.value || "0";
+              return sum + parseInt(ordersCount.replace(/,/g, ""), 10);
+            }, 0).toLocaleString(),
+            description: "Combined orders across all stores",
+            icon: "ShoppingCart",
+            iconClass: "bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300",
+            change: "+8% from last month",
+            changeType: "positive"
+          }
+        ],
+        stores: stores,
+        // Combine other data as needed
+        lowStockProducts: allStoreStats.flatMap(stat => 
+          (stat.lowStockProducts || []).map(product => ({
+            ...product,
+            store: stat.store
+          }))
+        ),
+        expiringProducts: allStoreStats.flatMap(stat => 
+          (stat.expiringProducts || []).map(product => ({
+            ...product,
+            store: stat.store
+          }))
+        ),
+        recentSales: allStoreStats.flatMap(stat => 
+          (stat.recentSales || []).map(sale => ({
+            ...sale,
+            store: stat.store
+          }))
+        ).sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5)
+      };
+      
+      return aggregateStats;
+    }
+  } catch (error) {
+    console.error('Error fetching admin dashboard stats:', error);
+    throw error;
   }
 };
 

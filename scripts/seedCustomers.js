@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import Customer from '../server/models/customerModel.js';
+import Store from '../server/models/storeModel.js';
 import connectDB from '../server/config/db.js';
 
 dotenv.config();
 
-const customers = [
+// Customer templates without store reference
+const customerTemplates = [
   {
     name: "Al-Barakat Farms",
     email: "info@albarakat.com",
@@ -116,7 +118,7 @@ const customers = [
     paymentMethod: "Cash",
     taxId: "",
     notes: "Home garden enthusiast",
-    isActive: false
+    isActive: true
   },
   {
     name: "Al-Madina Nursery",
@@ -174,12 +176,49 @@ const seedCustomers = async () => {
     await connectDB();
     console.log('MongoDB Connected');
 
+    // Get all stores
+    const stores = await Store.find({});
+    
+    if (stores.length === 0) {
+      console.error('No stores found. Please run seedStores.js first.');
+      process.exit(1);
+    }
+    
+    console.log(`Found ${stores.length} stores to distribute customers`);
+
     // Clear existing customers
     await Customer.deleteMany({});
     console.log('Cleared existing customers');
 
-    // Insert new customers
-    const insertedCustomers = await Customer.insertMany(customers);
+    // Array to hold all customers with store assignments
+    const allCustomers = [];
+    
+    // Loop through each store
+    for (const store of stores) {
+      console.log(`Creating 5 customers for store: ${store.name}`);
+      
+      // Create exactly 5 customers for each store
+      for (let i = 0; i < 5; i++) {
+        const template = customerTemplates[i % customerTemplates.length];
+        
+        // Create store-specific email to ensure uniqueness
+        const storePrefix = store._id.toString().substring(0, 3);
+        const email = `${storePrefix}-${i}${template.email}`;
+        
+        // Create store-specific customer with a unique name
+        const customerName = `${store.name.split(' ')[0]}'s ${template.name}`;
+        
+        allCustomers.push({
+          ...template,
+          name: customerName,
+          email,
+          store: store._id
+        });
+      }
+    }
+
+    // Insert all customers
+    const insertedCustomers = await Customer.insertMany(allCustomers);
     console.log(`Successfully inserted ${insertedCustomers.length} customers`);
 
     // Close the connection
@@ -188,10 +227,10 @@ const seedCustomers = async () => {
 
     process.exit(0);
   } catch (error) {
-    console.error('Error seeding customers:', error);
+    console.error(`Error: ${error.message}`);
     process.exit(1);
   }
 };
 
-// Run the seeding function
+// Run the script
 seedCustomers(); 

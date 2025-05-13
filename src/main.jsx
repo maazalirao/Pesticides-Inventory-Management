@@ -9,6 +9,7 @@ import { BrowserRouter } from 'react-router-dom';
 // Auth and Cart Providers
 import { AuthProvider } from './contexts/AuthContext'
 import { CartProvider } from './contexts/CartContext'
+import { StoreSelectionProvider } from './contexts/StoreSelectionContext'
 
 // Import your Publishable Keys
 const ADMIN_CLERK_KEY = import.meta.env.VITE_CLERK_ADMIN_KEY
@@ -81,11 +82,13 @@ if (!ADMIN_CLERK_KEY || !STORE_CLERK_KEY) {
       >
         <ThemeProvider>
           <AuthProvider>
-            <CartProvider>
-              <BrowserRouter>
-                <App />
-              </BrowserRouter>
-            </CartProvider>
+            <StoreSelectionProvider>
+              <CartProvider>
+                <BrowserRouter>
+                  <App />
+                </BrowserRouter>
+              </CartProvider>
+            </StoreSelectionProvider>
           </AuthProvider>
         </ThemeProvider>
       </ClerkProvider>

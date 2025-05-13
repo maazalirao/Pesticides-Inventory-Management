@@ -1,14 +1,45 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload } from 'lucide-react';
-import { getProducts, deleteProduct, createProduct, updateProduct } from '../../lib/api';
+import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload, Store as StoreIcon } from 'lucide-react';
+import { getProducts, deleteProduct, createProduct, updateProduct, getAllStoresProducts } from '../../lib/api';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
+import { Badge } from '../../components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+
+// StoreBadge component for consistent store display
+const StoreBadge = ({ store }) => {
+  if (!store || !store.name) return <Badge variant="outline">Unknown Store</Badge>;
+  
+  // Generate color based on store name (consistent coloring)
+  const storeColors = {
+    default: { bg: "bg-blue-100", text: "text-blue-800" },
+    store1: { bg: "bg-green-100", text: "text-green-800" },
+    store2: { bg: "bg-purple-100", text: "text-purple-800" },
+    store3: { bg: "bg-amber-100", text: "text-amber-800" },
+    store4: { bg: "bg-pink-100", text: "text-pink-800" },
+    store5: { bg: "bg-teal-100", text: "text-teal-800" }
+  };
+  
+  // Use hash of store name to pick a consistent color
+  const hash = store.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % 6;
+  const colorKey = `store${hash}` in storeColors ? `store${hash}` : 'default';
+  const { bg, text } = storeColors[colorKey];
+  
+  return (
+    <Badge variant="outline" className={`${bg} ${text} border-0`}>
+      <StoreIcon className="mr-1 h-3 w-3" />
+      {store.name}
+    </Badge>
+  );
+};
 
 const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
+  const [filterStore, setFilterStore] = useState('All'); // Add store filter
   const [products, setProducts] = useState([]);
+  const [stores, setStores] = useState([]); // Add stores state
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -25,7 +56,8 @@ const Products = () => {
     recommendedUse: '',
     sku: '',
     image: 'https://picsum.photos/seed/pesticide/300/300',
-    tags: []
+    tags: [],
+    storeId: ''
   });
   const [formError, setFormError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -43,10 +75,56 @@ const Products = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const data = await getProducts();
+        
+        // Check if we're in admin path
+        const isAdminPath = window.location.pathname.includes('/admin');
+        
+        let data;
+        let storesList = [];
+        if (isAdminPath) {
+          // Use the admin-specific endpoint for all products across stores
+          console.log('Fetching products for admin dashboard');
+          const response = await getAllStoresProducts();
+          
+          // Handle different response formats
+          if (Array.isArray(response)) {
+            // Direct array of products
+            data = response;
+          } else if (response && response.products && Array.isArray(response.products)) {
+            // Object with products array
+            data = response.products;
+            // Extract stores from response if available
+            if (response.stores && Array.isArray(response.stores)) {
+              storesList = response.stores;
+            }
+          } else {
+            console.error('Unexpected data format from getAllStoresProducts:', response);
+            data = [];
+          }
+        } else {
+          // Regular store-specific endpoint
+          data = await getProducts();
+        }
         
         if (isMounted) {
+          console.log(`Loaded ${data.length} products`);
           setProducts(data);
+          
+          // Extract unique stores from products if not already set
+          if (storesList.length === 0 && data.length > 0) {
+            const uniqueStores = [...new Map(
+              data
+                .filter(product => product.store && product.store.name)
+                .map(product => [product.store._id, product.store])
+            ).values()];
+            
+            setStores(uniqueStores);
+            console.log(`Extracted ${uniqueStores.length} unique stores from products`);
+          } else {
+            setStores(storesList);
+            console.log(`Using ${storesList.length} stores from response`);
+          }
+          
           setError(null);
         }
       } catch (err) {
@@ -68,15 +146,26 @@ const Products = () => {
     };
   }, []);
 
+  // Add helper function to get a consistent color for each store
+  const getStoreColor = (store) => {
+    if (!store || !store.name) return 'gray';
+    
+    const storeColors = ['blue', 'green', 'purple', 'amber', 'pink', 'teal'];
+    const hash = store.name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0) % storeColors.length;
+    return storeColors[hash];
+  };
+
   // Optimize filtered products calculation with useMemo
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
       const matchesSearch = product.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           product.description?.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesCategory = filterCategory === 'All' || product.category === filterCategory;
-      return matchesSearch && matchesCategory;
+      const matchesStore = filterStore === 'All' || 
+                          (product.store && (product.store._id === filterStore || product.store.name === filterStore));
+      return matchesSearch && matchesCategory && matchesStore;
     });
-  }, [products, searchTerm, filterCategory]);
+  }, [products, searchTerm, filterCategory, filterStore]);
 
   // Optimize pagination calculations with useMemo
   const { currentItems, totalPages } = useMemo(() => {
@@ -117,7 +206,8 @@ const Products = () => {
       recommendedUse: product.recommendedUse || '',
       sku: product.sku || '',
       image: product.image || 'https://picsum.photos/seed/pesticide/300/300',
-      tags: product.tags || []
+      tags: product.tags || [],
+      storeId: product.store ? product.store._id : ''
     });
     setIsDialogOpen(true);
   };
@@ -136,7 +226,8 @@ const Products = () => {
       recommendedUse: '',
       sku: '',
       image: 'https://picsum.photos/seed/pesticide/300/300',
-      tags: []
+      tags: [],
+      storeId: ''
     });
     setIsDialogOpen(true);
   };
@@ -158,7 +249,7 @@ const Products = () => {
 
     try {
       // Validate required fields
-      if (!newProduct.name || !newProduct.category || !newProduct.price) {
+      if (!newProduct.name || !newProduct.category || !newProduct.price || !newProduct.storeId) {
         setFormError('Please fill in all required fields');
         setIsSubmitting(false);
         return;
@@ -187,7 +278,8 @@ const Products = () => {
         recommendedUse: '',
         sku: '',
         image: 'https://picsum.photos/seed/pesticide/300/300',
-        tags: []
+        tags: [],
+        storeId: ''
       });
       setIsDialogOpen(false);
     } catch (error) {
@@ -439,6 +531,24 @@ const Products = () => {
                   />
                 </div>
                 <div className="space-y-1 sm:space-y-2">
+                  <label htmlFor="storeId" className="text-sm font-semibold text-gray-200 flex items-center">
+                    Store <span className="text-red-400 ml-1">*</span>
+                  </label>
+                  <select
+                    id="storeId"
+                    name="storeId"
+                    value={newProduct.storeId}
+                    onChange={handleInputChange}
+                    className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                  >
+                    <option value="" disabled>Select a store</option>
+                    {stores.map(store => (
+                      <option key={store._id} value={store._id}>{store.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1 sm:space-y-2">
                   <label htmlFor="category" className="text-sm font-semibold text-gray-200 flex items-center">
                     Category <span className="text-red-400 ml-1">*</span>
                   </label>
@@ -617,6 +727,23 @@ const Products = () => {
                     <ChevronDown className="h-4 w-4 text-muted-foreground" />
                   </div>
                 </div>
+              </div>
+
+              <div className="flex items-center">
+                <Select value={filterStore} onValueChange={setFilterStore}>
+                  <SelectTrigger className="w-[180px] border-2 bg-primary/10 border-primary/30 hover:bg-primary/15 transition-colors">
+                    <StoreIcon className="mr-2 h-4 w-4 text-primary" />
+                    <span className="font-medium">{filterStore === 'All' ? 'All Stores' : stores.find(s => s._id === filterStore)?.name || filterStore}</span>
+                  </SelectTrigger>
+                  <SelectContent className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-lg">
+                    <SelectItem value="All" className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">All Stores</SelectItem>
+                    {stores.map(store => (
+                      <SelectItem key={store._id} value={store._id} className="text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
+                        {store.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <Button variant="outline" className="flex items-center gap-2" onClick={exportProducts}>

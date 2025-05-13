@@ -34,7 +34,7 @@ const AdminLayout = () => {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-white">
       {/* Sidebar for desktop */}
       <aside 
         className={`${
@@ -148,7 +148,7 @@ const AdminLayout = () => {
         </header>
         
         {/* Page Content */}
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 overflow-auto p-6 bg-white">
           <Outlet />
         </main>
       </div>

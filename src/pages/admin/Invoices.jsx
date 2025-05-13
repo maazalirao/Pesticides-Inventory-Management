@@ -15,8 +15,10 @@ import {
 import { Input } from '../../components/ui/input';
 import { Label } from '../../components/ui/label';
 import { getInvoices, createInvoice, updateInvoice, deleteInvoice, updateInvoiceStatus } from '../../lib/api';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Invoices = () => {
+  const { selectedStore } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -48,13 +50,23 @@ const Invoices = () => {
 
   // Fetch invoices on component mount
   useEffect(() => {
-    fetchInvoices();
-  }, []);
+    if (selectedStore) {
+      fetchInvoices();
+    }
+  }, [selectedStore]);
 
   const fetchInvoices = async () => {
     try {
       setLoading(true);
-      console.log('Fetching invoices...');
+      console.log('Fetching invoices for store:', selectedStore?._id);
+      
+      if (!selectedStore?._id) {
+        console.warn('No store selected, skipping invoice fetch');
+        setInvoices([]);
+        setLoading(false);
+        return;
+      }
+      
       const data = await getInvoices();
       console.log('Invoices data received:', data);
       setInvoices(data || []);
@@ -280,34 +292,47 @@ const Invoices = () => {
     try {
       setIsSubmitting(true);
       setFormError('');
-
-      // Validate form
-      if (!newInvoice.customer.name || !newInvoice.dueDate || newInvoice.items.length === 0) {
-        setFormError('Please fill in all required fields');
+      
+      if (!selectedStore?._id) {
+        setFormError('No store selected');
         setIsSubmitting(false);
         return;
       }
-
-      // Check if any item is empty
-      for (const item of newInvoice.items) {
-        if (!item.description || item.quantity <= 0 || item.unitPrice <= 0) {
-          setFormError('Please complete all item details');
-          setIsSubmitting(false);
-          return;
-        }
-      }
-
-      const result = await createInvoice(newInvoice);
       
-      // Add the new invoice to the list
-      setInvoices([result, ...invoices]);
+      // Validate required fields
+      if (!newInvoice.customer.name) {
+        setFormError('Customer name is required');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (newInvoice.items.length === 0) {
+        setFormError('At least one item is required');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Add the store ID to the invoice
+      const invoiceData = {
+        ...newInvoice,
+        store: selectedStore._id
+      };
+      
+      const createdInvoice = await createInvoice(invoiceData);
+      
+      // Add created invoice to state
+      setInvoices([...invoices, createdInvoice]);
       
       // Reset form and close dialog
       resetInvoiceForm();
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Error creating invoice:', error);
-      setFormError(error.toString());
+      
+      // Show success message
+      setExportSuccess('Invoice created successfully');
+      setTimeout(() => setExportSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error creating invoice:', err);
+      setFormError('Failed to create invoice. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -318,25 +343,56 @@ const Invoices = () => {
     try {
       setIsSubmitting(true);
       setFormError('');
-
-      // Validate form
-      if (!newInvoice.customer.name || !newInvoice.dueDate || newInvoice.items.length === 0) {
-        setFormError('Please fill in all required fields');
+      
+      if (!selectedStore?._id) {
+        setFormError('No store selected');
         setIsSubmitting(false);
         return;
       }
-
-      const result = await updateInvoice(currentInvoiceId, newInvoice);
       
-      // Update the invoice in the list
-      setInvoices(invoices.map(inv => inv._id === currentInvoiceId ? result : inv));
+      if (!currentInvoiceId) {
+        setFormError('No invoice selected for update');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Validate required fields
+      if (!newInvoice.customer.name) {
+        setFormError('Customer name is required');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      if (newInvoice.items.length === 0) {
+        setFormError('At least one item is required');
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Add the store ID to the invoice
+      const invoiceData = {
+        ...newInvoice,
+        store: selectedStore._id
+      };
+      
+      const updatedInvoice = await updateInvoice(currentInvoiceId, invoiceData);
+      
+      // Update invoice in state
+      setInvoices(invoices.map(invoice => 
+        invoice._id === currentInvoiceId ? updatedInvoice : invoice
+      ));
       
       // Reset form and close dialog
       resetInvoiceForm();
       setIsDialogOpen(false);
-    } catch (error) {
-      console.error('Error updating invoice:', error);
-      setFormError(error.toString());
+      setIsEditMode(false);
+      
+      // Show success message
+      setExportSuccess('Invoice updated successfully');
+      setTimeout(() => setExportSuccess(''), 3000);
+    } catch (err) {
+      console.error('Error updating invoice:', err);
+      setFormError('Failed to update invoice. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -346,13 +402,27 @@ const Invoices = () => {
   const handleDeleteInvoice = async (id) => {
     if (window.confirm('Are you sure you want to delete this invoice?')) {
       try {
+        setLoading(true);
+        
+        if (!selectedStore?._id) {
+          setError('No store selected');
+          setLoading(false);
+          return;
+        }
+        
         await deleteInvoice(id);
         
-        // Remove the invoice from the list
-        setInvoices(invoices.filter(inv => inv._id !== id));
-      } catch (error) {
-        console.error('Error deleting invoice:', error);
-        setError('Failed to delete invoice');
+        // Remove the deleted invoice from state
+        setInvoices(invoices.filter(invoice => invoice._id !== id));
+        
+        // Show success message
+        setExportSuccess('Invoice deleted successfully');
+        setTimeout(() => setExportSuccess(''), 3000);
+      } catch (err) {
+        console.error('Error deleting invoice:', err);
+        setError('Failed to delete invoice. Please try again.');
+      } finally {
+        setLoading(false);
       }
     }
   };

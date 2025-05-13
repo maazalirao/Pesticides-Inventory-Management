@@ -4,29 +4,43 @@ import {
   getOrderById,
   updateOrderToPaid,
   updateOrderStatus,
+  getMyStoreOrders,
   getMyOrders,
-  getOrders,
+  getStoreOrders,
+  getAllOrders,
 } from '../controllers/orderController.js';
-import { protectWithClerk, admin, staff } from '../middleware/authMiddleware.js';
+import { 
+  protectWithClerk, 
+  admin, 
+  storeOwner, 
+  checkStoreAccess 
+} from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// Customer routes
-router.route('/')
-  .post(protectWithClerk, createOrder)
-  .get(protectWithClerk, admin, getOrders);
-
+// Routes for all users
 router.route('/myorders')
   .get(protectWithClerk, getMyOrders);
 
-router.route('/:id')
-  .get(protectWithClerk, getOrderById);
+// Admin routes for all stores
+router.route('/admin/all')
+  .get(protectWithClerk, admin, getAllOrders);
 
-router.route('/:id/pay')
-  .put(protectWithClerk, updateOrderToPaid);
+// Store-specific routes
+router.route('/store/:storeId')
+  .post(protectWithClerk, checkStoreAccess, createOrder)
+  .get(protectWithClerk, storeOwner, checkStoreAccess, getStoreOrders);
 
-// Admin routes
-router.route('/:id/status')
-  .put(protectWithClerk, staff, updateOrderStatus);
+router.route('/store/:storeId/myorders')
+  .get(protectWithClerk, checkStoreAccess, getMyStoreOrders);
+
+router.route('/store/:storeId/:id')
+  .get(protectWithClerk, checkStoreAccess, getOrderById);
+
+router.route('/store/:storeId/:id/pay')
+  .put(protectWithClerk, checkStoreAccess, updateOrderToPaid);
+
+router.route('/store/:storeId/:id/status')
+  .put(protectWithClerk, storeOwner, checkStoreAccess, updateOrderStatus);
 
 export default router; 

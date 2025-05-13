@@ -7,6 +7,11 @@ const invoiceSchema = mongoose.Schema(
       required: true,
       unique: true,
     },
+    store: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Store',
+      required: true,
+    },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,
@@ -60,6 +65,9 @@ const invoiceSchema = mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Compound index for invoice number uniqueness within a store
+invoiceSchema.index({ invoiceNumber: 1, store: 1 }, { unique: true });
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
 

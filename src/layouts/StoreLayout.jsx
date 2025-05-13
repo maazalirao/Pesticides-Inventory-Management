@@ -46,7 +46,7 @@ const StoreLayout = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen bg-white">
       {/* Main Header */}
       <header className={`sticky top-0 z-50 ${scrolled ? 'bg-green-700/95 shadow-md backdrop-blur-sm text-white' : 'bg-green-700 text-white'} transition-all duration-300`}>
         <div className="container mx-auto px-4 py-2.5">
@@ -205,7 +205,7 @@ const StoreLayout = () => {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1">
+      <main className="flex-1 bg-white">
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
