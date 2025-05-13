@@ -427,7 +427,7 @@ const Dashboard = () => {
         <div>
           <h1 className="text-2xl font-bold">Admin Dashboard</h1>
           <p className="text-muted-foreground">Overview of metrics from all stores</p>
-          </div>
+        </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
@@ -440,8 +440,8 @@ const Dashboard = () => {
       {error && <div className="p-4 bg-red-50 text-red-600 rounded-md">{error}</div>}
       {loading && <div className="p-4 flex justify-center"><Loader className="animate-spin h-6 w-6" /></div>}
 
-      {/* Admin Dashboard Summary Stats */}
-      <div className="grid gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-4">
+      {/* Admin Dashboard Summary Stats - Now responsive with 2 cards per row on mobile */}
+      <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
         <StatCard 
           title="Total Products" 
           value={allProducts.length || 0} 
@@ -472,26 +472,26 @@ const Dashboard = () => {
         />
       </div>
 
-      {/* New section for global inventory data across all stores */}
+      {/* Global inventory overview - Responsive card grid on mobile */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1">
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-                  <div>
+            <div className="flex justify-between items-center flex-wrap gap-2">
+              <div>
                 <CardTitle>Global Inventory Overview</CardTitle>
                 <CardDescription>Comprehensive inventory data across all stores</CardDescription>
-                  </div>
+              </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/inventory'}>
                 View Full Inventory
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-                  </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-                </div>
+              </div>
             ) : allInventory.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <div className="mb-2">
@@ -505,7 +505,8 @@ const Dashboard = () => {
               </div>
             ) : (
               <div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                {/* Mobile responsive card grid - 3 cards in a grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                   <Card className="bg-green-50">
                     <CardContent className="p-4">
                       <div className="flex items-center">
@@ -515,10 +516,10 @@ const Dashboard = () => {
                         <div>
                           <p className="text-sm font-medium text-green-700">Total Items</p>
                           <p className="text-2xl font-bold">{allInventory.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                   
                   <Card className="bg-amber-50">
                     <CardContent className="p-4">
@@ -526,17 +527,17 @@ const Dashboard = () => {
                         <div className="mr-4 bg-amber-100 p-2 rounded-full">
                           <AlertTriangle className="h-6 w-6 text-amber-600" />
                         </div>
-            <div>
+                        <div>
                           <p className="text-sm font-medium text-amber-700">Low Stock Items</p>
                           <p className="text-2xl font-bold">
                             {allInventory.filter(item => 
                               item.quantity < (item.threshold || 10) && item.quantity > 0
                             ).length}
                           </p>
-            </div>
-            </div>
-          </CardContent>
-        </Card>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
                   <Card className="bg-red-50">
                     <CardContent className="p-4">
@@ -552,12 +553,13 @@ const Dashboard = () => {
                             ).length}
                           </p>
                         </div>
-            </div>
-          </CardContent>
-        </Card>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
                 
                 <h3 className="text-lg font-semibold mb-3">Inventory by Category</h3>
+                {/* Make tables responsive with horizontal scroll on mobile */}
                 <div className="overflow-x-auto rounded-lg border mb-6">
                   <table className="w-full text-sm">
                     <thead>
@@ -601,7 +603,7 @@ const Dashboard = () => {
                                     {storeName} ({count})
                                   </Badge>
                                 ))}
-            </div>
+                              </div>
                             </td>
                             <td className="py-2 px-4 text-right">{categoryItems.length}</td>
                             <td className="py-2 px-4 text-right">₨ {totalValue.toLocaleString()}</td>
@@ -668,7 +670,7 @@ const Dashboard = () => {
                     </tbody>
                   </table>
                 </div>
-            </div>
+              </div>
             )}
           </CardContent>
           <CardFooter className="border-t px-6 py-3">
@@ -683,7 +685,7 @@ const Dashboard = () => {
       <div className="grid gap-4 sm:gap-6 grid-cols-1">
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center flex-wrap gap-2">
               <div>
                 <CardTitle>Store Performance Comparison</CardTitle>
                 <CardDescription>Inventory and business metrics across stores</CardDescription>
@@ -699,14 +701,14 @@ const Dashboard = () => {
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-            </div>
+              </div>
             ) : allStores.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No store data available</p>
                 <Button variant="outline" size="sm" className="mt-4" onClick={handleRefresh}>
                   <RefreshCw className="mr-2 h-4 w-4" />
                   Refresh Data
-            </Button>
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -859,30 +861,30 @@ const Dashboard = () => {
 
       {/* Products by Store */}
       <div className="grid gap-4 sm:gap-6 grid-cols-1">
-      <Card>
+        <Card>
           <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-          <div>
+            <div className="flex justify-between items-center flex-wrap gap-2">
+              <div>
                 <CardTitle>Products by Store</CardTitle>
                 <CardDescription>Distribution of products across all stores</CardDescription>
-          </div>
+              </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/products'}>
                 View All Products
-          </Button>
+              </Button>
             </div>
-        </CardHeader>
-        <CardContent>
+          </CardHeader>
+          <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-          </div>
+              </div>
             ) : allProducts.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No product data available</p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 mb-4">
                   {allStores.map((store, index) => {
                     const storeProducts = allProducts.filter(item => 
                       item.store?._id === store._id || item.storeId === store._id
@@ -907,19 +909,19 @@ const Dashboard = () => {
                             <div className="flex items-center">
                               <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
                               <h3 className={`font-medium ${textColor}`}>{store.name}</h3>
-                      </div>
+                            </div>
                             <div className="text-2xl font-bold">{storeProducts.length}</div>
-                    </div>
+                          </div>
                           <div className="mt-2 text-xs text-muted-foreground">
                             {storeProducts.length > 0 
                               ? `${((storeProducts.length / allProducts.length) * 100).toFixed(1)}% of total products` 
                               : 'No products'}
-                  </div>
+                          </div>
                         </CardContent>
                       </Card>
                     );
                   })}
-              </div>
+                </div>
                 
                 <div className="overflow-x-auto rounded-lg border mt-4">
                   <table className="w-full text-sm">
@@ -967,7 +969,7 @@ const Dashboard = () => {
                       })}
                     </tbody>
                   </table>
-              </div>
+                </div>
               </>
             )}
           </CardContent>
@@ -983,28 +985,28 @@ const Dashboard = () => {
       <div className="grid gap-4 sm:gap-6 grid-cols-1">
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-                    <div>
+            <div className="flex justify-between items-center flex-wrap gap-2">
+              <div>
                 <CardTitle>Suppliers by Store</CardTitle>
                 <CardDescription>Distribution of suppliers across all stores</CardDescription>
-                      </div>
+              </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/suppliers'}>
                 View All Suppliers
               </Button>
-                    </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-                  </div>
+              </div>
             ) : allSuppliers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No supplier data available</p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
                   {allStores.map((store, index) => {
                     const storeSuppliers = allSuppliers.filter(item => 
                       item.store?._id === store._id || item.storeId === store._id
@@ -1029,7 +1031,7 @@ const Dashboard = () => {
                             <div className="flex items-center">
                               <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
                               <h3 className={`font-medium text-sm ${textColor}`}>{store.name}</h3>
-              </div>
+                            </div>
                             <div className="text-xl font-bold">{storeSuppliers.length}</div>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">
@@ -1097,28 +1099,28 @@ const Dashboard = () => {
       <div className="grid gap-4 sm:gap-6 grid-cols-1">
         <Card>
           <CardHeader className="pb-2">
-            <div className="flex justify-between items-center">
-                    <div>
+            <div className="flex justify-between items-center flex-wrap gap-2">
+              <div>
                 <CardTitle>Customers by Store</CardTitle>
                 <CardDescription>Distribution of customers across all stores</CardDescription>
-                      </div>
+              </div>
               <Button variant="outline" size="sm" onClick={() => window.location.href = '/admin/customers'}>
                 View All Customers
               </Button>
-                    </div>
+            </div>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
-                  </div>
+              </div>
             ) : allCustomers.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No customer data available</p>
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-4">
                   {allStores.map((store, index) => {
                     const storeCustomers = allCustomers.filter(item => 
                       item.store?._id === store._id || item.storeId === store._id
@@ -1143,7 +1145,7 @@ const Dashboard = () => {
                             <div className="flex items-center">
                               <div className={`w-3 h-3 rounded-full mr-2 ${bgColor.replace('50', '400')}`}></div>
                               <h3 className={`font-medium text-sm ${textColor}`}>{store.name}</h3>
-              </div>
+                            </div>
                             <div className="text-xl font-bold">{storeCustomers.length}</div>
                           </div>
                           <div className="mt-1 text-xs text-muted-foreground">

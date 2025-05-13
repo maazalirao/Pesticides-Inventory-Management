@@ -46,8 +46,7 @@ const scrollbarStyle = `
 `;
 
 const StoreOwnerLayout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const location = useLocation();
@@ -61,9 +60,6 @@ const StoreOwnerLayout = () => {
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
-        setSidebarOpen(false);
-      }
     };
     
     // Initial check
@@ -79,7 +75,7 @@ const StoreOwnerLayout = () => {
   // Close sidebar when route changes on mobile
   useEffect(() => {
     if (isMobile) {
-      setMobileMenuOpen(false);
+      setSidebarOpen(false);
     }
   }, [location, isMobile]);
 
@@ -121,19 +117,16 @@ const StoreOwnerLayout = () => {
     setNotifications(mockNotifications);
   }, []);
 
-  const mainNavItems = [
-    { icon: <LayoutDashboard size={20} />, label: 'Dashboard', path: '/storeowner' },
-    { icon: <Box size={20} />, label: 'Inventory', path: '/storeowner/inventory' },
-    { icon: <Package size={20} />, label: 'Products', path: '/storeowner/products' },
-    { icon: <Users size={20} />, label: 'Customers', path: '/storeowner/customers' },
-    { icon: <Truck size={20} />, label: 'Suppliers', path: '/storeowner/suppliers' },
-  ];
-
-  const managementNavItems = [
-    { icon: <ShoppingBag size={20} />, label: 'Orders', path: '/storeowner/orders', badge: '3' },
-    { icon: <DollarSign size={20} />, label: 'Sales', path: '/storeowner/sales' },
-    { icon: <ClipboardList size={20} />, label: 'Reports', path: '/storeowner/reports' },
-    { icon: <Settings size={20} />, label: 'Settings', path: '/storeowner/settings' },
+  const navItems = [
+    { title: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" />, path: '/storeowner' },
+    { title: 'Inventory', icon: <Package className="h-5 w-5" />, path: '/storeowner/inventory' },
+    { title: 'Products', icon: <ShoppingCart className="h-5 w-5" />, path: '/storeowner/products' },
+    { title: 'Orders', icon: <ShoppingBag className="h-5 w-5" />, path: '/storeowner/orders', badge: '3' },
+    { title: 'Customers', icon: <Users className="h-5 w-5" />, path: '/storeowner/customers' },
+    { title: 'Suppliers', icon: <Truck className="h-5 w-5" />, path: '/storeowner/suppliers' },
+    { title: 'Sales', icon: <DollarSign className="h-5 w-5" />, path: '/storeowner/sales' },
+    { title: 'Reports', icon: <BarChart2 className="h-5 w-5" />, path: '/storeowner/reports' },
+    { title: 'Settings', icon: <Settings className="h-5 w-5" />, path: '/storeowner/settings' },
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -156,223 +149,174 @@ const StoreOwnerLayout = () => {
     }
   };
 
+  // Handle user dropdown toggle
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  
+  const toggleUserMenu = () => {
+    setUserMenuOpen(!userMenuOpen);
+  };
+
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-white">
       {/* Add style tag for custom scrollbar styling */}
       <style>{scrollbarStyle}</style>
       
-      {/* Sidebar for desktop */}
-      <aside 
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } hidden md:block transition-all duration-300 bg-gradient-to-b from-emerald-900 to-emerald-950 text-gray-100 shadow-lg z-20 flex flex-col h-screen`}
-      >
-        {/* Logo and title - fixed at top */}
-        <div className="p-6 flex items-center flex-shrink-0">
-          <Box className="h-10 w-10 text-emerald-400 mr-3" />
-          <div className={`${sidebarOpen ? 'block' : 'hidden'} transition-opacity`}>
-            <h1 className="text-xl font-bold text-emerald-300">Pesticide Inventory</h1>
-            <div className="flex items-center text-xs text-gray-400 mt-1">
-              <User className="h-3 w-3 mr-1" />
-              <span>Store Owner Dashboard</span>
-            </div>
-          </div>
+      {/* Mobile Nav - Icon only sidebar (Always visible on mobile) */}
+      <div className="fixed left-0 top-0 bottom-0 z-40 bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900 w-16 md:hidden flex flex-col items-center pt-24 pb-4 overflow-y-auto">
+        <div className="flex flex-col items-center gap-6">
+          {navItems.map((item) => (
+            <Link
+              key={item.path}
+              to={item.path}
+              className={cn(
+                "flex flex-col items-center justify-center p-2",
+                location.pathname === item.path
+                  ? "text-emerald-400" 
+                  : "text-slate-400 hover:text-white"
+              )}
+            >
+              <div className={cn(
+                "flex items-center justify-center h-10 w-10 rounded-xl",
+                location.pathname === item.path 
+                  ? "bg-white/10 text-emerald-400" 
+                  : "hover:bg-white/5"
+              )}>
+                {item.icon}
+              </div>
+              <span className="text-xs mt-1">{item.title.split(' ')[0]}</span>
+            </Link>
+          ))}
         </div>
-        
-        {/* Scrollable navigation section */}
-        <div className="flex-1 overflow-y-auto overflow-x-hidden hide-scrollbar" style={{ height: 'calc(100vh - 150px)' }}>
-          {/* Main Navigation Section */}
-          <div className="mt-6">
-            <div className={`px-4 py-2 text-xs font-semibold tracking-wider text-gray-400 ${sidebarOpen ? 'block' : 'hidden'}`}>
-              MAIN NAVIGATION
-            </div>
-            <ul className="mt-2">
-              {mainNavItems.map((item) => (
-                <li key={item.path} className="px-2">
-                  <Link
-                    to={item.path}
-                    className={`flex items-center py-2.5 px-3 rounded-md my-1 transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-emerald-600 text-white'
-                        : 'text-gray-300 hover:bg-emerald-800/40 hover:text-white'
-                    } ${sidebarOpen ? 'justify-start' : 'justify-center'}`}
-                  >
-                    <span className="p-1">{item.icon}</span>
-                    {sidebarOpen && <span className="ml-3">{item.label}</span>}
-                    {item.badge && sidebarOpen && (
-                      <Badge variant="outline" className="ml-auto bg-emerald-600 text-white border-none">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          
-          {/* Management Section */}
-          <div className="mt-6">
-            <div className={`px-4 py-2 text-xs font-semibold tracking-wider text-gray-400 ${sidebarOpen ? 'block' : 'hidden'}`}>
-              MANAGEMENT
-            </div>
-            <ul className="mt-2">
-              {managementNavItems.map((item) => (
-                <li key={item.path} className="px-2">
-                  <Link
-                    to={item.path}
-                    className={`flex items-center py-2.5 px-3 rounded-md my-1 transition-colors ${
-                      isActive(item.path)
-                        ? 'bg-emerald-600 text-white'
-                        : 'text-gray-300 hover:bg-emerald-800/40 hover:text-white'
-                    } ${sidebarOpen ? 'justify-start' : 'justify-center'}`}
-                  >
-                    <span className="p-1">{item.icon}</span>
-                    {sidebarOpen && <span className="ml-3">{item.label}</span>}
-                    {item.badge && sidebarOpen && (
-                      <Badge variant="outline" className="ml-auto bg-emerald-600 text-white border-none">
-                        {item.badge}
-                      </Badge>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+      </div>
 
-        {/* Store info and selection - fixed at bottom */}
-        {sidebarOpen && (
-          <div className="p-4 bg-emerald-950/50 rounded-lg m-2 flex-shrink-0 border border-emerald-800/30 backdrop-blur-sm">
-            {selectedStore ? (
-              <div>
-                <div className="flex items-center">
-                  <Store className="h-5 w-5 text-emerald-400 mr-2" />
-                  <div className="text-sm truncate">{selectedStore.name}</div>
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  {selectedStore.status === 'active' ? (
-                    <span className="text-emerald-400">● Active</span>
-                  ) : (
-                    <span className="text-red-400">● Inactive</span>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-300">No store selected</div>
-            )}
-            
-            {stores && stores.length > 0 && (
-              <div className="mt-2">
-                <label className="text-xs text-gray-400">Switch Store:</label>
-                <select 
-                  className="mt-1 block w-full pl-3 pr-10 py-1 text-xs text-white bg-emerald-900 border border-emerald-700 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-                  value={selectedStore?._id || ''}
-                  onChange={(e) => handleStoreChange(e.target.value)}
-                >
-                  {stores.map(store => (
-                    <option key={store._id} value={store._id}>
-                      {store.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
+      {/* Overlay for mobile sidebar */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 md:hidden" 
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      {/* Main sidebar (collapsible on mobile) */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-80 transform bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900 shadow-2xl transition-all duration-300 ease-in-out md:relative md:translate-x-0",
+          sidebarOpen ? "translate-x-0 ring-1 ring-white/10" : "-translate-x-full",
+          "md:block hidden" // Hide on mobile, replaced by icon bar
         )}
-        
-        {/* Toggle sidebar button */}
-        <button
-          className="absolute top-20 -right-1 z-30 flex items-center justify-center w-7 h-7 rounded-full bg-emerald-500 text-white shadow-lg hover:bg-emerald-600 border border-emerald-400/20"
-          onClick={() => setSidebarOpen(!sidebarOpen)}
-        >
-          <ChevronLeft className={`h-4 w-4 transition-transform ${sidebarOpen ? '' : 'rotate-180'}`} />
-        </button>
-      </aside>
-
-      {/* Mobile sidebar/menu */}
-      <div 
-        className={`fixed inset-0 bg-gray-800 bg-opacity-50 z-40 md:hidden ${mobileMenuOpen ? 'block' : 'hidden'}`}
-        onClick={() => setMobileMenuOpen(false)}
-      />
-      
-      <aside 
-        className={`fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-emerald-900 to-emerald-950 text-gray-100 shadow-lg z-50 transform transition-transform duration-300 ease-in-out md:hidden flex flex-col ${
-          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
       >
-        {/* Mobile Menu Header - fixed */}
-        <div className="flex justify-between items-center p-4 border-b border-emerald-800 flex-shrink-0">
-          <div className="flex items-center">
-            <Box className="h-8 w-8 text-emerald-400 mr-2" />
-            <h1 className="text-lg font-bold text-emerald-300">Pesticide Inventory</h1>
+        {/* Glass effect header with logo */}
+        <div className="flex h-24 items-center justify-between px-6 backdrop-blur-sm bg-emerald-900/70 border-b border-white/5">
+          <div className="flex items-center space-x-2">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center shadow-lg">
+              <Package className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">
+                Pesticide Inventory
+              </span>
+              <div className="flex items-center text-xs text-slate-400 mt-0.5">
+                <Store className="h-3.5 w-3.5 mr-1 text-emerald-500" />
+                Store Owner Dashboard
+              </div>
+            </div>
           </div>
-          <button onClick={() => setMobileMenuOpen(false)}>
-            <X className="h-6 w-6 text-gray-400" />
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="text-slate-400 hover:text-white p-2 hover:bg-white/5 backdrop-blur-sm rounded-full transition-all md:hidden"
+          >
+            <X className="h-6 w-6" />
           </button>
         </div>
-        
-        {/* Navigation menus - scrollable */}
-        <div className="py-4 overflow-y-auto flex-1 overflow-x-hidden hide-scrollbar">
-          <div className="px-4 py-2 text-xs font-semibold tracking-wider text-gray-400">
-            MAIN NAVIGATION
-          </div>
-          <ul className="mt-2">
-            {mainNavItems.map((item) => (
-              <li key={item.path} className="px-2">
+
+        {/* Navigation with categorized sections */}
+        <div className="overflow-y-auto max-h-[calc(100vh-12rem)] scrollbar-hide">
+          {/* Main navigation - starting immediately after the header */}
+          <div className="px-3 pt-6 pb-8">
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-3">Main Navigation</div>
+            <div className="space-y-1.5">
+              {navItems.slice(0, 5).map((item) => (
                 <Link
+                  key={item.path}
                   to={item.path}
-                  className={`flex items-center py-2.5 px-3 rounded-md my-1 transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-emerald-600 text-white'
-                      : 'text-gray-300 hover:bg-emerald-800/40 hover:text-white'
-                  }`}
+                  className={cn(
+                    "group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                    location.pathname === item.path
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-lg" 
+                      : "text-gray-200 hover:bg-white/5 hover:backdrop-blur-sm hover:text-white"
+                  )}
+                  onClick={() => isMobile && setSidebarOpen(false)}
                 >
-                  <span className="p-1">{item.icon}</span>
-                  <span className="ml-3">{item.label}</span>
+                  <div className={cn(
+                    "flex items-center justify-center h-9 w-9 rounded-lg mr-3 transition-all",
+                    location.pathname === item.path 
+                      ? "bg-white/20 text-white shadow-inner" 
+                      : "bg-emerald-800/40 text-gray-400 group-hover:text-white group-hover:bg-emerald-700/50"
+                  )}>
+                    {item.icon}
+                  </div>
+                  <span>{item.title}</span>
                   {item.badge && (
-                    <Badge variant="outline" className="ml-auto bg-emerald-600 text-white border-none">
+                    <Badge variant="outline" className="ml-auto bg-white/20 text-white border-none">
                       {item.badge}
                     </Badge>
                   )}
+                  {location.pathname === item.path && (
+                    <div className="ml-auto flex items-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-white mr-1"></div>
+                      <div className="h-1 w-1 rounded-full bg-white/60"></div>
+                    </div>
+                  )}
                 </Link>
-              </li>
-            ))}
-          </ul>
-          
-          <div className="px-4 py-2 mt-4 text-xs font-semibold tracking-wider text-gray-400">
-            MANAGEMENT
-          </div>
-          <ul className="mt-2">
-            {managementNavItems.map((item) => (
-              <li key={item.path} className="px-2">
+              ))}
+            </div>
+
+            {/* Management section */}
+            <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-3 mt-6">Management</div>
+            <div className="space-y-1.5">
+              {navItems.slice(5).map((item) => (
                 <Link
+                  key={item.path}
                   to={item.path}
-                  className={`flex items-center py-2.5 px-3 rounded-md my-1 transition-colors ${
-                    isActive(item.path)
-                      ? 'bg-emerald-600 text-white'
-                      : 'text-gray-300 hover:bg-emerald-800/40 hover:text-white'
-                  }`}
+                  className={cn(
+                    "group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                    location.pathname === item.path
+                      ? "bg-gradient-to-r from-emerald-600 to-emerald-500 text-white shadow-lg" 
+                      : "text-gray-200 hover:bg-white/5 hover:backdrop-blur-sm hover:text-white"
+                  )}
+                  onClick={() => isMobile && setSidebarOpen(false)}
                 >
-                  <span className="p-1">{item.icon}</span>
-                  <span className="ml-3">{item.label}</span>
+                  <div className={cn(
+                    "flex items-center justify-center h-9 w-9 rounded-lg mr-3 transition-all",
+                    location.pathname === item.path 
+                      ? "bg-white/20 text-white shadow-inner" 
+                      : "bg-emerald-800/40 text-gray-400 group-hover:text-white group-hover:bg-emerald-700/50"
+                  )}>
+                    {item.icon}
+                  </div>
+                  <span>{item.title}</span>
                   {item.badge && (
-                    <Badge variant="outline" className="ml-auto bg-emerald-600 text-white border-none">
+                    <Badge variant="outline" className="ml-auto bg-white/20 text-white border-none">
                       {item.badge}
                     </Badge>
                   )}
+                  {location.pathname === item.path && (
+                    <div className="ml-auto flex items-center">
+                      <div className="h-1.5 w-1.5 rounded-full bg-white mr-1"></div>
+                      <div className="h-1 w-1 rounded-full bg-white/60"></div>
+                    </div>
+                  )}
                 </Link>
-              </li>
-            ))}
-          </ul>
-        </div>
-        
-        {/* Mobile store info and selection - fixed at bottom */}
-        <div className="p-4 bg-emerald-950/50 mx-2 mb-4 rounded-lg flex-shrink-0 border border-emerald-800/30">
-          {selectedStore ? (
-            <div>
+              ))}
+            </div>
+          </div>
+
+          {/* Store info and selection */}
+          {selectedStore && (
+            <div className="px-4 py-3 mx-3 mb-4 bg-white/5 backdrop-blur-sm rounded-lg border border-emerald-700/20">
               <div className="flex items-center">
                 <Store className="h-5 w-5 text-emerald-400 mr-2" />
-                <div className="text-sm font-medium">{selectedStore.name}</div>
+                <span className="text-sm font-medium text-emerald-100">{selectedStore.name}</span>
               </div>
               <div className="text-xs text-gray-400 mt-1">
                 {selectedStore.status === 'active' ? (
@@ -381,113 +325,124 @@ const StoreOwnerLayout = () => {
                   <span className="text-red-400">● Inactive</span>
                 )}
               </div>
-            </div>
-          ) : (
-            <div className="text-sm text-gray-300">No store selected</div>
-          )}
-          
-          {stores && stores.length > 0 && (
-            <div className="mt-2">
-              <label className="text-xs text-gray-400">Switch Store:</label>
-              <select 
-                className="mt-1 block w-full pl-3 pr-10 py-1 text-xs text-white bg-emerald-900 border border-emerald-700 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
-                value={selectedStore?._id || ''}
-                onChange={(e) => handleStoreChange(e.target.value)}
-              >
-                {stores.map(store => (
-                  <option key={store._id} value={store._id}>
-                    {store.name}
-                  </option>
-                ))}
-              </select>
+              
+              {stores && stores.length > 1 && (
+                <div className="mt-2">
+                  <label className="text-xs text-gray-400">Switch Store:</label>
+                  <select 
+                    className="mt-1 block w-full pl-3 pr-10 py-1 text-xs text-white bg-emerald-800/50 border border-emerald-700/50 rounded-md focus:outline-none focus:ring-emerald-500 focus:border-emerald-500"
+                    value={selectedStore?._id || ''}
+                    onChange={(e) => handleStoreChange(e.target.value)}
+                  >
+                    {stores.map(store => (
+                      <option key={store._id} value={store._id}>
+                        {store.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           )}
         </div>
-      </aside>
+      </div>
 
-      {/* Main content */}
-      <div className="flex flex-col flex-1 overflow-hidden bg-gray-50">
-        {/* Top Navigation/Header */}
-        <header className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              <div className="flex">
-                {/* Mobile menu button */}
-                <button
-                  type="button"
-                  className="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none"
-                  onClick={() => setMobileMenuOpen(true)}
-                >
-                  <Menu className="h-6 w-6" />
-                </button>
-                
-                {/* Search */}
-                <div className="hidden md:flex md:ml-4">
-                  <div className="flex items-center border border-gray-300 rounded-md px-3 py-2 text-sm bg-gray-50">
-                    <Search className="h-4 w-4 text-emerald-500 mr-2" />
-                    <input
-                      type="text"
-                      placeholder="Search..."
-                      className="border-none focus:outline-none text-gray-800 placeholder-gray-400 bg-transparent w-64"
-                    />
-                  </div>
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Top Navigation */}
+        <header className="border-b border-emerald-700 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 sticky top-0 z-10 shadow-md">
+          <div className="flex h-16 items-center justify-between px-4">
+            <div className="flex items-center">
+              <button
+                onClick={() => setSidebarOpen(true)}
+                className="text-slate-200 hover:text-emerald-400 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all md:hidden"
+              >
+                <Menu className="h-6 w-6" />
+              </button>
+              <div className="ml-4 flex items-center">
+                <Store className="h-5 w-5 text-emerald-400 mr-2 hidden md:inline" />
+                <span className="text-lg font-bold text-white hidden md:inline">Store Owner</span>
+                <span className="text-xs font-medium text-slate-200 md:hidden">Store Owner Dashboard</span>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative hidden md:flex">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
+                  <Search className="h-4 w-4 text-slate-400" />
                 </div>
+                <input 
+                  type="text" 
+                  placeholder="Search..." 
+                  className="pl-10 pr-4 py-2 bg-white/10 text-sm text-slate-200 rounded-lg border border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48 focus:bg-white/20"
+                />
               </div>
               
-              <div className="flex items-center space-x-4">
-                {/* Theme toggle */}
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="p-1.5 text-gray-500 hover:text-emerald-600 focus:outline-none rounded-full hover:bg-gray-100"
+              {/* Theme toggle */}
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-slate-300 hover:text-emerald-400 rounded-lg hover:bg-white/10 transition-all"
+              >
+                {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </button>
+              
+              {/* Notifications */}
+              <button className="p-2 text-slate-300 hover:text-emerald-400 rounded-lg hover:bg-white/10 transition-all relative">
+                <Bell className="h-5 w-5" />
+                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-emerald-900"></span>
+              </button>
+              
+              {/* User menu */}
+              <div className="relative">
+                <button 
+                  onClick={toggleUserMenu}
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/10 transition-all"
                 >
-                  {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-medium">
+                    SO
+                  </div>
+                  <div className="hidden md:block text-left">
+                    <div className="text-sm font-medium text-slate-200">Store Owner</div>
+                    <div className="text-xs text-slate-400">store@example.com</div>
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-slate-400" />
                 </button>
                 
-                {/* Notifications */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="p-1.5 text-gray-500 hover:text-emerald-600 focus:outline-none rounded-full hover:bg-gray-100"
-                  >
-                    <Bell className="h-5 w-5" />
-                    {notifications.filter(n => !n.read).length > 0 && (
-                      <span className="absolute top-0 right-0 w-2 h-2 bg-emerald-500 rounded-full ring-2 ring-white"></span>
-                    )}
-                  </button>
-                </div>
-                
-                {/* User menu */}
-                <div className="relative">
-                  <button
-                    type="button"
-                    className="flex items-center text-gray-700 hover:text-gray-900 focus:outline-none"
-                  >
-                    <Avatar className="h-8 w-8 mr-1 border-2 border-emerald-100">
-                      <AvatarFallback className="bg-emerald-100 text-emerald-800">SO</AvatarFallback>
-                    </Avatar>
-                    <span className="hidden md:flex md:items-center">
-                      <span className="text-sm font-medium">Store Owner</span>
-                      <ChevronDown className="ml-1 h-4 w-4 text-gray-400" />
-                    </span>
-                  </button>
-                </div>
-                
-                {/* Logout button for mobile */}
-                <button
-                  className="md:hidden p-1.5 text-gray-500 hover:text-red-600 focus:outline-none rounded-full hover:bg-gray-100"
-                  onClick={handleLogout}
-                >
-                  <LogOut className="h-5 w-5" />
-                </button>
+                {userMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-56 bg-emerald-800 rounded-lg shadow-lg border border-emerald-700 py-1 z-50">
+                    <div className="px-4 py-3 border-b border-emerald-700">
+                      <div className="text-sm font-medium text-slate-200">Store Owner</div>
+                      <div className="text-xs text-slate-400">store@example.com</div>
+                    </div>
+                    <div className="py-1">
+                      <Link 
+                        to="/storeowner/settings" 
+                        className="flex items-center px-4 py-2 text-sm text-slate-200 hover:bg-emerald-700 hover:text-emerald-400"
+                        onClick={() => setUserMenuOpen(false)}
+                      >
+                        <Settings className="h-4 w-4 mr-2" />
+                        Settings
+                      </Link>
+                      <button 
+                        onClick={handleLogout}
+                        className="flex items-center px-4 py-2 text-sm text-slate-200 hover:bg-emerald-700 hover:text-emerald-400 w-full text-left"
+                      >
+                        <ChevronLeft className="h-4 w-4 mr-2" />
+                        Logout
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </header>
-        
-        {/* Page content */}
-        <main className="flex-1 overflow-auto p-6 bg-gray-50">
-          <Outlet />
+
+        {/* Main Content - Add left padding on mobile to account for icon sidebar */}
+        <main className="flex-1 overflow-y-auto bg-white">
+          <div className="container mx-auto py-6 px-4 md:px-6 pl-20 md:pl-4">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>
