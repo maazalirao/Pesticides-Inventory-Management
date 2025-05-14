@@ -14,7 +14,8 @@ import {
   BarChart2,
   Package,
   ChevronLeft,
-  Store
+  Store,
+  Home
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { motion } from 'framer-motion';
@@ -339,6 +340,12 @@ const StoreLayout = () => {
             <div className="flex flex-col md:flex-row justify-between items-center">
               <div className="mb-4 md:mb-0">
                 <p>© 2023 AgriStore. All rights reserved.</p>
+                <div className="mt-2 flex items-center">
+                  <Link to="/" className="text-green-300 hover:text-green-100 flex items-center">
+                    <Home size={14} className="mr-1" />
+                    <span>Back to Main Site</span>
+                  </Link>
+                </div>
               </div>
               <div className="flex items-center space-x-4">
                 <span className="flex items-center">

@@ -356,7 +356,7 @@ const StoreOwnerLayout = () => {
 
       <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Navigation */}
-        <header className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-b border-emerald-700 sticky top-0 z-10 shadow-md">
+        <header className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-b border-emerald-700 fixed top-0 left-0 right-0 z-40 shadow-md">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center">
               <button
@@ -369,9 +369,6 @@ const StoreOwnerLayout = () => {
               <div className="ml-3 flex items-center">
                 <Store className="h-5 w-5 text-emerald-400 mr-2 hidden md:inline" />
                 <span className="text-lg font-bold text-white hidden md:inline">Store Owner</span>
-                {selectedStore && (
-                  <span className="text-sm text-emerald-200 ml-2 hidden md:inline">({selectedStore.name})</span>
-                )}
                 <div className="md:hidden">
                   <span className="text-sm font-medium text-slate-200">Store Dashboard</span>
                 </div>
@@ -380,10 +377,26 @@ const StoreOwnerLayout = () => {
 
             {/* Mobile-optimized right side of header */}
             <div className="flex items-center space-x-2">
+              {/* Selected Store Indicator */}
+              {selectedStore && (
+                <div className="hidden md:flex items-center bg-emerald-700/50 px-3 py-1.5 rounded-lg border border-emerald-600/50 mr-2">
+                  <Store className="h-4 w-4 text-emerald-300 mr-2" />
+                  <span className="text-sm font-medium text-emerald-100">{selectedStore.name}</span>
+                </div>
+              )}
+              
               {/* Mobile-friendly search button */}
               <button className="text-slate-300 hover:text-emerald-400 p-2 rounded-lg hover:bg-white/10 transition-all md:hidden">
                 <Search className="h-5 w-5" />
               </button>
+              
+              {/* Mobile Selected Store */}
+              {selectedStore && (
+                <div className="md:hidden flex items-center bg-emerald-700/50 px-2 py-1 rounded-lg border border-emerald-600/50">
+                  <Store className="h-3.5 w-3.5 text-emerald-300 mr-1" />
+                  <span className="text-xs font-medium text-emerald-100 truncate max-w-[60px]">{selectedStore.name}</span>
+                </div>
+              )}
               
               {/* Notifications button */}
               <div className="relative">
@@ -485,7 +498,7 @@ const StoreOwnerLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 p-4 md:p-6">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 p-4 md:p-6 mt-16">
           <Outlet />
         </main>
         
