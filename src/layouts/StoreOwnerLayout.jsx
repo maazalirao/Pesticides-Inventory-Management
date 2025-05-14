@@ -50,6 +50,7 @@ const StoreOwnerLayout = () => {
   const [isMobile, setIsMobile] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0);
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -104,6 +105,40 @@ const StoreOwnerLayout = () => {
     
   }, [selectedStore]);
 
+  // Check for pending orders when selectedStore changes
+  useEffect(() => {
+    const updateOrdersCount = () => {
+      if (selectedStore && selectedStore._id) {
+        // Get store-specific orders from localStorage
+        const storeOrdersKey = `store_orders_${selectedStore._id}`;
+        const savedOrders = JSON.parse(localStorage.getItem(storeOrdersKey) || '[]');
+        
+        // Count only pending or processing orders
+        const pendingOrders = savedOrders.filter(order => 
+          order.status === 'pending' || order.status === 'processing'
+        );
+        
+        setPendingOrdersCount(pendingOrders.length);
+      } else {
+        setPendingOrdersCount(0);
+      }
+    };
+    
+    // Initial count
+    updateOrdersCount();
+    
+    // Listen for changes to orders
+    window.addEventListener('ordersUpdated', updateOrdersCount);
+    
+    // Listen for store changes
+    window.addEventListener('storeChanged', updateOrdersCount);
+    
+    return () => {
+      window.removeEventListener('ordersUpdated', updateOrdersCount);
+      window.removeEventListener('storeChanged', updateOrdersCount);
+    };
+  }, [selectedStore]);
+
   // Fetch mock notifications
   useEffect(() => {
     // Mock notifications data
@@ -122,7 +157,7 @@ const StoreOwnerLayout = () => {
     { title: 'Dashboard', icon: <LayoutDashboard className="h-5 w-5" />, path: '/storeowner' },
     { title: 'Inventory', icon: <Package className="h-5 w-5" />, path: '/storeowner/inventory' },
     { title: 'Products', icon: <ShoppingCart className="h-5 w-5" />, path: '/storeowner/products' },
-    { title: 'Orders', icon: <ShoppingBag className="h-5 w-5" />, path: '/storeowner/orders', badge: '3' },
+    { title: 'Orders', icon: <ShoppingBag className="h-5 w-5" />, path: '/storeowner/orders', badge: pendingOrdersCount > 0 ? pendingOrdersCount.toString() : null },
     { title: 'Customers', icon: <Users className="h-5 w-5" />, path: '/storeowner/customers' },
     { title: 'Suppliers', icon: <Truck className="h-5 w-5" />, path: '/storeowner/suppliers' },
     { title: 'Sales', icon: <DollarSign className="h-5 w-5" />, path: '/storeowner/sales' },
@@ -454,15 +489,15 @@ const StoreOwnerLayout = () => {
           <Outlet />
         </main>
         
-        {/* Mobile bottom navigation */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 md:hidden">
+        {/* Mobile Bottom Navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-t border-emerald-700 z-30 md:hidden">
           <div className="flex justify-around py-2">
             {navItems.slice(0, 5).map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={`flex flex-col items-center p-1.5 ${
-                  isActive(item.path) ? 'text-emerald-500' : 'text-slate-500'
+                  isActive(item.path) ? 'text-emerald-400' : 'text-slate-300'
                 }`}
               >
                 <div className="relative">

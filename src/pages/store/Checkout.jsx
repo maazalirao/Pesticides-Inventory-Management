@@ -91,7 +91,8 @@ const Checkout = () => {
         name: item.name,
         quantity: item.quantity,
         price: item.price,
-        image: item.image || `https://placehold.co/100x100/e2e8f0/64748b?text=${item.name.charAt(0)}`
+        image: item.image || `https://placehold.co/100x100/e2e8f0/64748b?text=${item.name.charAt(0)}`,
+        storeId: item.storeId || 'default-store' // Store ID for associating with store owner
       }));
       
       const orderData = {
@@ -119,6 +120,19 @@ const Checkout = () => {
       // Get user-specific orders key
       const ordersKey = getOrdersKey();
       
+      // Prepare customer information
+      const customerInfo = isSignedIn && user ? {
+        id: user.id,
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone
+      } : {
+        id: 'guest',
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        phone: formData.phone
+      };
+      
       // Get existing orders from localStorage or initialize empty array
       const existingOrders = JSON.parse(localStorage.getItem(ordersKey) || '[]');
       
@@ -128,14 +142,56 @@ const Checkout = () => {
         date: new Date().toISOString(),
         items: orderItems.reduce((total, item) => total + item.quantity, 0),
         total: orderData.totalPrice,
-        status: 'Processing',
+        status: 'processing',
         products: orderItems,
         shippingAddress: orderData.shippingAddress,
-        paymentMethod: orderData.paymentMethod
+        paymentMethod: orderData.paymentMethod,
+        customer: customerInfo
       };
       
       // Save updated orders to localStorage with user-specific key
       localStorage.setItem(ordersKey, JSON.stringify([...existingOrders, newOrder]));
+
+      // Now also save this order to store-specific orders
+      // Group order items by store
+      const storeOrders = {};
+      orderItems.forEach(item => {
+        const storeId = item.storeId || 'default-store';
+        if (!storeOrders[storeId]) {
+          storeOrders[storeId] = {
+            items: [],
+            quantity: 0,
+            total: 0
+          };
+        }
+        storeOrders[storeId].items.push(item);
+        storeOrders[storeId].quantity += item.quantity;
+        storeOrders[storeId].total += item.price * item.quantity;
+      });
+
+      // Save order to each store's orders
+      Object.keys(storeOrders).forEach(storeId => {
+        const storeOrdersKey = `store_orders_${storeId}`;
+        const existingStoreOrders = JSON.parse(localStorage.getItem(storeOrdersKey) || '[]');
+        
+        const storeOrder = {
+          id: orderId,
+          date: new Date().toISOString(),
+          items: storeOrders[storeId].items,
+          itemsCount: storeOrders[storeId].quantity,
+          total: storeOrders[storeId].total,
+          status: 'processing',
+          shippingAddress: orderData.shippingAddress,
+          paymentMethod: orderData.paymentMethod,
+          customer: customerInfo,
+          storeId: storeId
+        };
+        
+        localStorage.setItem(storeOrdersKey, JSON.stringify([...existingStoreOrders, storeOrder]));
+      });
+      
+      // Notify any listening components that orders have been updated
+      window.dispatchEvent(new Event('ordersUpdated'));
       
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1500));

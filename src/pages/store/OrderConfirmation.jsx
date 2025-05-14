@@ -12,11 +12,11 @@ const OrderConfirmation = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumbs */}
       <div className="flex items-center text-sm text-gray-600 mb-6">
-        <Link to="/" className="hover:text-primary">Home</Link>
+        <Link to="/" className="hover:text-green-600">Home</Link>
         <ChevronRight size={16} className="mx-2" />
-        <Link to="/store/cart" className="hover:text-primary">Cart</Link>
+        <Link to="/store/cart" className="hover:text-green-600">Cart</Link>
         <ChevronRight size={16} className="mx-2" />
-        <Link to="/store/checkout" className="hover:text-primary">Checkout</Link>
+        <Link to="/store/checkout" className="hover:text-green-600">Checkout</Link>
         <ChevronRight size={16} className="mx-2" />
         <span className="font-medium text-gray-800">Order Confirmation</span>
       </div>
@@ -43,7 +43,7 @@ const OrderConfirmation = () => {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link 
             to="/store/orders"
-            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-primary text-white rounded-md hover:bg-primary/90"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-md hover:bg-green-700"
           >
             <ShoppingBag size={18} />
             View Order History

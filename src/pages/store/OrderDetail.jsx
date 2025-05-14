@@ -44,6 +44,9 @@ const OrderDetail = () => {
         const foundOrder = savedOrders.find(order => order.id === orderId);
         
         if (foundOrder) {
+          // Normalize status to lowercase for consistent comparison
+          const normalizedStatus = foundOrder.status.toLowerCase();
+          
           // Add timeline to the order
           foundOrder.timeline = [
             { 
@@ -54,7 +57,7 @@ const OrderDetail = () => {
           ];
           
           // Add more timeline events based on status
-          if (foundOrder.status === 'Processing' || foundOrder.status === 'Shipped' || foundOrder.status === 'Delivered') {
+          if (normalizedStatus === 'processing' || normalizedStatus === 'shipped' || normalizedStatus === 'delivered') {
             foundOrder.timeline.push({ 
               date: new Date(new Date(foundOrder.date).getTime() + 1 * 24 * 60 * 60 * 1000).toISOString(), 
               status: 'Payment Confirmed', 
@@ -68,7 +71,7 @@ const OrderDetail = () => {
             });
           }
           
-          if (foundOrder.status === 'Shipped' || foundOrder.status === 'Delivered') {
+          if (normalizedStatus === 'shipped' || normalizedStatus === 'delivered') {
             foundOrder.timeline.push({ 
               date: new Date(new Date(foundOrder.date).getTime() + 3 * 24 * 60 * 60 * 1000).toISOString(), 
               status: 'Shipped', 
@@ -76,7 +79,7 @@ const OrderDetail = () => {
             });
           }
           
-          if (foundOrder.status === 'Delivered') {
+          if (normalizedStatus === 'delivered') {
             foundOrder.timeline.push({ 
               date: new Date(new Date(foundOrder.date).getTime() + 5 * 24 * 60 * 60 * 1000).toISOString(), 
               status: 'Delivered', 
@@ -115,14 +118,15 @@ const OrderDetail = () => {
   
   // Get order status color
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Delivered':
+    const statusLower = status.toLowerCase();
+    switch (statusLower) {
+      case 'delivered':
         return 'bg-green-100 text-green-800';
-      case 'Processing':
+      case 'processing':
         return 'bg-blue-100 text-blue-800';
-      case 'Shipped':
+      case 'shipped':
         return 'bg-purple-100 text-purple-800';
-      case 'Cancelled':
+      case 'cancelled':
         return 'bg-red-100 text-red-800';
       default:
         return 'bg-gray-100 text-gray-800';
@@ -173,11 +177,11 @@ const OrderDetail = () => {
     <div className="container mx-auto px-4 py-8">
       {/* Breadcrumbs */}
       <div className="flex items-center text-sm text-gray-600 mb-6">
-        <Link to="/" className="hover:text-primary">Home</Link>
+        <Link to="/" className="hover:text-green-600">Home</Link>
         <ChevronRight size={16} className="mx-2" />
-        <Link to="/store/account" className="hover:text-primary">My Account</Link>
+        <Link to="/store/account" className="hover:text-green-600">My Account</Link>
         <ChevronRight size={16} className="mx-2" />
-        <Link to="/store/orders" className="hover:text-primary">Orders</Link>
+        <Link to="/store/orders" className="hover:text-green-600">Orders</Link>
         <ChevronRight size={16} className="mx-2" />
         <span className="font-medium text-gray-800">{order.id}</span>
       </div>
@@ -187,7 +191,7 @@ const OrderDetail = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
             <div>
-              <Link to="/store/orders" className="text-primary flex items-center hover:underline mb-2">
+              <Link to="/store/orders" className="text-green-600 flex items-center hover:underline mb-2">
                 <ArrowLeft size={16} className="mr-1" />
                 Back to Orders
               </Link>
@@ -205,7 +209,7 @@ const OrderDetail = () => {
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Payment Method</p>
               <div className="flex items-center">
-                <CreditCard className="h-4 w-4 text-primary mr-2" />
+                <CreditCard className="h-4 w-4 text-green-600 mr-2" />
                 <p className="font-medium">{order.paymentMethod}</p>
               </div>
             </div>
@@ -213,7 +217,7 @@ const OrderDetail = () => {
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Order Date</p>
               <div className="flex items-center">
-                <CalendarCheck className="h-4 w-4 text-primary mr-2" />
+                <CalendarCheck className="h-4 w-4 text-green-600 mr-2" />
                 <p className="font-medium">{formatDate(order.date)}</p>
               </div>
             </div>
@@ -221,7 +225,7 @@ const OrderDetail = () => {
             <div className="space-y-1">
               <p className="text-sm text-gray-500">Items</p>
               <div className="flex items-center">
-                <Package className="h-4 w-4 text-primary mr-2" />
+                <Package className="h-4 w-4 text-green-600 mr-2" />
                 <p className="font-medium">{order.items} {order.items === 1 ? 'Item' : 'Items'}</p>
               </div>
             </div>
@@ -269,7 +273,7 @@ const OrderDetail = () => {
             </div>
             <div className="flex justify-between py-2 border-t mt-2">
               <span className="text-lg font-bold">Total</span>
-              <span className="text-lg font-bold text-primary">{formatCurrency(order.total)}</span>
+              <span className="text-lg font-bold text-green-600">{formatCurrency(order.total)}</span>
             </div>
           </div>
         </div>
@@ -278,7 +282,7 @@ const OrderDetail = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h2 className="text-lg font-semibold mb-4">Shipping Information</h2>
           <div className="flex items-start gap-4">
-            <MapPin className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
+            <MapPin className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium">{order.shippingAddress.address}</p>
               <p className="text-gray-600">
@@ -296,7 +300,7 @@ const OrderDetail = () => {
             {order.timeline.map((event, index) => (
               <div key={index} className="mb-6 flex">
                 <div className="flex flex-col items-center mr-4">
-                  <div className="rounded-full h-8 w-8 flex items-center justify-center bg-primary text-white">
+                  <div className="rounded-full h-8 w-8 flex items-center justify-center bg-green-600 text-white">
                     {index + 1}
                   </div>
                   {index < order.timeline.length - 1 && (
@@ -316,8 +320,8 @@ const OrderDetail = () => {
         {/* Help Section */}
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex flex-col md:flex-row items-center gap-6">
-            <div className="bg-primary/10 p-4 rounded-full">
-              <AlertCircle className="h-8 w-8 text-primary" />
+            <div className="bg-green-100 p-4 rounded-full">
+              <AlertCircle className="h-8 w-8 text-green-600" />
             </div>
             <div className="flex-1 text-center md:text-left">
               <h2 className="text-lg font-semibold mb-2">Need Help With This Order?</h2>
@@ -327,7 +331,7 @@ const OrderDetail = () => {
             </div>
             <Link 
               to="/contact"
-              className="px-6 py-2 bg-primary text-white rounded-md shadow-sm whitespace-nowrap"
+              className="px-6 py-2 bg-green-600 text-white rounded-md shadow-sm whitespace-nowrap"
             >
               Contact Support
             </Link>

@@ -19,6 +19,7 @@ import {
   Truck,
   Eye,
   AlertTriangle,
+  Store,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { getOrders, clearCache } from '../../lib/api';
@@ -52,11 +53,78 @@ const StoreOwnerOrders = () => {
       setError(null);
       
       console.log("Fetching orders for store:", selectedStore?._id);
-      const data = await getOrders();
-      console.log("Orders data received:", data);
       
-      setOrders(data || []);
-      setFilteredOrders(data || []);
+      if (!selectedStore || !selectedStore._id) {
+        console.warn("No store selected or invalid store ID");
+        setOrders([]);
+        setFilteredOrders([]);
+        setError("Please select a store to view orders");
+        setLoading(false);
+        return;
+      }
+      
+      // Get store-specific orders from localStorage using the selected store ID
+      const storeOrdersKey = `store_orders_${selectedStore._id}`;
+      const savedOrders = JSON.parse(localStorage.getItem(storeOrdersKey) || '[]');
+      
+      console.log(`Fetching orders for store: ${selectedStore.name} (${selectedStore._id})`);
+      
+      // If we have saved orders for this store, use them
+      if (savedOrders && savedOrders.length > 0) {
+        console.log("Found orders in localStorage:", savedOrders.length);
+        
+        // Ensure each order has the store information
+        const ordersWithStore = savedOrders.map(order => ({
+          ...order,
+          store: {
+            id: selectedStore._id,
+            name: selectedStore.name
+          }
+        }));
+        
+        setOrders(ordersWithStore);
+        setFilteredOrders(ordersWithStore);
+        
+        // Dispatch event to notify other components about orders update
+        window.dispatchEvent(new Event('ordersUpdated'));
+      } else {
+        // Otherwise fall back to the API - in a real app, you'd filter by store ID on the server
+        try {
+          // In a real API call, you'd include the store ID as a parameter
+          // const data = await getOrders(selectedStore._id);
+          const data = await getOrders();
+          
+          // Filter orders to only include those from the selected store
+          const storeOrders = (data || []).filter(order => {
+            // Check if any product in the order belongs to the selected store
+            return order.items && order.items.some(item => 
+              item.storeId === selectedStore._id
+            );
+          });
+          
+          console.log("Orders filtered for this store:", storeOrders.length);
+          
+          // Add store information to each order
+          const ordersWithStore = storeOrders.map(order => ({
+            ...order,
+            store: {
+              id: selectedStore._id,
+              name: selectedStore.name
+            }
+          }));
+          
+          setOrders(ordersWithStore);
+          setFilteredOrders(ordersWithStore);
+          
+          // Dispatch event to notify other components about orders update
+          window.dispatchEvent(new Event('ordersUpdated'));
+        } catch (apiError) {
+          console.error("API error:", apiError);
+          // If API fails, just use empty array
+          setOrders([]);
+          setFilteredOrders([]);
+        }
+      }
     } catch (error) {
       console.error("Error fetching orders:", error);
       setError("Failed to load orders. Please try again later.");
@@ -68,7 +136,7 @@ const StoreOwnerOrders = () => {
       setOrders([]);
       setFilteredOrders([]);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
     };
 
@@ -147,6 +215,9 @@ const StoreOwnerOrders = () => {
     
     // Fetch fresh data
     fetchOrders();
+    
+    // Notify other components about possible orders update
+    window.dispatchEvent(new Event('ordersUpdated'));
   };
 
   const getStatusBadge = (status) => {
@@ -512,7 +583,7 @@ const StoreOwnerOrders = () => {
                     <div className="flex items-center">
                       <Users className="h-4 w-4 mr-2 text-muted-foreground" />
                       <span className="font-medium">{order.customer.name}</span>
-                      <Badge variant="outline" className="ml-2 text-xs h-5">{order.customer.type}</Badge>
+                      <Badge variant="outline" className="ml-2 text-xs h-5">{order.customer.type || 'Customer'}</Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">
                       {order.customer.email} • {order.customer.phone}
@@ -521,6 +592,13 @@ const StoreOwnerOrders = () => {
                       <span className="font-medium">{order.items.length} product types</span>
                       <span className="text-muted-foreground">{calculateTotalItems(order.items)} total items</span>
                     </div>
+                    {/* Display store info if present */}
+                    {order.store && (
+                      <div className="text-sm flex items-center mt-2">
+                        <Store className="h-4 w-4 mr-2 text-emerald-500" />
+                        <span className="text-emerald-600 font-medium">{order.store.name}</span>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex flex-col items-end mt-4 sm:mt-0">
