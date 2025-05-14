@@ -53,18 +53,38 @@ const StoreOwnerCustomers = () => {
       
       // Use the store-specific API endpoint 
       const data = await getCustomers(selectedStore._id);
-      setCustomers(data);
+      
+      // Process the response to ensure we only get customers for this specific store
+      let storeCustomers = [];
+      
+      if (data && Array.isArray(data)) {
+        // If it's already an array, filter for this store's customers
+        storeCustomers = data.filter(customer => 
+          customer.store === selectedStore._id || 
+          customer.store?._id === selectedStore._id
+        );
+      } else if (data?.customers && Array.isArray(data.customers)) {
+        // If the API returns a nested customers array, filter for this store's customers
+        storeCustomers = data.customers.filter(customer => 
+          customer.store === selectedStore._id || 
+          customer.store?._id === selectedStore._id
+        );
+      }
+      
+      console.log(`Found ${storeCustomers.length} customers for store ${selectedStore._id}`);
+      setCustomers(storeCustomers);
       setError('');
     } catch (err) {
       console.error('Customers fetch error:', err);
       setError('Failed to fetch customers. Please try again later.');
+      setCustomers([]); // Set an empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   // Filter customers based on search term
-  const filteredCustomers = customers.filter((customer) => {
+  const filteredCustomers = (customers || []).filter((customer) => {
     return (
       searchTerm === '' ||
       customer.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||

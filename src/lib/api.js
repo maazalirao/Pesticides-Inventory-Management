@@ -364,14 +364,66 @@ export const deleteInventoryItem = (id) => deleteData(`/inventory/store/:storeId
 export const addBatchToInventoryItem = (id, batchData) => postData(`/inventory/store/:storeId/${id}/batches`, batchData);
 
 // Customers
-export const getCustomers = () => fetchData('/customers/store/:storeId');
+export const getCustomers = (storeId) => {
+  if (!storeId) {
+    console.error('No store ID provided to getCustomers');
+    return Promise.resolve([]);
+  }
+  console.log(`Fetching customers for store: ${storeId}`);
+  return fetchData(`/customers/store/${storeId}`, { storeId })
+    .then(data => {
+      // Return data in the most appropriate format based on what the API returns
+      if (Array.isArray(data)) {
+        // If we get an array directly, ensure it only contains this store's customers
+        return data.filter(customer => 
+          customer.store === storeId || 
+          customer.store?._id === storeId
+        );
+      } else if (data && data.customers && Array.isArray(data.customers)) {
+        // If we get a nested customers object, filter for this store's customers
+        return data.customers.filter(customer => 
+          customer.store === storeId || 
+          customer.store?._id === storeId
+        );
+      }
+      // Return empty array if no valid data
+      return [];
+    });
+};
+
 export const getCustomer = (id) => fetchData(`/customers/store/:storeId/${id}`);
 export const createCustomer = (data) => postData('/customers/store/:storeId', data);
 export const updateCustomer = (id, data) => updateData(`/customers/store/:storeId/${id}`, data);
 export const deleteCustomer = (id) => deleteData(`/customers/store/:storeId/${id}`);
 
 // Suppliers
-export const getSuppliers = () => fetchData('/suppliers/store/:storeId');
+export const getSuppliers = (storeId) => {
+  if (!storeId) {
+    console.error('No store ID provided to getSuppliers');
+    return Promise.resolve([]);
+  }
+  console.log(`Fetching suppliers for store: ${storeId}`);
+  return fetchData(`/suppliers/store/${storeId}`, { storeId })
+    .then(data => {
+      // Return data in the most appropriate format based on what the API returns
+      if (Array.isArray(data)) {
+        // If we get an array directly, ensure it only contains this store's suppliers
+        return data.filter(supplier => 
+          supplier.store === storeId || 
+          supplier.store?._id === storeId
+        );
+      } else if (data && data.suppliers && Array.isArray(data.suppliers)) {
+        // If we get a nested suppliers object, filter for this store's suppliers
+        return data.suppliers.filter(supplier => 
+          supplier.store === storeId || 
+          supplier.store?._id === storeId
+        );
+      }
+      // Return empty array if no valid data
+      return [];
+    });
+};
+
 export const getSupplier = (id) => fetchData(`/suppliers/store/:storeId/${id}`);
 export const createSupplier = (data) => postData('/suppliers/store/:storeId', data);
 export const updateSupplier = (id, data) => updateData(`/suppliers/store/:storeId/${id}`, data);

@@ -54,18 +54,38 @@ const StoreOwnerSuppliers = () => {
       
       // Use the store-specific API endpoint
       const data = await getSuppliers(selectedStore._id);
-      setSuppliers(data);
+      
+      // Process the response to ensure we only get suppliers for this specific store
+      let storeSuppliers = [];
+      
+      if (data && Array.isArray(data)) {
+        // If it's already an array, filter for this store's suppliers
+        storeSuppliers = data.filter(supplier => 
+          supplier.store === selectedStore._id || 
+          supplier.store?._id === selectedStore._id
+        );
+      } else if (data?.suppliers && Array.isArray(data.suppliers)) {
+        // If the API returns a nested suppliers array, filter for this store's suppliers
+        storeSuppliers = data.suppliers.filter(supplier => 
+          supplier.store === selectedStore._id || 
+          supplier.store?._id === selectedStore._id
+        );
+      }
+      
+      console.log(`Found ${storeSuppliers.length} suppliers for store ${selectedStore._id}`);
+      setSuppliers(storeSuppliers);
       setError('');
     } catch (err) {
       console.error('Suppliers fetch error:', err);
       setError('Failed to fetch suppliers. Please try again later.');
+      setSuppliers([]); // Set an empty array on error
     } finally {
       setLoading(false);
     }
   };
 
   // Filter suppliers based on search term
-  const filteredSuppliers = suppliers.filter((supplier) => {
+  const filteredSuppliers = (suppliers || []).filter((supplier) => {
     return (
       searchTerm === '' ||
       supplier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||

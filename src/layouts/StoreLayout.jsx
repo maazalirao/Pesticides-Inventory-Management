@@ -10,7 +10,11 @@ import {
   ChevronRight, 
   Leaf, 
   Heart,
-  User
+  User,
+  BarChart2,
+  Package,
+  ChevronLeft,
+  Store
 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { motion } from 'framer-motion';
@@ -48,7 +52,7 @@ const StoreLayout = () => {
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Main Header */}
-      <header className={`sticky top-0 z-50 ${scrolled ? 'bg-green-700/95 shadow-md backdrop-blur-sm text-white' : 'bg-green-700 text-white'} transition-all duration-300`}>
+      <header className={`sticky top-0 z-50 ${scrolled ? 'bg-slate-900/95 shadow-md backdrop-blur-sm text-white' : 'bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white'} transition-all duration-300`}>
         <div className="container mx-auto px-4 py-2.5">
           <div className="flex items-center justify-between">
             {/* Mobile Menu Button */}
@@ -62,9 +66,9 @@ const StoreLayout = () => {
             {/* Logo */}
             <div className="flex items-center space-x-2">
               <Link to="/store" className="flex items-center">
-                <Leaf size={28} className="text-green-300 mr-2" />
+                <Leaf size={28} className="text-orange-400 mr-2" />
                 <span className="text-xl sm:text-2xl font-bold text-white">
-                  Agri<span className="text-green-300">Store</span>
+                  Agri<span className="text-orange-400">Store</span>
                 </span>
               </Link>
             </div>
@@ -73,21 +77,15 @@ const StoreLayout = () => {
             <nav className="hidden lg:flex items-center justify-center space-x-8">
               <Link 
                 to="/store" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-green-300' : 'text-white hover:text-green-300'}`}
+                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store') && location.pathname === '/store' ? 'text-orange-400' : 'text-white hover:text-orange-400'}`}
               >
                 Home
               </Link>
               <Link 
                 to="/store/products" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/products') ? 'text-green-300' : 'text-white hover:text-green-300'}`}
+                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/products') ? 'text-orange-400' : 'text-white hover:text-orange-400'}`}
               >
                 Products
-              </Link>
-              <Link 
-                to="/store/orders" 
-                className={`whitespace-nowrap px-1 py-1 font-medium transition-colors duration-200 ${isActive('/store/orders') ? 'text-green-300' : 'text-white hover:text-green-300'}`}
-              >
-                Orders
               </Link>
             </nav>
 
@@ -97,7 +95,7 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setSearchOpen(!searchOpen)} 
-                className="text-white hover:text-green-300 transition-colors duration-200 p-1"
+                className="text-white hover:text-orange-400 transition-colors duration-200 p-1"
               >
                 <Search size={20} />
               </motion.button>
@@ -106,7 +104,7 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/store/wishlist" className="text-white hover:text-green-300 transition-colors duration-200 p-1 relative">
+                <Link to="/store/wishlist" className="text-white hover:text-orange-400 transition-colors duration-200 p-1 relative">
                   <Heart size={20} />
                 </Link>
               </motion.div>
@@ -115,10 +113,10 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/store/cart" className="text-white hover:text-green-300 transition-colors duration-200 p-1 relative">
+                <Link to="/store/cart" className="text-white hover:text-orange-400 transition-colors duration-200 p-1 relative">
                   <ShoppingCart size={20} />
                   {totalItems > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-green-300 text-green-800 text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                    <span className="absolute -top-2 -right-2 bg-orange-400 text-slate-900 text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
                       {totalItems}
                     </span>
                   )}
@@ -138,7 +136,7 @@ const StoreLayout = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <SignInButton mode="modal" redirectUrl={location.pathname}>
-                    <button className="flex items-center gap-1 text-white bg-green-800 px-2 py-1.5 rounded-md hover:bg-green-900 transition-all">
+                    <button className="flex items-center gap-1 text-white bg-slate-800 px-2 py-1.5 rounded-md hover:bg-slate-900 transition-all">
                       <User size={16} />
                       <span className="text-xs font-medium">Sign In</span>
                     </button>
@@ -158,12 +156,12 @@ const StoreLayout = () => {
               <input
                 type="text"
                 placeholder="Search products..."
-                className="w-full p-2 pr-10 bg-white/10 border border-green-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-green-300"
+                className="w-full p-2 pr-10 bg-white/10 border border-orange-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-orange-300"
                 autoFocus
               />
               <Search 
                 size={18} 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-300" 
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-orange-400" 
               />
             </motion.div>
           )}
@@ -174,29 +172,22 @@ const StoreLayout = () => {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
-              className="lg:hidden mt-4 pb-4 border-t border-green-600"
+              className="lg:hidden mt-4 pb-4 border-t border-white/5"
             >
               <nav className="flex flex-col space-y-3 pt-4">
                 <Link 
                   to="/store" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store') && location.pathname === '/store' ? 'bg-green-800 text-white font-medium' : 'text-white hover:bg-green-800'}`}
+                  className={`py-2 px-3 rounded-lg ${isActive('/store') && location.pathname === '/store' ? 'bg-slate-800 text-white font-medium' : 'text-white hover:bg-slate-800'}`}
                 >
                   Home
                 </Link>
                 <Link 
                   to="/store/products" 
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store/products') ? 'bg-green-800 text-white font-medium' : 'text-white hover:bg-green-800'}`}
+                  className={`py-2 px-3 rounded-lg ${isActive('/store/products') ? 'bg-slate-800 text-white font-medium' : 'text-white hover:bg-slate-800'}`}
                 >
                   Products
-                </Link>
-                <Link 
-                  to="/store/orders" 
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`py-2 px-3 rounded-lg ${isActive('/store/orders') ? 'bg-green-800 text-white font-medium' : 'text-white hover:bg-green-800'}`}
-                >
-                  Orders
                 </Link>
               </nav>
             </motion.div>
@@ -215,13 +206,46 @@ const StoreLayout = () => {
         </motion.div>
       </main>
 
+      {/* Mobile Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-t border-white/5 z-30 lg:hidden">
+        <div className="flex justify-around py-2">
+          <Link
+            to="/admin"
+            className="flex flex-col items-center p-1.5 text-white"
+          >
+            <BarChart2 size={20} />
+            <span className="text-[9px] mt-0.5 truncate max-w-[40px] text-center">Dashboard</span>
+          </Link>
+          <Link
+            to="/store"
+            className="flex flex-col items-center p-1.5 text-white"
+          >
+            <Store size={20} />
+            <span className="text-[9px] mt-0.5 truncate max-w-[40px] text-center">Store</span>
+          </Link>
+          <Link
+            to="/admin/inventory"
+            className="flex flex-col items-center p-1.5 text-white"
+          >
+            <Package size={20} />
+            <span className="text-[9px] mt-0.5 truncate max-w-[40px] text-center">Inventory</span>
+          </Link>
+          <Link
+            to="/"
+            className="flex flex-col items-center p-1.5 text-white"
+          >
+            <ChevronLeft size={20} />
+          </Link>
+        </div>
+      </div>
+
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-16">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <Leaf size={24} className="text-green-400 mr-2" />
+                <Leaf size={24} className="text-orange-400 mr-2" />
                 <h3 className="font-bold text-xl">AgriStore</h3>
               </div>
               <p className="text-gray-400 mb-6">
@@ -247,29 +271,29 @@ const StoreLayout = () => {
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4 text-green-400">Shop</h3>
+              <h3 className="font-bold text-lg mb-4 text-orange-400">Shop</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/store/products" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/store/products" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     All Products
                   </Link>
                 </li>
                 <li>
-                  <Link to="/store/products?category=insecticide" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/store/products?category=insecticide" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     Insecticides
                   </Link>
                 </li>
                 <li>
-                  <Link to="/store/products?category=herbicide" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/store/products?category=herbicide" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     Herbicides
                   </Link>
                 </li>
                 <li>
-                  <Link to="/store/products?category=fungicide" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/store/products?category=fungicide" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     Fungicides
                   </Link>
                 </li>
@@ -277,23 +301,23 @@ const StoreLayout = () => {
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4 text-green-400">Information</h3>
+              <h3 className="font-bold text-lg mb-4 text-orange-400">Information</h3>
               <ul className="space-y-2">
                 <li>
-                  <Link to="/" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     Main Page
                   </Link>
                 </li>
                 <li>
-                  <Link to="/store/terms" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/store/terms" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     Terms & Conditions
                   </Link>
                 </li>
                 <li>
-                  <Link to="/store/privacy" className="text-gray-400 hover:text-green-400 transition-colors duration-200 flex items-center">
-                    <ChevronRight size={14} className="mr-1 text-green-500" />
+                  <Link to="/store/privacy" className="text-gray-400 hover:text-orange-400 transition-colors duration-200 flex items-center">
+                    <ChevronRight size={14} className="mr-1 text-orange-500" />
                     Privacy Policy
                   </Link>
                 </li>
@@ -301,7 +325,7 @@ const StoreLayout = () => {
             </div>
             
             <div>
-              <h3 className="font-bold text-lg mb-4 text-green-400">Contact Us</h3>
+              <h3 className="font-bold text-lg mb-4 text-orange-400">Contact Us</h3>
               <ul className="space-y-3">
                 <li className="flex items-start text-gray-400">
                   123 Agri Lane, Farmville<br />

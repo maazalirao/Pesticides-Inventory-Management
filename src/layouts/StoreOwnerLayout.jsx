@@ -49,6 +49,7 @@ const StoreOwnerLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
@@ -161,34 +162,6 @@ const StoreOwnerLayout = () => {
       {/* Add style tag for custom scrollbar styling */}
       <style>{scrollbarStyle}</style>
       
-      {/* Mobile Nav - Icon only sidebar (Always visible on mobile) */}
-      <div className="fixed left-0 top-0 bottom-0 z-40 bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900 w-16 md:hidden flex flex-col items-center pt-24 pb-4 overflow-y-auto">
-        <div className="flex flex-col items-center gap-6">
-          {navItems.map((item) => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={cn(
-                "flex flex-col items-center justify-center p-2",
-                location.pathname === item.path
-                  ? "text-emerald-400" 
-                  : "text-slate-400 hover:text-white"
-              )}
-            >
-              <div className={cn(
-                "flex items-center justify-center h-10 w-10 rounded-xl",
-                location.pathname === item.path 
-                  ? "bg-white/10 text-emerald-400" 
-                  : "hover:bg-white/5"
-              )}>
-                {item.icon}
-              </div>
-              <span className="text-xs mt-1">{item.title.split(' ')[0]}</span>
-            </Link>
-          ))}
-        </div>
-      </div>
-
       {/* Overlay for mobile sidebar */}
       {sidebarOpen && (
         <div 
@@ -197,22 +170,21 @@ const StoreOwnerLayout = () => {
         />
       )}
 
-      {/* Main sidebar (collapsible on mobile) */}
+      {/* Main sidebar (hidden on mobile, shown when toggled) */}
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-80 transform bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900 shadow-2xl transition-all duration-300 ease-in-out md:relative md:translate-x-0",
-          sidebarOpen ? "translate-x-0 ring-1 ring-white/10" : "-translate-x-full",
-          "md:block hidden" // Hide on mobile, replaced by icon bar
+          "fixed inset-y-0 left-0 z-50 w-72 transform bg-gradient-to-br from-emerald-900 via-emerald-800 to-emerald-900 shadow-2xl transition-all duration-300 ease-in-out md:relative md:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Glass effect header with logo */}
-        <div className="flex h-24 items-center justify-between px-6 backdrop-blur-sm bg-emerald-900/70 border-b border-white/5">
+        <div className="flex h-20 items-center justify-between px-5 backdrop-blur-sm bg-emerald-900/70 border-b border-white/5">
           <div className="flex items-center space-x-2">
             <div className="h-10 w-10 rounded-full bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center shadow-lg">
               <Package className="h-5 w-5 text-white" />
             </div>
             <div>
-              <span className="text-2xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">
+              <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-500 bg-clip-text text-transparent">
                 Pesticide Inventory
               </span>
               <div className="flex items-center text-xs text-slate-400 mt-0.5">
@@ -230,7 +202,7 @@ const StoreOwnerLayout = () => {
         </div>
 
         {/* Navigation with categorized sections */}
-        <div className="overflow-y-auto max-h-[calc(100vh-12rem)] scrollbar-hide">
+        <div className="overflow-y-auto max-h-[calc(100vh-12rem)] hide-scrollbar">
           {/* Main navigation - starting immediately after the header */}
           <div className="px-3 pt-6 pb-8">
             <div className="text-xs font-semibold text-slate-400 uppercase tracking-wider px-4 mb-3">Main Navigation</div>
@@ -261,7 +233,7 @@ const StoreOwnerLayout = () => {
                       {item.badge}
                     </Badge>
                   )}
-                  {location.pathname === item.path && (
+                  {location.pathname === item.path && !item.badge && (
                     <div className="ml-auto flex items-center">
                       <div className="h-1.5 w-1.5 rounded-full bg-white mr-1"></div>
                       <div className="h-1 w-1 rounded-full bg-white/60"></div>
@@ -300,7 +272,7 @@ const StoreOwnerLayout = () => {
                       {item.badge}
                     </Badge>
                   )}
-                  {location.pathname === item.path && (
+                  {location.pathname === item.path && !item.badge && (
                     <div className="ml-auto flex items-center">
                       <div className="h-1.5 w-1.5 rounded-full bg-white mr-1"></div>
                       <div className="h-1 w-1 rounded-full bg-white/60"></div>
@@ -347,9 +319,9 @@ const StoreOwnerLayout = () => {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden">
         {/* Top Navigation */}
-        <header className="border-b border-emerald-700 bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 sticky top-0 z-10 shadow-md">
+        <header className="bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-900 border-b border-emerald-700 sticky top-0 z-10 shadow-md">
           <div className="flex h-16 items-center justify-between px-4">
             <div className="flex items-center">
               <button
@@ -358,59 +330,95 @@ const StoreOwnerLayout = () => {
               >
                 <Menu className="h-6 w-6" />
               </button>
-              <div className="ml-4 flex items-center">
+              
+              <div className="ml-3 flex items-center">
                 <Store className="h-5 w-5 text-emerald-400 mr-2 hidden md:inline" />
                 <span className="text-lg font-bold text-white hidden md:inline">Store Owner</span>
-                <div className="flex items-center md:hidden">
-                  <Store className="h-5 w-5 text-emerald-400 mr-2" />
-                  <span className="text-xs font-medium text-slate-200">Store Owner Dashboard</span>
+                {selectedStore && (
+                  <span className="text-sm text-emerald-200 ml-2 hidden md:inline">({selectedStore.name})</span>
+                )}
+                <div className="md:hidden">
+                  <span className="text-sm font-medium text-slate-200">Store Dashboard</span>
                 </div>
               </div>
             </div>
-            
-            <div className="flex items-center gap-3">
-              {/* Search */}
-              <div className="relative hidden md:flex">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-3">
-                  <Search className="h-4 w-4 text-slate-400" />
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Search..." 
-                  className="pl-10 pr-4 py-2 bg-white/10 text-sm text-slate-200 rounded-lg border border-emerald-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 w-48 focus:bg-white/20"
-                />
+
+            {/* Mobile-optimized right side of header */}
+            <div className="flex items-center space-x-2">
+              {/* Mobile-friendly search button */}
+              <button className="text-slate-300 hover:text-emerald-400 p-2 rounded-lg hover:bg-white/10 transition-all md:hidden">
+                <Search className="h-5 w-5" />
+              </button>
+              
+              {/* Notifications button */}
+              <div className="relative">
+                <button 
+                  onClick={() => setNotificationsOpen(!notificationsOpen)}
+                  className="text-slate-300 hover:text-emerald-400 p-2 rounded-lg hover:bg-white/10 transition-all"
+                >
+                  <Bell className="h-5 w-5" />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-red-500"></span>
+                  )}
+                </button>
+                
+                {/* Notifications dropdown */}
+                {notificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-80 md:w-96 bg-emerald-800 rounded-lg shadow-lg border border-emerald-700 py-1 z-50 max-h-[75vh] overflow-y-auto">
+                    <div className="px-4 py-3 border-b border-emerald-700">
+                      <div className="text-sm font-medium text-white flex items-center justify-between">
+                        Notifications
+                        <span className="bg-emerald-600 text-emerald-100 text-xs font-medium rounded-full px-2 py-0.5">
+                          {notifications.filter(n => !n.read).length} New
+                        </span>
+                      </div>
+                    </div>
+                    <div className="divide-y divide-emerald-700/50">
+                      {notifications.map((notification) => (
+                        <div key={notification.id} className="px-4 py-3 hover:bg-emerald-700/50">
+                          <div className="text-sm font-medium text-white">{notification.message}</div>
+                          <div className="text-xs text-emerald-300 mt-1 flex items-center justify-between">
+                            <span>{notification.time}</span>
+                            {!notification.read && (
+                              <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="px-4 py-2 border-t border-emerald-700/50">
+                      <button 
+                        className="text-xs text-emerald-300 hover:text-emerald-100 font-medium w-full text-center"
+                        onClick={() => setNotificationsOpen(false)}
+                      >
+                        Mark all as read
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
               
-              {/* Theme toggle */}
-              <button
+              {/* Theme toggle button */}
+              <button 
                 onClick={toggleTheme}
-                className="p-2 text-slate-300 hover:text-emerald-400 rounded-lg hover:bg-white/10 transition-all"
+                className="text-slate-300 hover:text-emerald-400 p-2 rounded-lg hover:bg-white/10 transition-all hidden md:flex"
               >
                 {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
               </button>
               
-              {/* Notifications */}
-              <button className="p-2 text-slate-300 hover:text-emerald-400 rounded-lg hover:bg-white/10 transition-all relative">
-                <Bell className="h-5 w-5" />
-                <span className="absolute top-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-emerald-900"></span>
-              </button>
-              
-              {/* User menu */}
+              {/* User dropdown */}
               <div className="relative">
                 <button 
                   onClick={toggleUserMenu}
-                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-white/10 transition-all"
+                  className="flex items-center text-white hover:text-emerald-400 p-1 rounded-full hover:bg-white/10 transition-all"
                 >
-                  <div className="h-8 w-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-medium">
-                    SO
-                  </div>
-                  <div className="hidden md:block text-left">
-                    <div className="text-sm font-medium text-slate-200">Store Owner</div>
-                    <div className="text-xs text-slate-400">store@example.com</div>
-                  </div>
-                  <ChevronDown className="h-4 w-4 text-slate-400" />
+                  <Avatar className="h-8 w-8 border border-emerald-700/50 bg-white/10">
+                    <AvatarImage src="/avatar.png" alt="User" />
+                    <AvatarFallback className="bg-emerald-800/50 text-emerald-200">SO</AvatarFallback>
+                  </Avatar>
                 </button>
                 
+                {/* User dropdown menu */}
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-emerald-800 rounded-lg shadow-lg border border-emerald-700 py-1 z-50">
                     <div className="px-4 py-3 border-b border-emerald-700">
@@ -430,7 +438,7 @@ const StoreOwnerLayout = () => {
                         onClick={handleLogout}
                         className="flex items-center px-4 py-2 text-sm text-slate-200 hover:bg-emerald-700 hover:text-emerald-400 w-full text-left"
                       >
-                        <ChevronLeft className="h-4 w-4 mr-2" />
+                        <LogOut className="h-4 w-4 mr-2" />
                         Logout
                       </button>
                     </div>
@@ -441,12 +449,35 @@ const StoreOwnerLayout = () => {
           </div>
         </header>
 
-        {/* Main Content - Add left padding on mobile to account for icon sidebar */}
-        <main className="flex-1 overflow-y-auto bg-white">
-          <div className="container mx-auto py-6 px-4 md:px-6 pl-20 md:pl-4">
-            <Outlet />
-          </div>
+        {/* Main Content */}
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0 p-4 md:p-6">
+          <Outlet />
         </main>
+        
+        {/* Mobile bottom navigation */}
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-30 md:hidden">
+          <div className="flex justify-around py-2">
+            {navItems.slice(0, 5).map((item) => (
+              <Link
+                key={item.path}
+                to={item.path}
+                className={`flex flex-col items-center p-1.5 ${
+                  isActive(item.path) ? 'text-emerald-500' : 'text-slate-500'
+                }`}
+              >
+                <div className="relative">
+                  {item.icon}
+                  {item.badge && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[9px] mt-0.5 truncate max-w-[40px] text-center">{item.title}</span>
+              </Link>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
