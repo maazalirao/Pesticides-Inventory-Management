@@ -48,22 +48,89 @@ const ProductListing = () => {
             // Update localStorage with current store
             localStorage.setItem('selectedStoreId', storeId);
             
-            // Fetch products from this specific store
-            const productsResponse = await axios.get(`/api/products?store=${storeId}`);
-            console.log(`Fetched ${productsResponse.data.length} products from store:`, storeId);
-            setProducts(productsResponse.data);
+            // First try to fetch from the public endpoint (which works better on Vercel)
+            console.log('Fetching products from public endpoint for store:', storeId);
+            try {
+              const productsResponse = await axios.get(`/api/public/products`, {
+                params: { store: storeId },
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                }
+              });
+              console.log(`Fetched ${productsResponse.data.length} products using public endpoint`);
+              setProducts(productsResponse.data);
+            } catch (publicApiError) {
+              console.warn('Public API endpoint failed, trying standard endpoint:', publicApiError);
+              // Fall back to standard API if public endpoint fails
+              const productsResponse = await axios.get(`/api/products`, {
+                params: { store: storeId },
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                }
+              });
+              console.log(`Fetched ${productsResponse.data.length} products using standard endpoint`);
+              setProducts(productsResponse.data);
+            }
           } catch (err) {
             console.error('Error fetching store data:', err);
             setError('Could not load store information');
             
-            // Fallback to fetching all products
-            const productResponse = await axios.get('/api/products');
-            setProducts(productResponse.data);
+            // Fallback to fetching all products from public endpoint
+            console.log('Falling back to fetching all products from public endpoint');
+            try {
+              const productResponse = await axios.get('/api/public/products', {
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                }
+              });
+              console.log(`Fetched ${productResponse.data.length} products in fallback mode`);
+              setProducts(productResponse.data);
+            } catch (publicApiFallbackError) {
+              console.warn('Public API fallback failed, trying standard endpoint:', publicApiFallbackError);
+              // Final fallback to standard API
+              const productResponse = await axios.get('/api/products', {
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                }
+              });
+              console.log(`Fetched ${productResponse.data.length} products using standard endpoint fallback`);
+              setProducts(productResponse.data);
+            }
           }
         } else {
-          // No store selected, fetch all products
-          const productResponse = await axios.get('/api/products');
-          setProducts(productResponse.data);
+          // No store selected, fetch all products from public endpoint
+          console.log('No store selected, fetching all products from public endpoint');
+          try {
+            const productResponse = await axios.get('/api/public/products', {
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              }
+            });
+            console.log(`Fetched ${productResponse.data.length} products`);
+            setProducts(productResponse.data);
+          } catch (publicApiError) {
+            console.warn('Public API endpoint failed, trying standard endpoint:', publicApiError);
+            // Fall back to standard API
+            const productResponse = await axios.get('/api/products', {
+              headers: {
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Expires': '0'
+              }
+            });
+            console.log(`Fetched ${productResponse.data.length} products using standard endpoint`);
+            setProducts(productResponse.data);
+          }
         }
         
         setLoading(false);

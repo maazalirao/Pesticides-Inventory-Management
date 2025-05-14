@@ -1,8 +1,29 @@
 import axios from 'axios';
 
+// Determine API base URL
+const getBaseUrl = () => {
+  // In production (like Vercel), use relative URL path
+  if (window.location.hostname !== 'localhost') {
+    console.log('Using production API base URL');
+    return '/api';
+  }
+  
+  // In development, check if we're using a proxy (default) or API server directly
+  const useLocalApi = import.meta.env.VITE_USE_LOCAL_API === 'true';
+  if (useLocalApi) {
+    // For development with direct API server connection
+    console.log('Using direct API server connection');
+    return 'http://localhost:5000/api';
+  }
+  
+  // Default for development with proxy
+  console.log('Using proxy API URL');
+  return '/api';
+};
+
 // Create Axios instance with base URL
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: getBaseUrl(),
   headers: {
     'Content-Type': 'application/json',
   },
@@ -16,6 +37,9 @@ const getStoreId = () => {
 // Request interceptor to add store ID to all requests
 api.interceptors.request.use(
   (config) => {
+    // Add request debugging for Vercel deployment
+    console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || {});
+    
     // Skip store ID interceptor if explicitly requested (for admin global queries)
     if (config.params && config.params.skipStoreIdInterceptor) {
       // Remove the skipStoreIdInterceptor param to keep the request clean
@@ -55,7 +79,10 @@ api.interceptors.request.use(
 
 // Add a response interceptor
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
     console.error('Response error:', error);
     

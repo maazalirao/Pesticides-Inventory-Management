@@ -17,17 +17,13 @@ import { errorHandler } from './middleware/authMiddleware.js';
 // Load environment variables
 dotenv.config();
 
-// If no JWT_SECRET, set a default one for development
-if (!process.env.JWT_SECRET) {
-  console.warn('WARNING: JWT_SECRET is not set. Using a default value for development only.');
-  process.env.JWT_SECRET = 'development_secret_key_1234567890';
-}
-
 // Set development mode if not specified
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = 'development';
   console.log('NODE_ENV not set, defaulting to development mode');
 }
+
+console.log('Running in auth bypass mode for Vercel deployment');
 
 // Initialize Express app
 const app = express();
@@ -39,15 +35,6 @@ app.use(express.json());
 // Request logger middleware
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} ${req.method} ${req.originalUrl}`);
-  
-  // Log headers for authentication debugging
-  if (req.originalUrl.includes('/api/')) {
-    console.log('Headers:', JSON.stringify({
-      authorization: req.headers.authorization ? 'Bearer [REDACTED]' : 'None',
-      'content-type': req.headers['content-type']
-    }));
-  }
-  
   next();
 });
 
@@ -77,6 +64,40 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/invoices', invoiceRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/analytics', analyticsRoutes);
+
+// Special direct route for public product access with no authentication - helps fix issues on Vercel
+app.get('/api/public/products', async (req, res) => {
+  console.log('PUBLIC PRODUCTS ROUTE: Accessed with query params:', req.query);
+  
+  try {
+    const mongoose = (await import('mongoose')).default;
+    const ProductModel = mongoose.model('Product');
+    
+    let query = { status: { $ne: 'discontinued' } };
+    
+    // Filter by store if provided
+    if (req.query.store) {
+      console.log('PUBLIC PRODUCTS ROUTE: Filtering by store:', req.query.store);
+      query.store = req.query.store;
+    }
+    
+    // Execute query
+    const products = await ProductModel.find(query)
+      .populate('store', 'name')
+      .populate('supplier', 'name')
+      .lean()
+      .exec();
+    
+    console.log(`PUBLIC PRODUCTS ROUTE: Found ${products.length} products`);
+    res.json(products);
+  } catch (error) {
+    console.error('PUBLIC PRODUCTS ROUTE: Error fetching products:', error);
+    res.status(500).json({ 
+      message: 'Error fetching products',
+      error: error.message 
+    });
+  }
+});
 
 // Special handling for admin routes to ensure they're properly captured
 app.use('/api/admin', (req, res, next) => {

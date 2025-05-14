@@ -26,6 +26,7 @@ const getProducts = asyncHandler(async (req, res) => {
   console.log('Request path:', req.path);
   console.log('Request query:', req.query);
   console.log('Request params:', req.params);
+  console.log('Request headers:', JSON.stringify(req.headers).substring(0, 300));
   
   // More comprehensive admin route detection
   const isAdminRoute = 
@@ -40,12 +41,14 @@ const getProducts = asyncHandler(async (req, res) => {
   
   let query = {};
   
-  // Get storeId from URL params or query params
-  // For public endpoints, check 'store' parameter to filter by store
+  // Get storeId from URL params or query params - check all possible sources
   const storeId = req.params.storeId || req.query.storeId || req.query.store || req.body.storeId;
+  
+  console.log('Store ID from request:', storeId);
   
   // Check if request is from a public endpoint (no user object)
   const isPublicRequest = !req.user;
+  console.log('Is public request:', isPublicRequest);
   
   if (isPublicRequest) {
     // Public API requests
