@@ -22,7 +22,6 @@ import StoreProfile from './pages/storeowner/StoreProfile';
 import Landing from './pages/Landing';
 import RoleSelection from './pages/RoleSelection.jsx';
 import NavigationHandler from './components/NavigationHandler';
-import RoleSelector from './components/RoleSelector';
 import StoreSelector from './components/StoreSelector';
 import { Toaster } from './components/ui/toaster';
 
