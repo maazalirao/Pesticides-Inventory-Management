@@ -10,17 +10,32 @@ const API_URL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:5000/api'  // Hard-coded for development
   : '/api';  // For production, use relative URL
 
+// Admin credentials for testing
+const ADMIN_CREDENTIALS = {
+  username: 'admin',
+  password: 'admin123'
+};
+
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState({ name: 'Admin User', role: 'admin' });
-  const [userRole, setUserRole] = useState('admin');
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [user, setUser] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [userStores, setUserStores] = useState([]);
   const [selectedStore, setSelectedStore] = useState(null);
+  const [authError, setAuthError] = useState(null);
 
   useEffect(() => {
-    // Load user stores on initial load
-    fetchUserStores();
+    // Check if user is already logged in from localStorage
+    const storedUser = localStorage.getItem('user');
+    const storedIsAuth = localStorage.getItem('isAuthenticated');
+    
+    if (storedUser && storedIsAuth) {
+      setUser(JSON.parse(storedUser));
+      setUserRole(JSON.parse(storedUser).role);
+      setIsAuthenticated(true);
+      fetchUserStores();
+    }
   }, []);
 
   // Fetch stores associated with the user
@@ -46,28 +61,51 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Simple login function (no actual auth)
-  const login = async () => {
+  // Admin login with username and password
+  const login = async (username, password) => {
     setLoading(true);
-    setUser({ name: 'Admin User', role: 'admin' });
-    setUserRole('admin');
-    setIsAuthenticated(true);
-    await fetchUserStores();
-    setLoading(false);
-    return { success: true };
+    setAuthError(null);
+    
+    // Simple admin authentication (for testing)
+    if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+      const userData = { name: 'Admin User', role: 'admin', username };
+      setUser(userData);
+      setUserRole('admin');
+      setIsAuthenticated(true);
+      
+      // Store auth state in localStorage
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('isAuthenticated', 'true');
+      
+      await fetchUserStores();
+      setLoading(false);
+      return { success: true };
+    } else {
+      setLoading(false);
+      setAuthError('Invalid username or password');
+      return { success: false, error: 'Invalid username or password' };
+    }
   };
 
-  // Logout function (no actual auth)
+  // Logout function
   const logout = () => {
     setUser(null);
     setUserRole(null);
     setIsAuthenticated(false);
     setUserStores([]);
     setSelectedStore(null);
+    
+    // Clear auth state from localStorage
+    localStorage.removeItem('user');
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('selectedStoreId');
   };
 
   // Check if user has a specific role
-  const hasRole = () => true; // Everyone has access to everything
+  const hasRole = (role) => {
+    if (!isAuthenticated || !userRole) return false;
+    return userRole === role;
+  };
 
   // Select a different store
   const selectStore = (storeId) => {
@@ -145,6 +183,7 @@ export const AuthProvider = ({ children }) => {
     role: userRole,
     isAuthenticated,
     loading,
+    authError,
     login,
     logout,
     hasRole,

@@ -24,6 +24,8 @@ import RoleSelection from './pages/RoleSelection.jsx';
 import NavigationHandler from './components/NavigationHandler';
 import StoreSelector from './components/StoreSelector';
 import { Toaster } from './components/ui/toaster';
+import AdminLogin from './pages/AdminLogin';
+import ProtectedRoute from './components/ProtectedRoute';
 
 // Store pages
 import Homepage from './pages/store/Homepage';
@@ -46,25 +48,30 @@ function App() {
         {/* Landing page - main entry point */}
         <Route path="/" element={<Landing />} />
         
+        {/* Admin Login Page */}
+        <Route path="/admin-login" element={<AdminLogin />} />
+        
         {/* New unified role selection page */}
         <Route path="/role-selection" element={<RoleSelection />} />
         
         {/* Store selection for store owners */}
         <Route path="/select-store" element={<StoreSelector />} />
         
-        {/* Admin routes - no role checks */}
-        <Route path="/admin/*" element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="inventory" element={<Inventory />} />
-          <Route path="products" element={<Products />} />
-          <Route path="suppliers" element={<Suppliers />} />
-          <Route path="customers" element={<Customers />} />
-          <Route path="invoices" element={<Invoices />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="store" element={<Store />} />
-          <Route path="settings" element={<Settings />} />
-          <Route path="stores" element={<StoreManagement />} />
+        {/* Admin routes - protected */}
+        <Route path="/admin" element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="inventory" element={<Inventory />} />
+            <Route path="products" element={<Products />} />
+            <Route path="suppliers" element={<Suppliers />} />
+            <Route path="customers" element={<Customers />} />
+            <Route path="invoices" element={<Invoices />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="store" element={<Store />} />
+            <Route path="settings" element={<Settings />} />
+            <Route path="stores" element={<StoreManagement />} />
+          </Route>
         </Route>
         
         {/* Store Owner routes - no role checks */}
