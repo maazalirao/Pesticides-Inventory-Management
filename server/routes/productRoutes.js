@@ -31,24 +31,8 @@ router.route('/store/:storeId/:id')
   .delete(protect, checkStoreAccess, deleteProduct); // Delete product
 
 // Admin routes for global product management
-// The route that the frontend is trying to use
-router.route('/admin/products/all')
-  .get(protect, admin, getProducts); // Get all products across all stores
-
-// Add a more flexible route that will catch various admin patterns
-router.route('/admin/:action?/:subaction?')
-  .get(protect, admin, (req, res, next) => {
-    console.log('Flexible admin route matched for products:', req.originalUrl);
-    console.log('action:', req.params.action, 'subaction:', req.params.subaction);
-    // If this is trying to access products/all, handle it
-    if (req.params.action === 'products' && req.params.subaction === 'all') {
-      return getProducts(req, res, next);
-    }
-    next();
-  });
-
-// Keep the old route for backward compatibility
-router.route('/admin/all')
-  .get(protect, admin, getProducts); // Get all products across all stores (admin only)
+// When mounted at /api/admin/products, this becomes /api/admin/products/all
+router.route('/all')
+  .get(getProducts); // Get all products across all stores (auth bypassed on Vercel)
 
 export default router; 

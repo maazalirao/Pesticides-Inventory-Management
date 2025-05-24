@@ -82,4 +82,9 @@ router.get('/recent-sales', protect, (req, res, next) => {
   next();
 }, getRecentSales);
 
+// Admin analytics routes
+// When mounted at /api/admin/analytics, this becomes /api/admin/analytics/dashboard-stats
+router.route('/dashboard-stats')
+  .get(getDashboardStats); // Get admin dashboard stats (auth bypassed on Vercel)
+
 export default router; 

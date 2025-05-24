@@ -99,49 +99,13 @@ app.get('/api/public/products', async (req, res) => {
   }
 });
 
-// Special handling for admin routes to ensure they're properly captured
-app.use('/api/admin', (req, res, next) => {
-  console.log('Admin route accessed:', req.originalUrl);
-  
-  // Forward admin/inventory routes to inventory controller
-  if (req.path.startsWith('/inventory')) {
-    req.url = req.url.replace('/inventory', '');
-    return inventoryRoutes(req, res, next);
-  }
-  
-  // Forward admin/products routes to product controller
-  if (req.path.startsWith('/products')) {
-    req.url = req.url.replace('/products', '');
-    return productRoutes(req, res, next);
-  }
-  
-  // Forward admin/suppliers routes to supplier controller
-  if (req.path.startsWith('/suppliers')) {
-    req.url = req.url.replace('/suppliers', '');
-    return supplierRoutes(req, res, next);
-  }
-  
-  // Forward admin/customers routes to customer controller
-  if (req.path.startsWith('/customers')) {
-    req.url = req.url.replace('/customers', '');
-    return customerRoutes(req, res, next);
-  }
-  
-  // Forward admin/stores routes to store controller
-  if (req.path.startsWith('/stores')) {
-    req.url = req.url.replace('/stores', '');
-    return storeRoutes(req, res, next);
-  }
-  
-  // Forward admin/analytics routes to analytics controller
-  if (req.path.startsWith('/analytics')) {
-    req.url = req.url.replace('/analytics', '');
-    return analyticsRoutes(req, res, next);
-  }
-  
-  // Add other admin route handlers as needed
-  next();
-});
+// Admin routes - handle them directly with proper routing
+app.use('/api/admin/products', productRoutes);
+app.use('/api/admin/inventory', inventoryRoutes);
+app.use('/api/admin/suppliers', supplierRoutes);
+app.use('/api/admin/customers', customerRoutes);
+app.use('/api/admin/stores', storeRoutes);
+app.use('/api/admin/analytics', analyticsRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
