@@ -148,6 +148,50 @@ app.get('/', (req, res) => {
   res.send('API is running');
 });
 
+// Debug endpoint to check database connection
+app.get('/api/health', async (req, res) => {
+  try {
+    const dbStatus = mongoose.connection.readyState;
+    const statusMap = {
+      0: 'disconnected',
+      1: 'connected',
+      2: 'connecting',
+      3: 'disconnecting'
+    };
+    
+    res.json({
+      status: 'OK',
+      database: statusMap[dbStatus] || 'unknown',
+      environment: process.env.NODE_ENV,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'ERROR',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Test analytics endpoint without authentication
+app.get('/api/analytics/test', async (req, res) => {
+  try {
+    console.log('Test analytics endpoint accessed');
+    res.json({
+      message: 'Analytics endpoint is accessible',
+      storeId: req.query.storeId || 'No storeId provided',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Test analytics endpoint error:', error);
+    res.status(500).json({
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Error handling middleware
 app.use(notFound);
 app.use(errorHandler);

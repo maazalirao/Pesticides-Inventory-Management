@@ -54,7 +54,8 @@ import {
   getRecentSales,
   clearAnalyticsCache,
   prefetchDashboardData,
-  refreshCacheInBackground
+  refreshCacheInBackground,
+  getStoreId
 } from '../../lib/api.js';
 
 // Register ChartJS components
@@ -119,6 +120,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
+  // Get store ID directly from localStorage as backup
+  const storeId = getStoreId();
+  
+  // Debug logging to understand the auth context issue
+  console.log("🔍 [Dashboard] selectedStore from auth context:", selectedStore);
+  console.log("🔍 [Dashboard] storeId from localStorage:", storeId);
+  
   // State for API data
   const [statistics, setStatistics] = useState([]);
   const [salesData, setSalesData] = useState({
@@ -143,8 +151,9 @@ const Dashboard = () => {
 
   // Fetch data from API
   useEffect(() => {
-    if (!selectedStore) {
-      console.log("No store selected, skipping dashboard data fetch");
+    // Check both selectedStore and storeId from localStorage
+    if (!selectedStore && !storeId) {
+      console.log("No store selected and no store ID in localStorage, skipping dashboard data fetch");
       return;
     }
     
@@ -153,7 +162,8 @@ const Dashboard = () => {
       setError(null);
       
       try {
-        console.log("🔍 [Dashboard] Starting to fetch dashboard data for store:", selectedStore.name);
+        const storeName = selectedStore?.name || `Store ID: ${storeId}`;
+        console.log("🔍 [Dashboard] Starting to fetch dashboard data for store:", storeName);
         
         // Get dashboard statistics
         console.log("📊 [Dashboard] Fetching dashboard stats...");
@@ -245,11 +255,11 @@ const Dashboard = () => {
     };
 
     fetchDashboardData();
-  }, [selectedStore, timeRange]);
+  }, [selectedStore, storeId, timeRange]);
   
   // Prefetch dashboard data on component mount to speed up future visits
   useEffect(() => {
-    if (selectedStore) {
+    if (selectedStore || storeId) {
       // Start background refreshing of cache data for next visit
       const refreshTimer = setTimeout(() => {
         refreshCacheInBackground('dashboard');
@@ -258,7 +268,7 @@ const Dashboard = () => {
       // Cleanup timer
       return () => clearTimeout(refreshTimer);
     }
-  }, [selectedStore]);
+  }, [selectedStore, storeId]);
 
   // Improve the refresh button click to be more efficient
   const handleRefresh = () => {
