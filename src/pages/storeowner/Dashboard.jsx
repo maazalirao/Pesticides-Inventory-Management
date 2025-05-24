@@ -52,7 +52,9 @@ import {
   getLowStockProducts,
   getExpiringProducts,
   getRecentSales,
-  clearAnalyticsCache
+  clearAnalyticsCache,
+  prefetchDashboardData,
+  refreshCacheInBackground
 } from '../../lib/api.js';
 
 // Register ChartJS components
@@ -151,12 +153,9 @@ const Dashboard = () => {
       setError(null);
       
       try {
-        // Fetch real data from API endpoints
-        console.log("Fetching dashboard data...");
-        
+        // RESTORE ORIGINAL API CALLS
         // Get dashboard statistics
         const dashboardStats = await getDashboardStats();
-        console.log("Dashboard stats:", dashboardStats);
         
         // Transform the stats object into an array for rendering
         if (dashboardStats) {
@@ -173,7 +172,6 @@ const Dashboard = () => {
         
         // Get sales data with time range filter
         const salesDataResponse = await getSalesData(timeRange);
-        console.log("Sales data:", salesDataResponse);
         setSalesData(salesDataResponse || {
           labels: [],
           datasets: []
@@ -181,7 +179,6 @@ const Dashboard = () => {
         
         // Get inventory distribution data
         const inventoryDistributionData = await getInventoryDistribution();
-        console.log("Inventory distribution:", inventoryDistributionData);
         setInventoryData(inventoryDistributionData || {
           labels: [],
           datasets: []
@@ -189,7 +186,6 @@ const Dashboard = () => {
         
         // Get customer segment data
         const customerSegmentsData = await getCustomerSegments();
-        console.log("Customer segments:", customerSegmentsData);
         setCustomerSegmentData(customerSegmentsData || {
           labels: [],
           datasets: []
@@ -197,7 +193,6 @@ const Dashboard = () => {
         
         // Get sales forecast data
         const forecastDataResponse = await getSalesForecast();
-        console.log("Forecast data:", forecastDataResponse);
         setForecastData(forecastDataResponse || {
           labels: [],
           datasets: []
@@ -205,41 +200,99 @@ const Dashboard = () => {
         
         // Get low stock products
         const lowStockData = await getLowStockProducts();
-        console.log("Low stock products:", lowStockData);
         setLowStockProducts(lowStockData || []);
         
         // Get expiring products
         const expiringData = await getExpiringProducts();
-        console.log("Expiring products:", expiringData);
         setExpiringProducts(expiringData || []);
         
         // Get recent sales
         const recentSalesData = await getRecentSales();
-        console.log("Recent sales:", recentSalesData);
+        setRecentSales(recentSalesData || []);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setError('Failed to load dashboard data. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [selectedStore, timeRange]);
+  
+  // Prefetch dashboard data on component mount to speed up future visits
+  useEffect(() => {
+    if (selectedStore) {
+      // Start background refreshing of cache data for next visit
+      const refreshTimer = setTimeout(() => {
+        refreshCacheInBackground('dashboard');
+      }, 30000); // 30 seconds after dashboard loads, refresh cache for next visit
+      
+      // Cleanup timer
+      return () => clearTimeout(refreshTimer);
+    }
+  }, [selectedStore]);
+
+  // Improve the refresh button click to be more efficient
+  const handleRefresh = () => {
+    setLoading(true);
+    
+    // Clear analytics cache
+    clearAnalyticsCache();
+    
+    // Force skip cache for fresh data
+    const fetchDashboardData = async () => {
+      try {
+        // Fetch all data in parallel for speed
+        const [
+          dashboardStats,
+          salesDataResponse,
+          inventoryDistributionData,
+          customerSegmentsData,
+          forecastDataResponse,
+          lowStockData,
+          expiringData,
+          recentSalesData
+        ] = await Promise.all([
+          getDashboardStats(),
+          getSalesData(timeRange),
+          getInventoryDistribution(),
+          getCustomerSegments(),
+          getSalesForecast(),
+          getLowStockProducts(),
+          getExpiringProducts(),
+          getRecentSales()
+        ]);
+        
+        // Transform dashboard stats into array
+        if (dashboardStats) {
+          const statsArray = Object.keys(dashboardStats).map(key => {
+            return {
+              ...dashboardStats[key],
+              id: key
+            };
+          });
+          setStatistics(statsArray);
+        }
+        
+        // Set all data at once
+        setSalesData(salesDataResponse || { labels: [], datasets: [] });
+        setInventoryData(inventoryDistributionData || { labels: [], datasets: [] });
+        setCustomerSegmentData(customerSegmentsData || { labels: [], datasets: [] });
+        setForecastData(forecastDataResponse || { labels: [], datasets: [] });
+        setLowStockProducts(lowStockData || []);
+        setExpiringProducts(expiringData || []);
         setRecentSales(recentSalesData || []);
         
         setLoading(false);
       } catch (error) {
-        console.error("Error fetching dashboard data:", error);
-        setError("Failed to load dashboard data. Please try again later.");
+        console.error('Error refreshing dashboard data:', error);
+        setError('Failed to refresh data. Please try again.');
         setLoading(false);
       }
     };
     
     fetchDashboardData();
-  }, [timeRange, category, selectedStore]);
-  
-  // Handle refresh button click
-  const handleRefresh = () => {
-    console.log("Refreshing dashboard data...");
-    
-    // Clear analytics cache first
-    clearAnalyticsCache();
-    
-    // Re-fetch the data by forcing a state change
-    const currentTimeRange = timeRange;
-    setTimeRange('temp');
-    setTimeout(() => setTimeRange(currentTimeRange), 10);
   };
   
   // Handle time range change

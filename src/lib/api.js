@@ -37,9 +37,6 @@ const getStoreId = () => {
 // Request interceptor to add store ID to all requests
 api.interceptors.request.use(
   (config) => {
-    // Add request debugging for Vercel deployment
-    console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || {});
-    
     // Skip store ID interceptor if explicitly requested (for admin global queries)
     if (config.params && config.params.skipStoreIdInterceptor) {
       // Remove the skipStoreIdInterceptor param to keep the request clean
@@ -80,11 +77,9 @@ api.interceptors.request.use(
 // Add a response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.config.url);
     return response;
   },
   (error) => {
-    console.error('Response error:', error);
     
     // Handle network errors
     if (!error.response) {
@@ -173,25 +168,40 @@ const cache = {
   }
 };
 
-// Cache validity duration (15 minutes)
-const CACHE_DURATION = 15 * 60 * 1000;
+// Increase cache duration to reduce API calls
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutes instead of 15
 
-// Check if cache is still valid
+// Enhanced cache function with smarter validation
 const isCacheValid = (type) => {
-  return cache[type].all.data !== null && 
+  // Check if cache exists and is not expired
+  const valid = cache[type].all.data !== null && 
     (Date.now() - cache[type].all.timestamp) < CACHE_DURATION;
+  
+  // Log cache hit/miss for debugging
+  if (valid) console.log(`Cache HIT for ${type}`);
+  return valid;
 };
 
-// Check if store-specific cache is still valid
+// Enhanced cache function with smarter validation for store-specific cache
 const isStoreCacheValid = (type, storeId) => {
-  return cache[type].byStore[storeId]?.data !== null && 
+  // Check if store-specific cache exists and is not expired
+  const valid = cache[type].byStore[storeId]?.data !== null && 
     (Date.now() - cache[type].byStore[storeId]?.timestamp) < CACHE_DURATION;
+  
+  // Log cache hit/miss for debugging
+  if (valid) console.log(`Cache HIT for ${type}/${storeId}`);
+  return valid;
 };
 
-// Check if nested cache is still valid
+// Optimized nested cache validation
 const isNestedCacheValid = (parentKey, childKey) => {
-  return cache[parentKey]?.[childKey]?.data !== null && 
+  // Check if nested cache exists and is not expired
+  const valid = cache[parentKey]?.[childKey]?.data !== null && 
     (Date.now() - cache[parentKey][childKey]?.timestamp) < CACHE_DURATION;
+  
+  // Log cache hit/miss for debugging  
+  if (valid) console.log(`Cache HIT for ${parentKey}.${childKey}`);
+  return valid;
 };
 
 // Function to clear all caches for a specific store
@@ -286,16 +296,172 @@ window.addEventListener('storeChanged', (event) => {
   console.log('Cache cleared due to store change event for:', storeId);
 });
 
-// Utility functions for common API operations
-export const fetchData = async (endpoint, params = {}) => {
+// Initialize the background refresh flags
+const refreshInProgress = {
+  dashboard: false,
+  inventory: false,
+  products: false,
+  customers: false,
+  suppliers: false
+};
+
+// Background data prefetching to have data ready before user needs it
+const prefetchDashboardData = () => {
+  // Don't start multiple prefetches at once
+  if (refreshInProgress.dashboard) return;
+  refreshInProgress.dashboard = true;
+  
+  console.log('Prefetching dashboard data in background...');
+  
+  // Get current store ID to make sure we fetch for the right store
+  const storeId = getStoreId();
+  if (!storeId) {
+    refreshInProgress.dashboard = false;
+    return;
+  }
+  
+  // Start parallel fetches for all dashboard resources
+  Promise.all([
+    fetchData('/analytics/store/:storeId/dashboard-stats', {}, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/sales-data', { period: 'year' }, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/inventory-distribution', {}, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/customer-segments', {}, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/sales-forecast', {}, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/low-stock', {}, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/expiring-products', {}, { skipCache: false }),
+    fetchData('/analytics/store/:storeId/recent-sales', {}, { skipCache: false })
+  ])
+  .then(() => {
+    console.log('Dashboard data prefetch complete');
+  })
+  .catch(error => {
+    console.error('Error prefetching dashboard data:', error);
+  })
+  .finally(() => {
+    refreshInProgress.dashboard = false;
+  });
+};
+
+// Admin data prefetching to have data ready before admin page loads
+const prefetchAdminDashboardData = () => {
+  // Don't start multiple prefetches at once
+  if (refreshInProgress.dashboard) return;
+  refreshInProgress.dashboard = true;
+  
+  console.log('Prefetching admin dashboard data in background...');
+  
+  // Start parallel fetches for all admin dashboard resources
+  Promise.all([
+    getAdminDashboardStats(),
+    getAllStoresProducts(),
+    getAllStoresInventory(),
+    getAllStoresSuppliers(),
+    getAllStoresCustomers()
+  ])
+  .then(() => {
+    console.log('Admin dashboard data prefetch complete');
+  })
+  .catch(error => {
+    console.error('Error prefetching admin dashboard data:', error);
+  })
+  .finally(() => {
+    refreshInProgress.dashboard = false;
+  });
+};
+
+// Silently refresh cache in background without affecting user experience
+const refreshCacheInBackground = (resourceType) => {
+  if (refreshInProgress[resourceType]) return;
+  refreshInProgress[resourceType] = true;
+  
+  console.log(`Refreshing ${resourceType} cache in background...`);
+  
+  let promise;
+  switch (resourceType) {
+    case 'dashboard':
+      const storeId = getStoreId();
+      if (storeId) {
+        promise = prefetchDashboardData();
+      } else {
+        promise = prefetchAdminDashboardData();
+      }
+      break;
+    case 'inventory':
+      promise = fetchData('/inventory/store/:storeId', {}, { skipCache: true });
+      break;
+    case 'products':
+      promise = fetchData('/products', {}, { skipCache: true });
+      break;
+    case 'customers':
+      promise = fetchData('/customers/store/:storeId', {}, { skipCache: true });
+      break;
+    case 'suppliers':
+      promise = fetchData('/suppliers/store/:storeId', {}, { skipCache: true });
+      break;
+    default:
+      refreshInProgress[resourceType] = false;
+      return;
+  }
+  
+  if (promise) {
+    promise
+      .catch(error => {
+        console.error(`Error refreshing ${resourceType} cache:`, error);
+      })
+      .finally(() => {
+        refreshInProgress[resourceType] = false;
+      });
+  } else {
+    refreshInProgress[resourceType] = false;
+  }
+};
+
+// Optimized fetchData with automatic caching
+export const fetchData = async (endpoint, params = {}, options = {}) => {
   try {
+    // Generate a cache key based on endpoint and params
+    const cacheKey = `${endpoint}${params ? '_' + JSON.stringify(params) : ''}`;
+    
+    // Check for cached data first if endpoint is cacheable and we're not forcing refresh
+    if (!options.skipCache && endpoint.includes('/analytics/') || endpoint.includes('/products') || 
+        endpoint.includes('/inventory') || endpoint.includes('/suppliers') || 
+        endpoint.includes('/customers')) {
+      
+      // Check if this data is in the cache
+      if (cache.analytics[cacheKey] && 
+          (Date.now() - cache.analytics[cacheKey].timestamp) < CACHE_DURATION) {
+        console.log(`Using cached data for ${endpoint}`);
+        return cache.analytics[cacheKey].data;
+      }
+    }
+    
     // Make sure storeId is included in requests if it's needed
     const storeId = getStoreId();
     if (storeId && !params.storeId) {
       params.storeId = storeId;
     }
     
-    const response = await api.get(endpoint, { params });
+    // Add minimal request timeout
+    const response = await api.get(endpoint, { 
+      params, 
+      timeout: options.timeout || 10000 // 10 second timeout default
+    });
+    
+    // Cache the result for analytics/inventory/product endpoints
+    if (!options.skipCache && endpoint.includes('/analytics/') || endpoint.includes('/products') || 
+        endpoint.includes('/inventory') || endpoint.includes('/suppliers') || 
+        endpoint.includes('/customers')) {
+      
+      if (!cache.analytics[cacheKey]) {
+        cache.analytics[cacheKey] = {};
+      }
+      
+      cache.analytics[cacheKey] = {
+        data: response.data,
+        timestamp: Date.now()
+      };
+    }
+    
     return response.data;
   } catch (error) {
     console.error(`Error fetching data from ${endpoint}:`, error);
@@ -462,7 +628,14 @@ export const getCustomerReport = () => fetchData('/reports/store/:storeId/custom
 export const getExpiryReport = () => fetchData('/reports/store/:storeId/expiry');
 export const exportReport = (reportType, dateRange) => fetchData('/reports/store/:storeId/export', { reportType, dateRange }, { responseType: 'blob' });
 
-export { clearAnalyticsCache, clearCache };
+export { 
+  clearAnalyticsCache, 
+  clearCache, 
+  prefetchDashboardData, 
+  prefetchAdminDashboardData,
+  refreshCacheInBackground,
+  getStoreId
+};
 
 // Helper function to get all stores
 export const getAllStores = async () => {
