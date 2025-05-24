@@ -24,7 +24,6 @@ import RoleSelection from './pages/RoleSelection.jsx';
 import NavigationHandler from './components/NavigationHandler';
 import StoreSelector from './components/StoreSelector';
 import { Toaster } from './components/ui/toaster';
-import AdminLogin from './pages/AdminLogin';
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Store pages
@@ -47,9 +46,6 @@ function App() {
       <Routes>
         {/* Landing page - main entry point */}
         <Route path="/" element={<Landing />} />
-        
-        {/* Admin Login Page */}
-        <Route path="/admin-login" element={<AdminLogin />} />
         
         {/* New unified role selection page */}
         <Route path="/role-selection" element={<RoleSelection />} />

@@ -127,8 +127,8 @@ const MainLayout = () => {
   const handleLogout = () => {
     // Use auth context logout
     logout();
-    // Navigate to login page
-    navigate('/admin-login');
+    // Navigate to landing page since admin login was removed
+    navigate('/');
   };
 
   return (

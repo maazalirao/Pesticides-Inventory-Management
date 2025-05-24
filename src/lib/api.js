@@ -2,8 +2,12 @@ import axios from 'axios';
 
 // Determine API base URL
 const getBaseUrl = () => {
-  // In production (like Vercel), use relative URL path
-  if (window.location.hostname !== 'localhost') {
+  // Check if we're in production or on Vercel
+  const isProduction = process.env.NODE_ENV === 'production' || 
+                      window.location.hostname.includes('vercel.app') ||
+                      window.location.hostname !== 'localhost';
+  
+  if (isProduction) {
     console.log('Using production API base URL');
     return '/api';
   }

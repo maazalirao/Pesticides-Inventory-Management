@@ -5,10 +5,7 @@ const AuthContext = createContext(null);
 
 export const useAuth = () => useContext(AuthContext);
 
-// API URL configuration
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'  // Hard-coded for development
-  : '/api';  // For production, use relative URL
+// API URL configuration - improved for Vercel deploymentconst getAPIUrl = () => {  // Check if we're on Vercel specifically  if (window.location.hostname.includes('vercel.app') || process.env.NODE_ENV === 'production') {    return '/api';  }    // Development - check for proxy vs direct API  const useLocalApi = import.meta.env.VITE_USE_LOCAL_API === 'true';  return useLocalApi ? 'http://localhost:5000/api' : '/api';};const API_URL = getAPIUrl();
 
 // Admin credentials for testing
 const ADMIN_CREDENTIALS = {

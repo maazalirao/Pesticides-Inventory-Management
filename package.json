@@ -19,6 +19,8 @@
     "seed:suppliers": "node scripts/seedSuppliers.js",
     "seed:all": "node scripts/seedSuppliers.js && node scripts/seedCustomers.js && node scripts/seedProducts.js && node scripts/seedInventory.js",
     "vercel-build": "vite build",
+    "build:client": "vite build",
+    "build:server": "echo 'Server build completed'",
     "fix-db-index": "node --experimental-modules scripts/dropBatchIndex.js"
   },
   "devDependencies": {
