@@ -283,6 +283,35 @@ const clearCache = (resourceType) => {
   return true;
 };
 
+// Smart cache invalidation based on endpoint
+const invalidateCacheForEndpoint = (endpoint) => {
+  console.log(`Invalidating cache for endpoint: ${endpoint}`);
+  
+  // Clear related caches when data is modified
+  if (endpoint.includes('/products')) {
+    clearCache('products');
+    clearAnalyticsCache(); // Products affect analytics
+  } else if (endpoint.includes('/inventory')) {
+    clearCache('inventory');
+    clearAnalyticsCache(); // Inventory affects analytics
+  } else if (endpoint.includes('/customers')) {
+    clearCache('customers');
+    clearAnalyticsCache(); // Customers affect analytics
+  } else if (endpoint.includes('/suppliers')) {
+    clearCache('suppliers');
+  } else if (endpoint.includes('/orders')) {
+    clearCache('orders');
+    clearAnalyticsCache(); // Orders affect analytics
+  }
+  
+  // Clear all analytics cache patterns
+  Object.keys(cache.analytics).forEach(key => {
+    if (key.includes(endpoint.split('/')[1])) {
+      delete cache.analytics[key];
+    }
+  });
+};
+
 // Make cache clearing functions globally available
 window.clearStoreSpecificCache = () => clearAllCaches(localStorage.getItem('selectedStoreId'));
 window.clearAllCaches = clearAllCaches;
@@ -423,9 +452,9 @@ export const fetchData = async (endpoint, params = {}, options = {}) => {
     const cacheKey = `${endpoint}${params ? '_' + JSON.stringify(params) : ''}`;
     
     // Check for cached data first if endpoint is cacheable and we're not forcing refresh
-    if (!options.skipCache && endpoint.includes('/analytics/') || endpoint.includes('/products') || 
+    if (!options.skipCache && (endpoint.includes('/analytics/') || endpoint.includes('/products') || 
         endpoint.includes('/inventory') || endpoint.includes('/suppliers') || 
-        endpoint.includes('/customers')) {
+        endpoint.includes('/customers'))) {
       
       // Check if this data is in the cache
       if (cache.analytics[cacheKey] && 
@@ -448,9 +477,9 @@ export const fetchData = async (endpoint, params = {}, options = {}) => {
     });
     
     // Cache the result for analytics/inventory/product endpoints
-    if (!options.skipCache && endpoint.includes('/analytics/') || endpoint.includes('/products') || 
+    if (!options.skipCache && (endpoint.includes('/analytics/') || endpoint.includes('/products') || 
         endpoint.includes('/inventory') || endpoint.includes('/suppliers') || 
-        endpoint.includes('/customers')) {
+        endpoint.includes('/customers'))) {
       
       if (!cache.analytics[cacheKey]) {
         cache.analytics[cacheKey] = {};
@@ -465,6 +494,14 @@ export const fetchData = async (endpoint, params = {}, options = {}) => {
     return response.data;
   } catch (error) {
     console.error(`Error fetching data from ${endpoint}:`, error);
+    
+    // Try to return stale cache data as fallback if network fails
+    const cacheKey = `${endpoint}${params ? '_' + JSON.stringify(params) : ''}`;
+    if (cache.analytics[cacheKey] && cache.analytics[cacheKey].data) {
+      console.warn(`Network failed, returning stale cache data for ${endpoint}`);
+      return cache.analytics[cacheKey].data;
+    }
+    
     throw error;
   }
 };
@@ -478,6 +515,10 @@ export const postData = async (endpoint, data = {}) => {
     }
     
     const response = await api.post(endpoint, data);
+    
+    // Invalidate relevant cache after creating new data
+    invalidateCacheForEndpoint(endpoint);
+    
     return response.data;
   } catch (error) {
     console.error(`Error posting data to ${endpoint}:`, error);
@@ -494,6 +535,10 @@ export const updateData = async (endpoint, data = {}) => {
     }
     
     const response = await api.put(endpoint, data);
+    
+    // Invalidate relevant cache after updating data
+    invalidateCacheForEndpoint(endpoint);
+    
     return response.data;
   } catch (error) {
     console.error(`Error updating data at ${endpoint}:`, error);
@@ -504,6 +549,10 @@ export const updateData = async (endpoint, data = {}) => {
 export const deleteData = async (endpoint) => {
   try {
     const response = await api.delete(endpoint);
+    
+    // Invalidate relevant cache after deleting data
+    invalidateCacheForEndpoint(endpoint);
+    
     return response.data;
   } catch (error) {
     console.error(`Error deleting data at ${endpoint}:`, error);
