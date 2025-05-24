@@ -1,26 +1,29 @@
 {
-  "rewrites": [
-    {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
-    },
-    {
-      "source": "/((?!api|_next/static|_next/image|favicon.ico).*)",
-      "destination": "/"
-    }
-  ],
-  "functions": {
-    "server/server.js": {
-      "runtime": "nodejs18.x"
-    }
-  },
+  "version": 2,
   "builds": [
+    {
+      "src": "server/server.js",
+      "use": "@vercel/node"
+    },
     {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist"
       }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "server/server.js"
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
     }
   ]
 } 
