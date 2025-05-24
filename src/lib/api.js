@@ -35,7 +35,9 @@ const api = axios.create({
 
 // Helper to get store ID from localStorage
 const getStoreId = () => {
-  return localStorage.getItem('selectedStoreId');
+  const storeId = localStorage.getItem('selectedStoreId');
+  console.log(`🏪 [API] Getting store ID from localStorage:`, storeId);
+  return storeId;
 };
 
 // Request interceptor to add store ID to all requests
@@ -452,6 +454,8 @@ const refreshCacheInBackground = (resourceType) => {
 // Optimized fetchData with automatic caching
 export const fetchData = async (endpoint, params = {}, options = {}) => {
   try {
+    console.log(`🌐 [API] Fetching data from: ${endpoint}`, { params, options });
+    
     // Generate a cache key based on endpoint and params
     const cacheKey = `${endpoint}${params ? '_' + JSON.stringify(params) : ''}`;
     
@@ -463,7 +467,7 @@ export const fetchData = async (endpoint, params = {}, options = {}) => {
       // Check if this data is in the cache
       if (cache.analytics[cacheKey] && 
           (Date.now() - cache.analytics[cacheKey].timestamp) < CACHE_DURATION) {
-        console.log(`Using cached data for ${endpoint}`);
+        console.log(`✅ [API] Using cached data for ${endpoint}`);
         return cache.analytics[cacheKey].data;
       }
     }
@@ -474,11 +478,15 @@ export const fetchData = async (endpoint, params = {}, options = {}) => {
       params.storeId = storeId;
     }
     
+    console.log(`📤 [API] Making request to ${endpoint} with storeId: ${storeId}`, { params });
+    
     // Add minimal request timeout
     const response = await api.get(endpoint, { 
       params, 
       timeout: options.timeout || 10000 // 10 second timeout default
     });
+    
+    console.log(`📥 [API] Response received from ${endpoint}:`, response.status, response.statusText);
     
     // Cache the result for analytics/inventory/product endpoints
     if (!options.skipCache && (endpoint.includes('/analytics/') || endpoint.includes('/products') || 
@@ -495,14 +503,21 @@ export const fetchData = async (endpoint, params = {}, options = {}) => {
       };
     }
     
+    console.log(`✅ [API] Successfully fetched data from ${endpoint}, returning:`, response.data);
     return response.data;
   } catch (error) {
-    console.error(`Error fetching data from ${endpoint}:`, error);
+    console.error(`❌ [API] Error fetching data from ${endpoint}:`, error);
+    console.error(`❌ [API] Error details:`, {
+      message: error.message,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data
+    });
     
     // Try to return stale cache data as fallback if network fails
     const cacheKey = `${endpoint}${params ? '_' + JSON.stringify(params) : ''}`;
     if (cache.analytics[cacheKey] && cache.analytics[cacheKey].data) {
-      console.warn(`Network failed, returning stale cache data for ${endpoint}`);
+      console.warn(`⚠️ [API] Network failed, returning stale cache data for ${endpoint}`);
       return cache.analytics[cacheKey].data;
     }
     

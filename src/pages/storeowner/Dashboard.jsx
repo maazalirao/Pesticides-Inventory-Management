@@ -153,9 +153,12 @@ const Dashboard = () => {
       setError(null);
       
       try {
-        // RESTORE ORIGINAL API CALLS
+        console.log("🔍 [Dashboard] Starting to fetch dashboard data for store:", selectedStore.name);
+        
         // Get dashboard statistics
+        console.log("📊 [Dashboard] Fetching dashboard stats...");
         const dashboardStats = await getDashboardStats();
+        console.log("📊 [Dashboard] Dashboard stats result:", dashboardStats);
         
         // Transform the stats object into an array for rendering
         if (dashboardStats) {
@@ -166,54 +169,78 @@ const Dashboard = () => {
             };
           });
           setStatistics(statsArray);
+          console.log("📊 [Dashboard] Set statistics:", statsArray.length, "items");
         } else {
           setStatistics([]);
+          console.warn("⚠️ [Dashboard] No dashboard stats received");
         }
         
         // Get sales data with time range filter
+        console.log("💰 [Dashboard] Fetching sales data for timeRange:", timeRange);
         const salesDataResponse = await getSalesData(timeRange);
+        console.log("💰 [Dashboard] Sales data result:", salesDataResponse);
         setSalesData(salesDataResponse || {
           labels: [],
           datasets: []
         });
         
         // Get inventory distribution data
+        console.log("📦 [Dashboard] Fetching inventory distribution...");
         const inventoryDistributionData = await getInventoryDistribution();
+        console.log("📦 [Dashboard] Inventory data result:", inventoryDistributionData);
         setInventoryData(inventoryDistributionData || {
           labels: [],
           datasets: []
         });
         
         // Get customer segment data
+        console.log("👥 [Dashboard] Fetching customer segments...");
         const customerSegmentsData = await getCustomerSegments();
+        console.log("👥 [Dashboard] Customer segments result:", customerSegmentsData);
         setCustomerSegmentData(customerSegmentsData || {
           labels: [],
           datasets: []
         });
         
         // Get sales forecast data
+        console.log("🔮 [Dashboard] Fetching sales forecast...");
         const forecastDataResponse = await getSalesForecast();
+        console.log("🔮 [Dashboard] Forecast data result:", forecastDataResponse);
         setForecastData(forecastDataResponse || {
           labels: [],
           datasets: []
         });
         
         // Get low stock products
+        console.log("⚠️ [Dashboard] Fetching low stock products...");
         const lowStockData = await getLowStockProducts();
+        console.log("⚠️ [Dashboard] Low stock result:", lowStockData);
         setLowStockProducts(lowStockData || []);
         
         // Get expiring products
+        console.log("⏰ [Dashboard] Fetching expiring products...");
         const expiringData = await getExpiringProducts();
+        console.log("⏰ [Dashboard] Expiring products result:", expiringData);
         setExpiringProducts(expiringData || []);
         
         // Get recent sales
+        console.log("🛒 [Dashboard] Fetching recent sales...");
         const recentSalesData = await getRecentSales();
+        console.log("🛒 [Dashboard] Recent sales result:", recentSalesData);
         setRecentSales(recentSalesData || []);
+        
+        console.log("✅ [Dashboard] All data fetched successfully!");
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Failed to load dashboard data. Please try again later.');
+        console.error('❌ [Dashboard] Error fetching dashboard data:', error);
+        console.error('❌ [Dashboard] Error details:', {
+          message: error.message,
+          stack: error.stack,
+          name: error.name
+        });
+        setError(`Failed to load dashboard data: ${error.message}`);
       } finally {
         setLoading(false);
+        console.log("🏁 [Dashboard] Data fetch completed, loading set to false");
       }
     };
 
