@@ -9,6 +9,7 @@ import {
 import { useCart } from '../../contexts/CartContext';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { getMockProducts } from '../../lib/mockData';
 
 const ProductListing = () => {
   const location = useLocation();
@@ -119,7 +120,12 @@ const ProductListing = () => {
         setLoading(false);
       } catch (err) {
         console.error('Error fetching data:', err);
-        setError('Failed to load products. Please try again later.');
+        console.log('Loading mock data as fallback...');
+        
+        // Use mock data as fallback
+        const mockProducts = getMockProducts();
+        setProducts(mockProducts);
+        setError('Using demo data - API connection failed.');
         setLoading(false);
       }
     };

@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { useCart } from '../../contexts/CartContext';
 import axios from 'axios';
+import { getMockProducts } from '../../lib/mockData';
 
 const ProductDetail = () => {
   const { productId } = useParams();
@@ -40,8 +41,27 @@ const ProductDetail = () => {
         setLoading(false);
       } catch (err) {
         console.error('Error fetching product details:', err);
-        setError('Failed to load product details. Please try again later.');
-        setLoading(false);
+        console.log('Trying to load product from mock data as fallback...');
+        
+        // Try to find the product in mock data
+        const mockProducts = getMockProducts();
+        const foundProduct = mockProducts.find(p => p._id === productId || p.id === productId);
+        
+        if (foundProduct) {
+          setProduct(foundProduct);
+          
+          // Set related products from same category in mock data
+          const relatedMockProducts = mockProducts.filter(
+            p => p.category === foundProduct.category && p._id !== foundProduct._id
+          ).slice(0, 3);
+          
+          setRelatedProducts(relatedMockProducts);
+          setError('Using demo data - API connection failed.');
+          setLoading(false);
+        } else {
+          setError('Product not found in demo data. Please try again later.');
+          setLoading(false);
+        }
       }
     };
 

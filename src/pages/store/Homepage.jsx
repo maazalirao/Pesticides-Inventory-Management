@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from '../../contexts/CartContext';
+import { getMockProducts } from '../../lib/mockData';
 import { 
   ArrowRight, 
   Star, 
@@ -174,12 +175,38 @@ const Homepage = () => {
         setLoading(false);
       } catch (error) {
         console.error('Error fetching homepage data:', error);
-        setError('Failed to load products. Please try refreshing the page.');
+        console.log('Loading mock data as fallback...');
         
-        // Set empty arrays instead of keeping loading state
-        setFeaturedProducts([]);
-        setCategories([]);
+        // Use mock data as fallback
+        const mockProducts = getMockProducts();
+        setAllProducts(mockProducts);
         
+        // Get featured mock products
+        const featured = mockProducts.filter(p => p.featured).slice(0, 4);
+        setFeaturedProducts(featured);
+        
+        // Extract categories from mock products
+        const categoriesMap = mockProducts.reduce((acc, product) => {
+          const category = product.category || 'Other';
+          if (!acc[category]) {
+            acc[category] = {
+              count: 0,
+              name: category
+            };
+          }
+          acc[category].count += 1;
+          return acc;
+        }, {});
+        
+        const transformedCategories = Object.values(categoriesMap).map((category, index) => ({
+          id: index.toString(),
+          name: category.name,
+          image: `https://placehold.co/400x300/${getCategoryColor(category.name)}/FFFFFF/png?text=${encodeURIComponent(category.name)}`,
+          count: category.count
+        }));
+        
+        setCategories(transformedCategories);
+        setError('Using demo data - API connection failed.');
         setLoading(false);
       }
     };

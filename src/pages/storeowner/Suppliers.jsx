@@ -7,6 +7,7 @@ import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '..
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { getMockSuppliers } from '../../lib/mockData';
 
 const StoreOwnerSuppliers = () => {
   const { selectedStore } = useAdminAuth();
@@ -77,8 +78,11 @@ const StoreOwnerSuppliers = () => {
       setError('');
     } catch (err) {
       console.error('Suppliers fetch error:', err);
-      setError('Failed to fetch suppliers. Please try again later.');
-      setSuppliers([]); // Set an empty array on error
+      setError('Using demo data - API connection failed.');
+      // Use mock data as fallback
+      console.log('Loading mock suppliers data as fallback...');
+      const mockSuppliers = getMockSuppliers();
+      setSuppliers(mockSuppliers);
     } finally {
       setLoading(false);
     }

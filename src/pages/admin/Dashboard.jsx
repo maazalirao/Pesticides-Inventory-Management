@@ -54,6 +54,16 @@ import {
 import { Loader } from '../../components/ui/loader';
 import StatCard from '../../components/ui/stat-card';
 import { Badge } from '../../components/ui/badge';
+import { 
+  getMockProducts, 
+  getMockInventory, 
+  getMockCustomers, 
+  getMockSuppliers, 
+  getMockStores,
+  getMockDashboardStats,
+  getMockSalesData,
+  getMockInventoryDistribution
+} from '../../lib/mockData';
 
 // Register ChartJS components
 ChartJS.register(
@@ -220,7 +230,93 @@ const Dashboard = () => {
         
       } catch (error) {
         console.error('Error loading dashboard data:', error);
-        setError(error.message || 'Failed to load dashboard data');
+        console.log('Loading mock data for admin dashboard as fallback...');
+        
+        // Use mock data as fallback
+        const mockProducts = getMockProducts();
+        const mockInventory = getMockInventory();
+        const mockCustomers = getMockCustomers();
+        const mockSuppliers = getMockSuppliers();
+        const mockStores = getMockStores();
+        
+        setAllProducts(mockProducts);
+        setAllInventory(mockInventory);
+        setAllCustomers(mockCustomers);
+        setAllSuppliers(mockSuppliers);
+        setAllStores(mockStores);
+        
+        // Calculate statistics from mock data
+        const lowStockCount = mockInventory.filter(item => 
+          item.quantity < (item.threshold || 10) && item.quantity > 0
+        ).length;
+
+        const outOfStockCount = mockInventory.filter(item => 
+          !item.quantity || item.quantity === 0
+        ).length;
+
+        const totalRevenue = mockInventory.reduce((sum, item) => 
+          sum + (item.price || 0) * (item.quantity || 0), 0
+        );
+
+        const mockStats = [
+          {
+            title: "Total Products",
+            value: mockProducts.length.toLocaleString(),
+            description: "Demo products across all stores",
+            icon: "Package",
+            iconClass: "bg-blue-100 text-blue-600",
+            change: "+12% demo data",
+            changeType: "positive"
+          },
+          {
+            title: "Total Inventory Items",
+            value: mockInventory.length.toLocaleString(),
+            description: "Demo inventory items",
+            icon: "Package",
+            iconClass: "bg-green-100 text-green-600",
+            change: "+8% demo data",
+            changeType: "positive"
+          },
+          {
+            title: "Low Stock Items",
+            value: lowStockCount.toLocaleString(),
+            description: "Demo products below threshold",
+            icon: "AlertTriangle",
+            iconClass: "bg-yellow-100 text-yellow-600",
+            change: outOfStockCount > 0 ? `${outOfStockCount} out of stock` : "Demo data",
+            changeType: lowStockCount > 0 ? "negative" : "positive"
+          },
+          {
+            title: "Total Stores",
+            value: mockStores.length.toLocaleString(),
+            description: "Demo stores in system",
+            icon: "Store",
+            iconClass: "bg-purple-100 text-purple-600",
+            change: "Demo stores active",
+            changeType: "positive"
+          },
+          {
+            title: "Total Suppliers",
+            value: mockSuppliers.length.toLocaleString(),
+            description: "Demo suppliers",
+            icon: "Truck",
+            iconClass: "bg-indigo-100 text-indigo-600",
+            change: "Demo data",
+            changeType: "positive"
+          },
+          {
+            title: "Total Customers",
+            value: mockCustomers.length.toLocaleString(),
+            description: "Demo customers",
+            icon: "Users",
+            iconClass: "bg-pink-100 text-pink-600",
+            change: "Demo data",
+            changeType: "positive"
+          }
+        ];
+
+        setStatistics(mockStats);
+        setError('Using demo data - API connection failed.');
         setLoading(false);
       }
     };

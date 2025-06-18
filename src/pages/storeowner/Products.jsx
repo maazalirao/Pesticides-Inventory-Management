@@ -4,6 +4,7 @@ import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 import { Badge } from '../../components/ui/badge';
 import { useToast } from '../../components/ui/use-toast';
+import { getMockProducts } from '../../lib/mockData';
 import {
   Package,
   Search,
@@ -184,8 +185,17 @@ const StoreOwnerProducts = () => {
         description: typeof error === 'string' ? error : 'Failed to fetch products',
         variant: 'destructive',
       });
-      setProducts([]);
-      setFilteredProducts([]);
+      // Use mock data as fallback
+      console.log('Loading mock products data as fallback...');
+      const mockProducts = getMockProducts();
+      setProducts(mockProducts);
+      setFilteredProducts(mockProducts);
+      
+      toast({
+        title: 'Demo Mode',
+        description: 'Using demo data - API connection failed.',
+        variant: 'default',
+      });
     } finally {
       setLoading(false);
     }

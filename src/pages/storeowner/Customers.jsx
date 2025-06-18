@@ -8,6 +8,7 @@ import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { getMockCustomers } from '../../lib/mockData';
 
 const StoreOwnerCustomers = () => {
   const { selectedStore } = useAdminAuth();
@@ -76,8 +77,11 @@ const StoreOwnerCustomers = () => {
       setError('');
     } catch (err) {
       console.error('Customers fetch error:', err);
-      setError('Failed to fetch customers. Please try again later.');
-      setCustomers([]); // Set an empty array on error
+      setError('Using demo data - API connection failed.');
+      // Use mock data as fallback
+      console.log('Loading mock customers data as fallback...');
+      const mockCustomers = getMockCustomers();
+      setCustomers(mockCustomers);
     } finally {
       setLoading(false);
     }

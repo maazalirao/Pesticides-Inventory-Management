@@ -55,6 +55,11 @@ import {
   getRecentSales,
   clearAnalyticsCache
 } from '../../lib/api.js';
+import { 
+  getMockDashboardStats,
+  getMockSalesData,
+  getMockInventoryDistribution
+} from '../../lib/mockData';
 
 // Register ChartJS components
 ChartJS.register(
@@ -231,7 +236,17 @@ const Dashboard = () => {
         
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
-        setError(error.message || 'Failed to load dashboard data');
+        console.log('Loading mock data for store owner dashboard as fallback...');
+        
+        // Use mock data as fallback
+        const mockStats = getMockDashboardStats();
+        setStatistics(mockStats);
+        
+        // Cache the mock data
+        setDashboardCache(mockStats);
+        setCacheTime(Date.now());
+        
+        setError('Using demo data - API connection failed.');
         setLoading(false);
       }
     };
@@ -245,26 +260,23 @@ const Dashboard = () => {
 
     const loadChartsData = async () => {
       try {
-        // Get simple sales data
-        const salesDataResponse = await getSalesData(timeRange);
-        setSalesData(salesDataResponse || {
-          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-          datasets: [{
-            label: 'Sales',
-            data: [12, 19, 15, 25, 22, 30],
-            borderColor: 'rgb(34, 197, 94)',
-            backgroundColor: 'rgba(34, 197, 94, 0.1)',
-          }]
-        });
+        // Get simple sales data with fallback to mock data
+        try {
+          const salesDataResponse = await getSalesData(timeRange);
+          setSalesData(salesDataResponse || getMockSalesData());
+        } catch (err) {
+          console.log('Using mock sales data as fallback');
+          setSalesData(getMockSalesData());
+        }
 
-        // Simple default data for other charts
-        setInventoryData({
-          labels: ['Pesticides', 'Fertilizers', 'Seeds', 'Tools'],
-          datasets: [{
-            data: [35, 25, 25, 15],
-            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
-          }]
-        });
+        // Use mock inventory distribution data with fallback
+        try {
+          const inventoryDataResponse = await getInventoryDistribution();
+          setInventoryData(inventoryDataResponse || getMockInventoryDistribution());
+        } catch (err) {
+          console.log('Using mock inventory data as fallback');
+          setInventoryData(getMockInventoryDistribution());
+        }
 
         setCustomerSegmentData({
           labels: ['Regular', 'Premium', 'New'],

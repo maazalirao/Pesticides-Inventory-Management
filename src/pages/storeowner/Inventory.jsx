@@ -57,6 +57,7 @@ import {
   clearCache
 } from "../../lib/api";
 import { useAdminAuth } from "../../contexts/AdminAuthContext";
+import { getMockInventory } from '../../lib/mockData';
 
 const StoreOwnerInventory = () => {
   const { selectedStore, isAuthenticated } = useAdminAuth();
@@ -136,7 +137,11 @@ const StoreOwnerInventory = () => {
           } else {
             setError(typeof err === 'string' ? err : 'Failed to fetch inventory items. Please try again later.');
           }
-          setInventoryItems([]);
+          // Use mock data as fallback
+          console.log('Loading mock inventory data as fallback...');
+          const mockInventory = getMockInventory();
+          setInventoryItems(mockInventory);
+          setError('Using demo data - API connection failed.');
         }
       } finally {
         if (isMounted) {
