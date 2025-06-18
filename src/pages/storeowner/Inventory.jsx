@@ -689,22 +689,43 @@ const StoreOwnerInventory = () => {
                             }
                           </TableCell>
                           <TableCell>
-                            {item.quantity === 0 ? (
-                              <Badge variant="destructive" className="flex items-center w-fit">
-                                <XCircle className="mr-1 h-3 w-3" />
-                                Out of Stock
-                              </Badge>
-                            ) : item.quantity < item.threshold ? (
-                              <Badge variant="warning" className="bg-amber-100 text-amber-800 hover:bg-amber-100/80 flex items-center w-fit">
-                                <AlertTriangle className="mr-1 h-3 w-3" />
-                                Low Stock
-                              </Badge>
-                            ) : (
-                              <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100/80 flex items-center w-fit">
-                                <CheckCircle2 className="mr-1 h-3 w-3" />
-                                In Stock
-                              </Badge>
-                            )}
+                            {(() => {
+                              // Use the manually set status if available, otherwise calculate based on quantity
+                              const status = item.status || (
+                                item.quantity === 0 ? 'Out of Stock' :
+                                item.quantity < item.threshold ? 'Low Stock' : 'In Stock'
+                              );
+                              
+                              if (status === 'Out of Stock') {
+                                return (
+                                  <Badge variant="destructive" className="flex items-center w-fit">
+                                    <XCircle className="mr-1 h-3 w-3" />
+                                    Out of Stock
+                                  </Badge>
+                                );
+                              } else if (status === 'Low Stock') {
+                                return (
+                                  <Badge variant="warning" className="bg-amber-100 text-amber-800 hover:bg-amber-100/80 flex items-center w-fit">
+                                    <AlertTriangle className="mr-1 h-3 w-3" />
+                                    Low Stock
+                                  </Badge>
+                                );
+                              } else if (status === 'Discontinued') {
+                                return (
+                                  <Badge variant="secondary" className="bg-gray-100 text-gray-800 hover:bg-gray-100/80 flex items-center w-fit">
+                                    <XCircle className="mr-1 h-3 w-3" />
+                                    Discontinued
+                                  </Badge>
+                                );
+                              } else {
+                                return (
+                                  <Badge variant="success" className="bg-green-100 text-green-800 hover:bg-green-100/80 flex items-center w-fit">
+                                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                                    In Stock
+                                  </Badge>
+                                );
+                              }
+                            })()}
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end space-x-1">
