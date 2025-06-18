@@ -148,10 +148,10 @@ const StoreLayout = () => {
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
               >
-                <Link to="/store/cart" className="text-white hover:text-green-300 transition-colors duration-200 p-1 relative">
+                <Link to="/store/cart" className="text-white hover:text-green-300 transition-colors duration-200 p-1 relative inline-block">
                   <ShoppingCart size={20} />
                   {totalItems > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-green-400 text-green-900 text-xs rounded-full w-5 h-5 flex items-center justify-center shadow-sm">
+                    <span className="absolute -top-1 -right-1 bg-green-400 text-green-900 text-xs rounded-full min-w-[18px] h-[18px] flex items-center justify-center shadow-sm font-medium">
                       {totalItems}
                     </span>
                   )}

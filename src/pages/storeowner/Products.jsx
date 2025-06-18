@@ -706,14 +706,7 @@ const StoreOwnerProducts = () => {
                     </div>
                   )}
                   
-                  {product.stock === 0 && (
-                    <div className="rounded-md bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-2 text-xs text-red-800 dark:text-red-300">
-                      <div className="flex items-start">
-                        <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 mr-2 flex-shrink-0" />
-                        <span className="text-black">Out of stock! This product is unavailable for purchase.</span>
-                      </div>
-                    </div>
-                  )}
+
                 </div>
               </CardContent>
               

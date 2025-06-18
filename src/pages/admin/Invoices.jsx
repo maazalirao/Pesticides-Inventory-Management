@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { Search, Plus, Edit, Download, Upload, Eye, Trash, Filter, ChevronDown } from 'lucide-react';
+import { Search, Plus, Edit, Download, Upload, Eye, Trash, Filter, ChevronDown, DollarSign, TrendingUp, Clock, AlertTriangle, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { 
   Dialog, 
@@ -174,10 +174,13 @@ const Invoices = () => {
 
   // Format currency
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('ur-PK', {
-      style: 'currency',
-      currency: 'PKR'
-    }).format(amount);
+    if (amount >= 1000000) {
+      return `Rs ${(amount / 1000000).toFixed(1)}M`;
+    } else if (amount >= 1000) {
+      return `Rs ${(amount / 1000).toFixed(0)}K`;
+    } else {
+      return `Rs ${amount.toFixed(0)}`;
+    }
   };
 
   // Handle item change
@@ -508,6 +511,81 @@ const Invoices = () => {
         </div>
       </div>
 
+      {/* Billing Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="h-full">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-gray-600 truncate">Total Revenue</p>
+                <p className="text-lg font-bold text-gray-900 truncate">{formatCurrency(456000)}</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">+12.5% from last month</span>
+                </p>
+              </div>
+              <div className="p-2 bg-green-100 rounded-full flex-shrink-0 ml-2">
+                <DollarSign className="h-5 w-5 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="h-full">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-gray-600 truncate">Outstanding</p>
+                <p className="text-lg font-bold text-gray-900 truncate">{formatCurrency(89000)}</p>
+                <p className="text-xs text-amber-600 flex items-center mt-1">
+                  <Clock className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">12 pending payments</span>
+                </p>
+              </div>
+              <div className="p-2 bg-amber-100 rounded-full flex-shrink-0 ml-2">
+                <Clock className="h-5 w-5 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="h-full">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-gray-600 truncate">Overdue</p>
+                <p className="text-lg font-bold text-gray-900 truncate">{formatCurrency(23000)}</p>
+                <p className="text-xs text-red-600 flex items-center mt-1">
+                  <AlertTriangle className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">3 overdue invoices</span>
+                </p>
+              </div>
+              <div className="p-2 bg-red-100 rounded-full flex-shrink-0 ml-2">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="h-full">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-gray-600 truncate">This Month</p>
+                <p className="text-lg font-bold text-gray-900 truncate">{formatCurrency(67000)}</p>
+                <p className="text-xs text-green-600 flex items-center mt-1">
+                  <TrendingUp className="h-3 w-3 mr-1 flex-shrink-0" />
+                  <span className="truncate">+8.3% vs last month</span>
+                </p>
+              </div>
+              <div className="p-2 bg-blue-100 rounded-full flex-shrink-0 ml-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Card>
         <CardHeader className="pb-3">
           <CardTitle>Invoices</CardTitle>
@@ -610,8 +688,20 @@ const Invoices = () => {
                 <tbody>
                   {currentItems.length === 0 ? (
                     <tr>
-                      <td colSpan="7" className="py-8 text-center text-muted-foreground">
-                        No invoices found. Add some invoices to get started.
+                      <td colSpan="7" className="py-12">
+                        <div className="flex flex-col items-center justify-center text-center">
+                          <div className="rounded-full bg-gray-100 p-3 mb-4">
+                            <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </div>
+                          <h3 className="text-sm font-medium text-gray-900 mb-1">No invoices found</h3>
+                          <p className="text-sm text-muted-foreground mb-4">Get started by creating your first invoice</p>
+                          <Button size="sm" onClick={handleAddNewInvoice} className="bg-primary hover:bg-primary/90">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Invoice
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ) : (
@@ -660,8 +750,18 @@ const Invoices = () => {
               {/* Mobile Card View */}
               <div className="md:hidden">
                 {currentItems.length === 0 ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    No invoices found. Add some invoices to get started.
+                  <div className="flex flex-col items-center justify-center text-center py-12">
+                    <div className="rounded-full bg-gray-100 p-3 mb-4">
+                      <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <h3 className="text-sm font-medium text-gray-900 mb-1">No invoices found</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Get started by creating your first invoice</p>
+                    <Button size="sm" onClick={handleAddNewInvoice} className="bg-primary hover:bg-primary/90">
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Invoice
+                    </Button>
                   </div>
                 ) : (
                   <div className="px-3 py-4 space-y-4">
@@ -763,7 +863,7 @@ const Invoices = () => {
 
       {/* Invoice Creation/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto bg-gray-900 text-white border-2 border-primary/20 shadow-lg [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold">
               {isEditMode ? 'Edit Invoice' : 'Create New Invoice'}
@@ -776,7 +876,7 @@ const Invoices = () => {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-5 py-4">
             {formError && (
-              <div className="bg-red-900/30 border border-red-500 text-red-200 px-4 py-3 rounded mb-4">
+              <div className="bg-red-900/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-md mb-4">
                 {formError}
               </div>
             )}
@@ -811,7 +911,8 @@ const Invoices = () => {
                   value={newInvoice.customer.address}
                   onChange={(e) => setNewInvoice({...newInvoice, customer: {...newInvoice.customer, address: e.target.value}})}
                   rows="3"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border border-gray-600 bg-gray-800 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-400"
+                  placeholder="Enter customer address..."
                 ></textarea>
               </div>
               
@@ -830,8 +931,8 @@ const Invoices = () => {
             </div>
             
             <div className="space-y-4 mt-6">
-              <div className="flex justify-between items-center border-b pb-2">
-                <h3 className="font-medium">Invoice Items</h3>
+              <div className="flex justify-between items-center border-b border-gray-700 pb-2">
+                <h3 className="font-medium text-white">Invoice Items</h3>
                 <Button 
                   type="button" 
                   variant="outline" 
@@ -871,7 +972,7 @@ const Invoices = () => {
                     />
                   </div>
                   <div className="col-span-2">
-                    <div className="flex items-center h-10 border border-input bg-muted px-3 rounded-md text-muted-foreground">
+                    <div className="flex items-center h-10 border border-gray-600 bg-gray-800 px-3 rounded-md text-gray-300">
                       {formatCurrency(item.total || 0)}
                     </div>
                   </div>
@@ -900,28 +1001,28 @@ const Invoices = () => {
                   value={newInvoice.notes}
                   onChange={(e) => setNewInvoice({...newInvoice, notes: e.target.value})}
                   rows="3"
-                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  className="w-full rounded-md border border-gray-600 bg-gray-800 text-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent placeholder-gray-400"
                 ></textarea>
               </div>
               
-              <div className="space-y-2 border-t pt-4 md:pt-0 md:border-0">
+              <div className="space-y-2 border-t border-gray-700 pt-4 md:pt-0 md:border-0 bg-gray-800/50 rounded-lg p-4">
                 <div className="flex justify-between text-sm py-1">
-                  <span className="text-muted-foreground">Subtotal:</span>
-                  <span>{formatCurrency(newInvoice.subtotal)}</span>
+                  <span className="text-gray-400">Subtotal:</span>
+                  <span className="text-white">{formatCurrency(newInvoice.subtotal)}</span>
                 </div>
                 <div className="flex justify-between text-sm py-1">
-                  <span className="text-muted-foreground">Tax (17%):</span>
-                  <span>{formatCurrency(newInvoice.tax)}</span>
+                  <span className="text-gray-400">Tax (17%):</span>
+                  <span className="text-white">{formatCurrency(newInvoice.tax)}</span>
                 </div>
-                <div className="flex justify-between font-medium py-2 border-t mt-2">
-                  <span>Total:</span>
-                  <span className="text-primary text-lg">{formatCurrency(newInvoice.total)}</span>
+                <div className="flex justify-between font-medium py-2 border-t border-gray-600 mt-2">
+                  <span className="text-white">Total:</span>
+                  <span className="text-primary text-lg font-bold">{formatCurrency(newInvoice.total)}</span>
                 </div>
               </div>
             </div>
             
-            <DialogFooter className="pt-3 border-t mt-6">
-              <p className="text-xs text-muted-foreground mr-auto">Fields marked with <span className="text-red-500">*</span> are required</p>
+            <DialogFooter className="pt-4 border-t border-gray-700 mt-6">
+              <p className="text-xs text-gray-400 mr-auto">Fields marked with <span className="text-red-400">*</span> are required</p>
               <Button type="button" variant="outline" onClick={() => setIsDialogOpen(false)}>
                 Cancel
               </Button>

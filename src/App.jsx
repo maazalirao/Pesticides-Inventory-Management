@@ -19,6 +19,8 @@ import StoreOwnerOrders from './pages/storeowner/Orders';
 import StoreOwnerInventory from './pages/storeowner/Inventory';
 import StoreOwnerCustomers from './pages/storeowner/Customers';
 import StoreOwnerSuppliers from './pages/storeowner/Suppliers';
+import StoreOwnerSales from './pages/storeowner/Sales';
+import StoreOwnerReports from './pages/storeowner/Reports';
 import StoreProfile from './pages/storeowner/StoreProfile';
 import Landing from './pages/Landing';
 import RoleSelection from './pages/RoleSelection.jsx';
@@ -113,10 +115,11 @@ function App() {
           <Route path="orders" element={<StoreOwnerOrders />} />
           <Route path="customers" element={<StoreOwnerCustomers />} />
           <Route path="inventory" element={<StoreOwnerInventory />} />
-          <Route path="sales" element={<div>Store Owner Sales</div>} />
+          <Route path="sales" element={<StoreOwnerSales />} />
           <Route path="suppliers" element={<StoreOwnerSuppliers />} />
           <Route path="pricing" element={<div>Store Owner Pricing</div>} />
           <Route path="transactions" element={<div>Store Owner Transactions</div>} />
+          <Route path="reports" element={<StoreOwnerReports />} />
           <Route path="settings" element={<StoreProfile />} />
         </Route>
         
