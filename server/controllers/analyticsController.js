@@ -45,51 +45,57 @@ const getDashboardStats = asyncHandler(async (req, res) => {
   // Build query with store filter
   const storeFilter = { store: storeId };
   
-  // Get counts
-  const productCount = await Product.countDocuments(storeFilter);
-  const inventoryCount = await Inventory.countDocuments(storeFilter);
-  const lowStockCount = await Inventory.countDocuments({ ...storeFilter, status: 'Low Stock' });
+  // Get counts with parallel execution for better performance
+  const [productCount, inventoryCount, lowStockCount] = await Promise.all([
+    Product.countDocuments(storeFilter),
+    Inventory.countDocuments(storeFilter),
+    Inventory.countDocuments({ ...storeFilter, status: 'Low Stock' })
+  ]);
   
-  // Get today's orders
+  // Calculate date ranges
   const startOfToday = new Date();
   startOfToday.setHours(0, 0, 0, 0);
-  const todayOrdersCount = await Order.countDocuments({ 
-    ...storeFilter,
-    createdAt: { $gte: startOfToday } 
-  });
-
-  // Calculate this month's revenue
+  
   const startOfMonth = new Date();
   startOfMonth.setDate(1);
   startOfMonth.setHours(0, 0, 0, 0);
   
-  const thisMonthOrders = await Order.find({
-    ...storeFilter,
-    createdAt: { $gte: startOfMonth },
-    isPaid: true
-  });
-  
-  const thisMonthRevenue = thisMonthOrders.reduce(
-    (total, order) => total + (order.totalPrice || 0), 
-    0
-  );
-
-  // Calculate previous month's revenue for comparison
   const startOfPrevMonth = new Date(startOfMonth);
   startOfPrevMonth.setMonth(startOfPrevMonth.getMonth() - 1);
   
   const endOfPrevMonth = new Date(startOfMonth);
   endOfPrevMonth.setDate(0);
   endOfPrevMonth.setHours(23, 59, 59, 999);
+
+  // Execute all order queries in parallel for better performance
+  const [
+    todayOrdersCount,
+    thisMonthOrders,
+    prevMonthOrders
+  ] = await Promise.all([
+    Order.countDocuments({ 
+      ...storeFilter,
+      createdAt: { $gte: startOfToday } 
+    }),
+    Order.find({
+      ...storeFilter,
+      createdAt: { $gte: startOfMonth },
+      isPaid: true
+    }),
+    Order.find({
+      ...storeFilter,
+      createdAt: { 
+        $gte: startOfPrevMonth,
+        $lte: endOfPrevMonth
+      },
+      isPaid: true
+    })
+  ]);
   
-  const prevMonthOrders = await Order.find({
-    ...storeFilter,
-    createdAt: { 
-      $gte: startOfPrevMonth,
-      $lte: endOfPrevMonth
-    },
-    isPaid: true
-  });
+  const thisMonthRevenue = thisMonthOrders.reduce(
+    (total, order) => total + (order.totalPrice || 0), 
+    0
+  );
   
   const prevMonthRevenue = prevMonthOrders.reduce(
     (total, order) => total + (order.totalPrice || 0), 

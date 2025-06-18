@@ -77,15 +77,28 @@ const StoreBadge = ({ storeName }) => {
   );
 };
 
+// Simple cache with 5 minute expiry
+const dashboardCache = {
+  data: null,
+  timestamp: 0,
+  isValid: () => dashboardCache.data && (Date.now() - dashboardCache.timestamp < 5 * 60 * 1000)
+};
+
 const Dashboard = () => {
   // State for dashboard filters and data
   const [timeRange, setTimeRange] = useState('year');
   const [category, setCategory] = useState('all');
-  const [loading, setLoading] = useState(true);
+  
+  // Separate loading states for better UX
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [loadingDetails, setLoadingDetails] = useState(false);
   const [error, setError] = useState(null);
   
-  // State for API data
+  // State for essential data (loaded first)
   const [statistics, setStatistics] = useState([]);
+  const [dashboardReady, setDashboardReady] = useState(false);
+  
+  // State for detailed data (loaded after stats)
   const [salesData, setSalesData] = useState({
     labels: [],
     datasets: []
@@ -106,251 +119,203 @@ const Dashboard = () => {
   const [lowStockProducts, setLowStockProducts] = useState([]);
   const [recentSales, setRecentSales] = useState([]);
   
-  // New state for global data
+  // New state for global data (loaded on demand)
   const [allProducts, setAllProducts] = useState([]);
   const [allInventory, setAllInventory] = useState([]);
   const [allSuppliers, setAllSuppliers] = useState([]);
   const [allCustomers, setAllCustomers] = useState([]);
   const [allStores, setAllStores] = useState([]);
 
-  // Fetch data from API
+  // Load essential stats first (priority loading)
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      setLoading(true);
+    const loadEssentialData = async () => {
+      // Check cache first
+      if (dashboardCache.isValid()) {
+        console.log('Using cached dashboard data');
+        const cached = dashboardCache.data;
+        setStatistics(cached.statistics || []);
+        setAllStores(cached.allStores || []);
+        setLoadingStats(false);
+        setDashboardReady(true);
+        return;
+      }
+
+      setLoadingStats(true);
       setError(null);
       
       try {
-        console.log('Fetching global admin dashboard data...');
-        // Fetch global data from all stores
-        const [dashboardStats, productsData, inventoryData, suppliersData, customersData] = await Promise.all([
-          getAdminDashboardStats(),
-          getAllStoresProducts(),
-          getAllStoresInventory(),
-          getAllStoresSuppliers(),
-          getAllStoresCustomers()
-        ]);
+        console.log('Fetching essential dashboard stats...');
+        // Only load critical stats first
+        const dashboardStats = await getAdminDashboardStats();
         
-        console.log('Data fetched successfully:', { 
-          dashboardStats: !!dashboardStats,
-          productCount: productsData?.products?.length || productsData?.length || 0,
-          inventoryCount: inventoryData?.inventory?.length || inventoryData?.length || 0,
-          supplierCount: suppliersData?.suppliers?.length || suppliersData?.length || 0,
-          customerCount: customersData?.customers?.length || customersData?.length || 0
-        });
+        console.log('Essential data loaded:', !!dashboardStats);
         
-        // Print detailed debugging for inventory
-        console.log('INVENTORY DATA TYPE:', typeof inventoryData);
-        console.log('INVENTORY DATA:', inventoryData);
-        console.log('IS ARRAY?', Array.isArray(inventoryData));
-        console.log('HAS INVENTORY PROPERTY?', inventoryData && 'inventory' in inventoryData);
-        if (inventoryData && 'inventory' in inventoryData) {
-          console.log('INVENTORY PROPERTY IS ARRAY?', Array.isArray(inventoryData.inventory));
-          console.log('INVENTORY ARRAY LENGTH:', inventoryData.inventory?.length);
-        }
-        
-        // Process products data
-        if (productsData) {
-          if (Array.isArray(productsData)) {
-            // If it's just an array, assume it's the products directly
-            setAllProducts(productsData);
-          } else if (productsData.products && Array.isArray(productsData.products)) {
-            // If it has a products array property
-            setAllProducts(productsData.products);
-          } else {
-            console.warn('Products data in unexpected format:', productsData);
-            setAllProducts([]);
-          }
-          
-          // Store data may be in productsData or dashboardStats
-          if (productsData.stores && Array.isArray(productsData.stores) && productsData.stores.length > 0) {
-            setAllStores(productsData.stores);
-          }
-        }
-        
-        // Process inventory data with expanded errorhandling
-        let processedInventory = [];
-        if (inventoryData) {
-          console.log('Processing inventory data...');
-          
-          if (Array.isArray(inventoryData)) {
-            // If it's just an array, assume it's the inventory directly
-            console.log('Setting inventory directly from array');
-            processedInventory = inventoryData;
-          } else if (inventoryData.inventory && Array.isArray(inventoryData.inventory)) {
-            // If it has an inventory array property
-            console.log('Setting inventory from inventory property');
-            processedInventory = inventoryData.inventory;
-          } else {
-            // Check if it's a different format or structure
-            console.warn('Inventory data in unexpected format:', JSON.stringify(inventoryData).substring(0, 200) + '...');
-            // Try to parse different possible formats
-            if (typeof inventoryData === 'object') {
-              const possibleArrays = Object.values(inventoryData).filter(val => Array.isArray(val));
-              if (possibleArrays.length > 0) {
-                // Use the first array property found
-                console.log('Found possible inventory array with length:', possibleArrays[0].length);
-                processedInventory = possibleArrays[0];
-              } else {
-                processedInventory = [];
-              }
-            } else {
-              processedInventory = [];
-            }
-          }
-          
-          console.log(`Processed inventory array length: ${processedInventory.length}`);
-          setAllInventory(processedInventory);
-          
-          // Store data may be in inventoryData if not already set
-          if (inventoryData.stores && Array.isArray(inventoryData.stores) && 
-              inventoryData.stores.length > 0 && allStores.length === 0) {
-            setAllStores(inventoryData.stores);
-          }
-        } else {
-          console.error('No inventory data received from API');
-          setAllInventory([]);
-        }
-        
-        // Process suppliers data
-        if (suppliersData) {
-          if (Array.isArray(suppliersData)) {
-            // If it's just an array, assume it's the suppliers directly
-            setAllSuppliers(suppliersData);
-          } else if (suppliersData.suppliers && Array.isArray(suppliersData.suppliers)) {
-            // If it has a suppliers array property
-            setAllSuppliers(suppliersData.suppliers);
-          } else {
-            console.warn('Suppliers data in unexpected format:', suppliersData);
-            setAllSuppliers([]);
-          }
-          
-          // Store data may be in suppliersData if not already set
-          if (suppliersData.stores && Array.isArray(suppliersData.stores) && 
-              suppliersData.stores.length > 0 && allStores.length === 0) {
-            setAllStores(suppliersData.stores);
-          }
-        }
-        
-        // Process customers data
-        if (customersData) {
-          if (Array.isArray(customersData)) {
-            // If it's just an array, assume it's the customers directly
-            setAllCustomers(customersData);
-          } else if (customersData.customers && Array.isArray(customersData.customers)) {
-            // If it has a customers array property
-            setAllCustomers(customersData.customers);
-          } else {
-            console.warn('Customers data in unexpected format:', customersData);
-            setAllCustomers([]);
-          }
-          
-          // Store data may be in customersData if not already set
-          if (customersData.stores && Array.isArray(customersData.stores) && 
-              customersData.stores.length > 0 && allStores.length === 0) {
-            setAllStores(customersData.stores);
-          }
-        }
-        
-        // Ensure we have some default data if necessary
-        if (allStores.length === 0) {
-          console.warn('No stores data found in any API response, using default empty array');
-          setAllStores([]);
-        }
-        
-        // Debug final state
-        console.log('Final state after processing:', {
-          productsCount: processedInventory.length,
-          inventoryCount: processedInventory.length,
-          suppliersCount: suppliersData?.suppliers?.length || suppliersData?.length || 0,
-          customersCount: customersData?.customers?.length || customersData?.length || 0,
-          storesCount: allStores.length
-        });
-        
-        // Process and set dashboard stats
         if (dashboardStats) {
-          console.log('Processing dashboard stats data');
-          // Set statistics
-          if (dashboardStats.statistics) {
-            setStatistics(dashboardStats.statistics);
-          } else {
-            console.log('No statistics data in dashboardStats');
-          }
+          setStatistics(dashboardStats.statistics || []);
+          setAllStores(dashboardStats.stores || []);
           
-          // Set sales data
-          if (dashboardStats.salesData) {
-            setSalesData(dashboardStats.salesData);
-          } else {
-            console.log('No salesData in dashboardStats');
-          }
-          
-          // Set inventory distribution
-          if (dashboardStats.inventoryDistribution) {
-            setInventoryData(dashboardStats.inventoryDistribution);
-          } else {
-            console.log('No inventoryDistribution in dashboardStats');
-          }
-          
-          // Set customer segments
-          if (dashboardStats.customerSegments) {
-            setCustomerSegmentData(dashboardStats.customerSegments);
-          } else {
-            console.log('No customerSegments in dashboardStats');
-          }
-          
-          // Set sales forecast
-          if (dashboardStats.salesForecast) {
-            setForecastData(dashboardStats.salesForecast);
-          } else {
-            console.log('No salesForecast in dashboardStats');
-          }
-          
-          // Set low stock products
-          if (dashboardStats.lowStockProducts) {
-            setLowStockProducts(dashboardStats.lowStockProducts);
-          } else {
-            console.log('No lowStockProducts in dashboardStats');
-          }
-          
-          // Set expiring products
-          if (dashboardStats.expiringProducts) {
-            setExpiringProducts(dashboardStats.expiringProducts);
-          } else {
-            console.log('No expiringProducts in dashboardStats');
-          }
-          
-          // Set recent sales
-          if (dashboardStats.recentSales) {
-            setRecentSales(dashboardStats.recentSales);
-          } else {
-            console.log('No recentSales in dashboardStats');
-          }
-          
-          // Set stores data if not already set
-          if (dashboardStats.stores && Array.isArray(dashboardStats.stores) && 
-              dashboardStats.stores.length > 0 && allStores.length === 0) {
-            setAllStores(dashboardStats.stores);
-          }
-        } else {
-          console.log('No dashboardStats data received');
+          // Cache the essential data
+          dashboardCache.data = {
+            statistics: dashboardStats.statistics || [],
+            allStores: dashboardStats.stores || []
+          };
+          dashboardCache.timestamp = Date.now();
         }
         
-        setLoading(false);
+        setLoadingStats(false);
+        setDashboardReady(true);
+        
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        setError('Failed to load dashboard data. Please try again later.');
-        setLoading(false);
+        console.error('Error loading essential data:', error);
+        setError(error.message || 'Failed to load dashboard data');
+        setLoadingStats(false);
       }
     };
 
-    fetchDashboardData();
+    loadEssentialData();
   }, []);
-  
+
+  // Load detailed data after essential data is ready (lazy loading)
+  useEffect(() => {
+    if (!dashboardReady) return;
+
+    const loadDetailedData = async () => {
+      setLoadingDetails(true);
+      
+      try {
+        console.log('Loading detailed dashboard data...');
+        
+        // Load non-critical data with a slight delay to prioritize essential content
+        setTimeout(async () => {
+          try {
+            // Load only the most important secondary data
+            const [productsData, inventoryData] = await Promise.all([
+              getAllStoresProducts(),
+              getAllStoresInventory()
+            ]);
+            
+            // Process products data
+            if (productsData) {
+              const products = Array.isArray(productsData) ? productsData : (productsData.products || []);
+              setAllProducts(products);
+            }
+            
+            // Process inventory data
+            if (inventoryData) {
+              const inventory = Array.isArray(inventoryData) ? inventoryData : (inventoryData.inventory || []);
+              setAllInventory(inventory);
+            }
+            
+            setLoadingDetails(false);
+            
+          } catch (error) {
+            console.error('Error loading detailed data:', error);
+            setLoadingDetails(false);
+          }
+        }, 300); // Small delay to ensure smooth UX
+        
+      } catch (error) {
+        console.error('Error in detailed data loading:', error);
+        setLoadingDetails(false);
+      }
+    };
+
+    loadDetailedData();
+  }, [dashboardReady]);
+
+  // Memoized calculations for performance
+  const inventoryStats = useMemo(() => {
+    if (!allInventory.length) {
+      return { lowStock: 0, outOfStock: 0, criticalItems: [], categories: [] };
+    }
+    
+    const lowStock = allInventory.filter(item => 
+      item.quantity < (item.threshold || 10) && item.quantity > 0
+    ).length;
+    
+    const outOfStock = allInventory.filter(item => 
+      !item.quantity || item.quantity === 0
+    ).length;
+    
+    const criticalItems = allInventory
+      .filter(item => item.quantity < (item.threshold || 10))
+      .sort((a, b) => (a.quantity || 0) - (b.quantity || 0))
+      .slice(0, 10);
+    
+    // Pre-calculate category data to avoid expensive re-calculations in render
+    const categoryMap = new Map();
+    allInventory.forEach(item => {
+      const category = item.category || "Uncategorized";
+      if (!categoryMap.has(category)) {
+        categoryMap.set(category, []);
+      }
+      categoryMap.get(category).push(item);
+    });
+    
+    const categories = Array.from(categoryMap.entries()).map(([category, items]) => {
+      const lowStockCount = items.filter(item => 
+        item.quantity < (item.threshold || 10) && item.quantity > 0
+      ).length;
+      const outOfStockCount = items.filter(item => 
+        !item.quantity || item.quantity === 0
+      ).length;
+      const totalValue = items.reduce((sum, item) => 
+        sum + (item.price || 0) * (item.quantity || 0), 0
+      );
+      
+      // Store distribution
+      const storeDistribution = {};
+      items.forEach(item => {
+        const storeName = item.store?.name || "Unknown Store";
+        storeDistribution[storeName] = (storeDistribution[storeName] || 0) + 1;
+      });
+      
+      return {
+        name: category,
+        items,
+        count: items.length,
+        lowStock: lowStockCount,
+        outOfStock: outOfStockCount,
+        totalValue,
+        storeDistribution
+      };
+    });
+    
+    return { lowStock, outOfStock, criticalItems, categories };
+  }, [allInventory]);
+
   // Handle refresh button click
   const handleRefresh = () => {
-    // Refetch data
-    const timeRangeValue = timeRange;
-    setTimeRange('temp');
-    setTimeout(() => setTimeRange(timeRangeValue), 10);
+    // Clear cache and reload essential data only
+    dashboardCache.data = null;
+    setLoadingStats(true);
+    setDashboardReady(false);
+    
+    // Reload essential data first
+    const loadEssentialData = async () => {
+      try {
+        const dashboardStats = await getAdminDashboardStats();
+        if (dashboardStats) {
+          setStatistics(dashboardStats.statistics || []);
+          setAllStores(dashboardStats.stores || []);
+          
+          // Update cache
+          dashboardCache.data = {
+            statistics: dashboardStats.statistics || [],
+            allStores: dashboardStats.stores || []
+          };
+          dashboardCache.timestamp = Date.now();
+        }
+        setLoadingStats(false);
+        setDashboardReady(true);
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+        setError(error.message || 'Failed to refresh data');
+        setLoadingStats(false);
+      }
+    };
+    
+    loadEssentialData();
   };
   
   // Handle time range change
@@ -395,7 +360,7 @@ const Dashboard = () => {
     }).format(amount);
   };
 
-  if (loading) {
+  if (loadingStats) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-24">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-orange-500 mb-4"></div>
@@ -438,7 +403,7 @@ const Dashboard = () => {
 
       {/* Error and loading states */}
       {error && <div className="p-4 bg-red-50 text-red-600 rounded-md">{error}</div>}
-      {loading && <div className="p-4 flex justify-center"><Loader className="animate-spin h-6 w-6" /></div>}
+      {loadingStats && <div className="p-4 flex justify-center"><Loader className="animate-spin h-6 w-6" /></div>}
 
       {/* Admin Dashboard Summary Stats - Now responsive with 2 cards per row on mobile */}
       <div className="grid gap-4 sm:gap-6 grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
@@ -447,28 +412,28 @@ const Dashboard = () => {
           value={allProducts.length || 0} 
           icon="Package2" 
           description={`Across ${allStores.length} stores`}
-          loading={loading}
+          loading={loadingStats}
         />
         <StatCard 
           title="Total Inventory Items" 
           value={allInventory.length || 0} 
           icon="Boxes" 
           description={`${allInventory.filter(i => i.quantity < (i.threshold || 10)).length} low stock items`}
-          loading={loading}
+          loading={loadingStats}
         />
         <StatCard 
           title="Total Suppliers" 
           value={allSuppliers.length || 0} 
           icon="Factory" 
           description={`Across ${allStores.length} stores`}
-          loading={loading}
+          loading={loadingStats}
         />
         <StatCard 
           title="Total Customers" 
           value={allCustomers.length || 0} 
           icon="Users" 
           description={`Across ${allStores.length} stores`}
-          loading={loading}
+          loading={loadingStats}
         />
       </div>
 
@@ -488,7 +453,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loadingDetails ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
               </div>
@@ -530,9 +495,7 @@ const Dashboard = () => {
                         <div>
                           <p className="text-sm font-medium text-amber-700">Low Stock Items</p>
                           <p className="text-2xl font-bold">
-                            {allInventory.filter(item => 
-                              item.quantity < (item.threshold || 10) && item.quantity > 0
-                            ).length}
+                            {inventoryStats.lowStock}
                           </p>
                         </div>
                       </div>
@@ -548,9 +511,7 @@ const Dashboard = () => {
                         <div>
                           <p className="text-sm font-medium text-red-700">Out of Stock</p>
                           <p className="text-2xl font-bold">
-                            {allInventory.filter(item => 
-                              !item.quantity || item.quantity === 0
-                            ).length}
+                            {inventoryStats.outOfStock}
                           </p>
                         </div>
                       </div>
@@ -573,53 +534,32 @@ const Dashboard = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {Array.from(new Set(allInventory.map(item => item.category || "Uncategorized"))).map((category, index) => {
-                        const categoryItems = allInventory.filter(item => (item.category || "Uncategorized") === category);
-                        const lowStock = categoryItems.filter(item => 
-                          item.quantity < (item.threshold || 10) && item.quantity > 0
-                        ).length;
-                        const outOfStock = categoryItems.filter(item => 
-                          !item.quantity || item.quantity === 0
-                        ).length;
-                        const totalValue = categoryItems.reduce((sum, item) => 
-                          sum + (item.price || 0) * (item.quantity || 0)
-                        , 0);
-                        
-                        // Count items by store for this category
-                        const storeDistribution = {};
-                        categoryItems.forEach(item => {
-                          const storeName = item.store?.name || "Unknown Store";
-                          if (!storeDistribution[storeName]) storeDistribution[storeName] = 0;
-                          storeDistribution[storeName]++;
-                        });
-                        
-                        return (
-                          <tr key={index} className="border-b hover:bg-muted/50">
-                            <td className="py-2 px-4">{category}</td>
-                            <td className="py-2 px-4">
-                              <div className="flex flex-wrap gap-1">
-                                {Object.entries(storeDistribution).map(([storeName, count], i) => (
-                                  <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700 text-xs">
-                                    {storeName} ({count})
-                                  </Badge>
-                                ))}
-                              </div>
-                            </td>
-                            <td className="py-2 px-4 text-right">{categoryItems.length}</td>
-                            <td className="py-2 px-4 text-right">₨ {totalValue.toLocaleString()}</td>
-                            <td className="py-2 px-4 text-right">
-                              <span className={`${lowStock > 0 ? 'text-amber-600' : ''}`}>
-                                {lowStock}
-                              </span>
-                            </td>
-                            <td className="py-2 px-4 text-right">
-                              <span className={`${outOfStock > 0 ? 'text-red-600' : ''}`}>
-                                {outOfStock}
-                              </span>
-                            </td>
-                          </tr>
-                        );
-                      })}
+                      {inventoryStats.categories.map((category, index) => (
+                        <tr key={index} className="border-b hover:bg-muted/50">
+                          <td className="py-2 px-4">{category.name}</td>
+                          <td className="py-2 px-4">
+                            <div className="flex flex-wrap gap-1">
+                              {Object.entries(category.storeDistribution).map(([storeName, count], i) => (
+                                <Badge key={i} variant="outline" className="bg-blue-50 text-blue-700 text-xs">
+                                  {storeName} ({count})
+                                </Badge>
+                              ))}
+                            </div>
+                          </td>
+                          <td className="py-2 px-4 text-right">{category.count}</td>
+                          <td className="py-2 px-4 text-right">₨ {category.totalValue.toLocaleString()}</td>
+                          <td className="py-2 px-4 text-right">
+                            <span className={`${category.lowStock > 0 ? 'text-amber-600' : ''}`}>
+                              {category.lowStock}
+                            </span>
+                          </td>
+                          <td className="py-2 px-4 text-right">
+                            <span className={`${category.outOfStock > 0 ? 'text-red-600' : ''}`}>
+                              {category.outOfStock}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
                     </tbody>
                   </table>
                 </div>
@@ -638,11 +578,7 @@ const Dashboard = () => {
                     </thead>
                     <tbody>
                       {/* Show most critical items first - out of stock or very low stock */}
-                      {allInventory
-                        .filter(item => item.quantity < (item.threshold || 10))
-                        .sort((a, b) => (a.quantity || 0) - (b.quantity || 0))
-                        .slice(0, 10)
-                        .map((item, index) => (
+                      {inventoryStats.criticalItems.map((item, index) => (
                         <tr key={index} className="border-b hover:bg-muted/50">
                           <td className="py-2 px-4">{item.name || item.productName || 'Unnamed'}</td>
                           <td className="py-2 px-4">
@@ -698,7 +634,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loadingDetails ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
               </div>
@@ -874,7 +810,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loadingDetails ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
               </div>
@@ -996,7 +932,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loadingDetails ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
               </div>
@@ -1110,7 +1046,7 @@ const Dashboard = () => {
             </div>
           </CardHeader>
           <CardContent>
-            {loading ? (
+            {loadingDetails ? (
               <div className="flex justify-center py-8">
                 <Loader className="h-8 w-8 animate-spin text-primary/70" />
               </div>
