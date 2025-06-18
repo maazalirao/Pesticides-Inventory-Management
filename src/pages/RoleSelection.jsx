@@ -99,7 +99,7 @@ const RoleSelection = () => {
                   <div className="mt-auto">
                     <Button 
                       className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg py-6 shadow-lg hover:shadow-orange-500/30 flex items-center justify-center group-hover:scale-105 transition-transform"
-                      onClick={() => navigate('/admin')}
+                      onClick={() => navigate('/login')}
                     >
                       <Shield className="mr-2 h-5 w-5" />
                       Enter as Administrator
@@ -151,7 +151,7 @@ const RoleSelection = () => {
                   <div className="mt-auto">
                     <Button 
                       className="w-full bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white rounded-lg py-6 shadow-lg hover:shadow-emerald-500/30 flex items-center justify-center group-hover:scale-105 transition-transform"
-                      onClick={() => navigate('/select-store')}
+                      onClick={() => navigate('/login')}
                     >
                       <ShoppingBag className="mr-2 h-5 w-5" />
                       Enter as Store Owner

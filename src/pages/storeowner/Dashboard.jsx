@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
+import { useNavigate } from 'react-router-dom';
 import {
   Store,
   Package,
@@ -110,7 +111,48 @@ const SafePieChart = ({ data, options }) => {
 };
 
 const Dashboard = () => {
-  const { selectedStore } = useAuth();
+  const { adminUser, isStoreOwner, selectedStore, isLoading } = useAdminAuth();
+  const navigate = useNavigate();
+  
+  // Show loading while authentication is being checked
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Auto navigation and store selection logic
+  useEffect(() => {
+    if (isLoading) return; // Wait for loading to complete
+    
+    if (adminUser && adminUser.stores?.length > 1 && !selectedStore) {
+      navigate('/select-store');
+    } else if (adminUser && adminUser.stores?.length === 1 && !selectedStore) {
+      // Auto-select the single store if not already selected
+      console.log('Auto-selecting single store for user');
+    }
+  }, [adminUser, selectedStore, navigate, isLoading]);
+  
+  // If no store is available, show error
+  if (!selectedStore) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <AlertTriangle className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Store Selected</h2>
+          <p className="text-gray-600 mb-4">Please select a store to manage.</p>
+          <Button onClick={() => navigate('/select-store')}>
+            Select Store
+          </Button>
+        </div>
+      </div>
+    );
+  }
   // State for dashboard filters and data
   const [timeRange, setTimeRange] = useState('year');
   const [category, setCategory] = useState('all');

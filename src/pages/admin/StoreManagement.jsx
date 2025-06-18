@@ -27,7 +27,9 @@ import {
   ArrowUpDown,
   MoreHorizontal,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Monitor,
+  ExternalLink
 } from 'lucide-react';
 import {
   Dialog,
@@ -52,15 +54,23 @@ import {
   TableHeader,
   TableRow,
 } from '../../components/ui/table';
-import axios from 'axios';
-
-// The base URL for the API
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'  // Hard-coded for development
-  : '/api';  // For production, use relative URL
+import { 
+  getAllStores, 
+  createStore, 
+  updateStore, 
+  deleteStore, 
+  updateStoreOwner,
+  getStoreDashboardData,
+  getStoreRequests,
+  approveStoreRequest,
+  rejectStoreRequest,
+  deleteStoreRequest
+} from '../../lib/api.js';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 const StoreManagement = () => {
   const { toast } = useToast();
+  const { isAdmin, adminUser } = useAdminAuth();
   const [stores, setStores] = useState([]);
   const [storeRequests, setStoreRequests] = useState([]);
   const [filteredStores, setFilteredStores] = useState([]);
@@ -115,15 +125,20 @@ const StoreManagement = () => {
   const fetchStores = async () => {
     setLoading(true);
     try {
-      const { data } = await axios.get(`${API_URL}/stores`);
-      setStores(data);
-      setFilteredStores(data);
+      console.log('Fetching stores with admin auth...');
+      const data = await getAllStores();
+      console.log('Stores fetched:', data);
+      
+      // Handle different response formats
+      const storesArray = Array.isArray(data) ? data : (data.stores || []);
+      setStores(storesArray);
+      setFilteredStores(storesArray);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching stores:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to fetch stores',
+        description: typeof error === 'string' ? error : 'Failed to fetch stores',
         variant: 'destructive',
       });
       setLoading(false);
@@ -134,18 +149,15 @@ const StoreManagement = () => {
     setRequestsLoading(true);
     try {
       // Try to fetch from API first
-      const { data } = await axios.get(`${API_URL}/store-requests`);
+      const data = await getStoreRequests();
+      console.log('Store requests fetched:', data);
       setStoreRequests(data);
       setFilteredRequests(data);
-      
-      // Also store in localStorage for persistence
-      localStorage.setItem('storeRequests', JSON.stringify(data));
-      
       setRequestsLoading(false);
     } catch (error) {
       console.error('Error fetching store requests:', error);
       
-      // Try to get from localStorage first
+      // Try to get from localStorage as fallback
       const storedRequests = localStorage.getItem('storeRequests');
       let requests = [];
       
@@ -158,7 +170,7 @@ const StoreManagement = () => {
         }
       }
       
-      // If no stored requests or parsing failed, use mock data
+      // If no stored requests, use mock data for demo
       if (!requests || !requests.length) {
         console.log('Using mock store requests data');
         requests = [
@@ -170,6 +182,8 @@ const StoreManagement = () => {
             requestorEmail: 'john@example.com',
             requestorPhone: '+1 555-1234',
             reasonForRequest: 'Expanding business to new location',
+            preferredEmail: 'john.store@pest.com',
+            preferredPassword: 'john123',
             status: 'pending',
             createdAt: new Date(Date.now() - 86400000).toISOString(),
           },
@@ -181,6 +195,8 @@ const StoreManagement = () => {
             requestorEmail: 'sarah@example.com',
             requestorPhone: '+1 555-5678',
             reasonForRequest: 'Need a dedicated warehouse for industrial clients',
+            preferredEmail: 'sarah.warehouse@pest.com',
+            preferredPassword: 'sarah123',
             status: 'pending',
             createdAt: new Date(Date.now() - 172800000).toISOString(),
           }
@@ -346,85 +362,33 @@ const StoreManagement = () => {
   const handleApproveRequest = async (requestId) => {
     setLoading(true);
     try {
-      // Find the request to approve
-      const request = storeRequests.find(req => req._id === requestId);
-      if (!request) {
-        throw new Error('Request not found');
-      }
+      const result = await approveStoreRequest(requestId);
+      console.log('Store request approved:', result);
       
-      // Create a new store from the request
-      const storeData = {
-        name: request.name,
-        description: request.description,
-        email: request.requestorEmail,
-        phone: request.requestorPhone,
-        status: 'active'
-      };
-      
-      console.log('Creating new store from request:', storeData);
-      
-      // Call API to create the store
-      const storeResponse = await axios.post(`${API_URL}/stores`, storeData);
-      
-      // Update the request status
-      const requestResponse = await axios.put(`${API_URL}/store-requests/${requestId}`, {
-        status: 'approved'
-      });
-      
-      // Update local state
-      setStores([...stores, storeResponse.data]);
-      setStoreRequests(storeRequests.map(req => 
-        req._id === requestId ? { ...req, status: 'approved' } : req
-      ));
-      
-      // Update localStorage
-      localStorage.setItem('storeRequests', JSON.stringify(
-        storeRequests.map(req => req._id === requestId ? { ...req, status: 'approved' } : req)
-      ));
+      // Refresh both stores and requests
+      await fetchStores();
+      await fetchStoreRequests();
       
       toast({
-        title: 'Success',
-        description: 'Store request approved and store created successfully',
+        title: 'Request approved!',
+        description: `Store "${result.store?.name}" created successfully with login credentials.`,
       });
-    } catch (error) {
-      console.error('Error approving store request:', error);
       
-      // For development/demo, simulate success even if endpoints don't exist
-      const request = storeRequests.find(req => req._id === requestId);
-      if (request) {
-        // Create a mock store
-        const mockStore = {
-          _id: Date.now().toString(),
-          name: request.name,
-          description: request.description,
-          email: request.requestorEmail,
-          phone: request.requestorPhone,
-          status: 'active',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        
-        // Update states
-        setStores([...stores, mockStore]);
-        const updatedRequests = storeRequests.map(req => 
-          req._id === requestId ? { ...req, status: 'approved' } : req
-        );
-        setStoreRequests(updatedRequests);
-        
-        // Update localStorage for persistence
-        localStorage.setItem('storeRequests', JSON.stringify(updatedRequests));
-        
+      // Show credentials to admin
+      if (result.credentials) {
         toast({
-          title: 'Success',
-          description: 'Store request approved and store created successfully',
-        });
-      } else {
-        toast({
-          title: 'Error',
-          description: error.response?.data?.message || 'Failed to approve store request',
-          variant: 'destructive',
+          title: 'Login Credentials Created',
+          description: `Email: ${result.credentials.email} | Password: ${result.credentials.password}`,
+          duration: 10000, // Show for 10 seconds
         });
       }
+    } catch (error) {
+      console.error('Error approving request:', error);
+      toast({
+        title: 'Error',
+        description: typeof error === 'string' ? error : 'Failed to approve store request',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -433,39 +397,22 @@ const StoreManagement = () => {
   const handleRejectRequest = async (requestId) => {
     setLoading(true);
     try {
-      // Call API to update the request status
-      const response = await axios.put(`${API_URL}/store-requests/${requestId}`, {
-        status: 'rejected'
-      });
+      const rejectionReason = 'Request rejected by administrator';
+      await rejectStoreRequest(requestId, rejectionReason);
       
-      // Update local state
-      const updatedRequests = storeRequests.map(req => 
-        req._id === requestId ? { ...req, status: 'rejected' } : req
-      );
-      setStoreRequests(updatedRequests);
-      
-      // Update localStorage
-      localStorage.setItem('storeRequests', JSON.stringify(updatedRequests));
+      // Refresh store requests
+      await fetchStoreRequests();
       
       toast({
-        title: 'Success',
-        description: 'Store request rejected successfully',
+        title: 'Request rejected',
+        description: 'Store request has been rejected successfully',
       });
     } catch (error) {
       console.error('Error rejecting store request:', error);
-      
-      // For development/demo, simulate success
-      const updatedRequests = storeRequests.map(req => 
-        req._id === requestId ? { ...req, status: 'rejected' } : req
-      );
-      setStoreRequests(updatedRequests);
-      
-      // Update localStorage
-      localStorage.setItem('storeRequests', JSON.stringify(updatedRequests));
-      
       toast({
-        title: 'Success',
-        description: 'Store request rejected successfully',
+        title: 'Error',
+        description: typeof error === 'string' ? error : 'Failed to reject store request',
+        variant: 'destructive',
       });
     } finally {
       setLoading(false);
@@ -526,6 +473,14 @@ const StoreManagement = () => {
     });
     setShowOwnerDialog(true);
   };
+
+  // New function to handle viewing store dashboard
+  const handleViewStoreDashboard = (store) => {
+    // Open store dashboard in a new window/tab with store context
+    // We'll pass the store ID as a parameter and create a special route for admin viewing
+    const adminViewUrl = `/admin/store-dashboard/${store._id}`;
+    window.open(adminViewUrl, '_blank');
+  };
   
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -548,21 +503,81 @@ const StoreManagement = () => {
   };
   
   const submitCreateStore = async () => {
+    // Validate required fields including owner credentials
+    if (!formData.name || !formData.ownerName || !formData.ownerEmail || !formData.ownerPassword) {
+      toast({
+        title: 'Missing Information',
+        description: 'Store name, owner name, email, and password are required for immediate login access.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.ownerEmail)) {
+      toast({
+        title: 'Invalid Email',
+        description: 'Please enter a valid email address for the store owner.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await axios.post(`${API_URL}/stores`, formData);
+      // First create the store
+      const storeResponse = await createStore(formData);
       
-      setStores([...stores, response.data]);
+      // Then create the store owner with login credentials
+      const ownerData = {
+        name: formData.ownerName,
+        email: formData.ownerEmail,
+        password: formData.ownerPassword,
+      };
+      
+      const ownerResponse = await updateStoreOwner(storeResponse._id, ownerData);
+      
+      setStores([...stores, ownerResponse.store || storeResponse]);
+      setFilteredStores([...filteredStores, ownerResponse.store || storeResponse]);
       setShowCreateDialog(false);
-      toast({
-        title: 'Success',
-        description: 'Store created successfully',
+      
+      // Reset form data
+      setFormData({
+        name: '',
+        description: '',
+        email: '',
+        phone: '',
+        address: {
+          street: '',
+          city: '',
+          state: '',
+          postalCode: '',
+          country: '',
+        },
+        status: 'active',
+        ownerEmail: '',
+        ownerName: '',
+        ownerPassword: '',
       });
+      
+      toast({
+        title: 'Store Created Successfully!',
+        description: `Store "${storeResponse.name}" created with login credentials for ${formData.ownerEmail}`,
+      });
+
+      // Show login credentials confirmation
+      toast({
+        title: 'Login Credentials Ready',
+        description: `Store owner can now login with: ${formData.ownerEmail} / ${formData.ownerPassword}`,
+        duration: 8000,
+      });
+      
     } catch (error) {
       console.error('Error creating store:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to create store',
+        description: typeof error === 'string' ? error : 'Failed to create store',
         variant: 'destructive',
       });
     } finally {
@@ -573,15 +588,22 @@ const StoreManagement = () => {
   const submitEditStore = async () => {
     setLoading(true);
     try {
-      const response = await axios.put(`${API_URL}/stores/${selectedStore._id}`, formData);
+      const response = await updateStore(selectedStore._id, formData);
       
       // Update the stores list with the updated store
       const updatedStores = stores.map(store => 
-        store._id === selectedStore._id ? response.data : store
+        store._id === selectedStore._id ? response : store
+      );
+      
+      const updatedFilteredStores = filteredStores.map(store => 
+        store._id === selectedStore._id ? response : store
       );
       
       setStores(updatedStores);
+      setFilteredStores(updatedFilteredStores);
       setShowEditDialog(false);
+      setSelectedStore(null);
+      
       toast({
         title: 'Success',
         description: 'Store updated successfully',
@@ -590,7 +612,7 @@ const StoreManagement = () => {
       console.error('Error updating store:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to update store',
+        description: typeof error === 'string' ? error : 'Failed to update store',
         variant: 'destructive',
       });
     } finally {
@@ -601,13 +623,17 @@ const StoreManagement = () => {
   const submitDeleteStore = async () => {
     setLoading(true);
     try {
-      await axios.delete(`${API_URL}/stores/${selectedStore._id}`);
+      await deleteStore(selectedStore._id);
       
       // Remove the deleted store from the list
       const updatedStores = stores.filter(store => store._id !== selectedStore._id);
+      const updatedFilteredStores = filteredStores.filter(store => store._id !== selectedStore._id);
       
       setStores(updatedStores);
+      setFilteredStores(updatedFilteredStores);
       setShowDeleteDialog(false);
+      setSelectedStore(null);
+      
       toast({
         title: 'Success',
         description: 'Store deleted successfully',
@@ -616,7 +642,7 @@ const StoreManagement = () => {
       console.error('Error deleting store:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to delete store',
+        description: typeof error === 'string' ? error : 'Failed to delete store',
         variant: 'destructive',
       });
     } finally {
@@ -633,18 +659,22 @@ const StoreManagement = () => {
         password: formData.ownerPassword,
       };
       
-      const response = await axios.post(
-        `${API_URL}/stores/${selectedStore._id}/assign-owner`, 
-        ownerData
-      );
+      const response = await updateStoreOwner(selectedStore._id, ownerData);
       
       // Update the stores list with the updated store
       const updatedStores = stores.map(store => 
-        store._id === selectedStore._id ? response.data : store
+        store._id === selectedStore._id ? response : store
+      );
+      
+      const updatedFilteredStores = filteredStores.map(store => 
+        store._id === selectedStore._id ? response : store
       );
       
       setStores(updatedStores);
+      setFilteredStores(updatedFilteredStores);
       setShowOwnerDialog(false);
+      setSelectedStore(null);
+      
       toast({
         title: 'Success',
         description: 'Store owner updated successfully',
@@ -653,7 +683,7 @@ const StoreManagement = () => {
       console.error('Error updating store owner:', error);
       toast({
         title: 'Error',
-        description: error.response?.data?.message || 'Failed to update store owner',
+        description: typeof error === 'string' ? error : 'Failed to update store owner',
         variant: 'destructive',
       });
     } finally {
@@ -816,34 +846,46 @@ const StoreManagement = () => {
                         </div>
                       </div>
                     </CardContent>
-                    <CardFooter className="flex justify-between bg-gray-50 px-6 py-3">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleManageOwner(store)}
-                      >
-                        <User className="h-4 w-4 mr-2" />
-                        Owner
-                      </Button>
-                      <div className="space-x-2">
+                    <CardFooter className="flex flex-col space-y-2 bg-gray-50 px-6 py-3">
+                      <div className="flex justify-between w-full">
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          onClick={() => handleEditStore(store)}
+                          onClick={() => handleManageOwner(store)}
                         >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
+                          <User className="h-4 w-4 mr-2" />
+                          Owner
                         </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-600"
-                          onClick={() => handleDeleteStore(store)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </Button>
+                        <div className="space-x-2">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => handleEditStore(store)}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-red-600"
+                            onClick={() => handleDeleteStore(store)}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </Button>
+                        </div>
                       </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="w-full bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                        onClick={() => handleViewStoreDashboard(store)}
+                      >
+                        <Monitor className="h-4 w-4 mr-2" />
+                        View Store Dashboard
+                        <ExternalLink className="h-3 w-3 ml-2" />
+                      </Button>
                     </CardFooter>
                   </Card>
                 ))
@@ -1025,14 +1067,14 @@ const StoreManagement = () => {
           <DialogHeader className="border-b border-gray-700 pb-4">
             <DialogTitle className="text-xl font-bold text-primary">Create New Store</DialogTitle>
             <DialogDescription className="text-gray-300 text-sm mt-1">
-              Add a new store to your organization. Fill in the details below.
+              Add a new store to your organization. Store owner credentials are required for immediate login access.
             </DialogDescription>
           </DialogHeader>
           
-          <Tabs defaultValue="details">
+          <Tabs defaultValue="owner">
             <TabsList className="mb-4">
+              <TabsTrigger value="owner">Login Credentials *</TabsTrigger>
               <TabsTrigger value="details">Store Details</TabsTrigger>
-              <TabsTrigger value="owner">Store Owner</TabsTrigger>
             </TabsList>
             
             <TabsContent value="details" className="space-y-4">
@@ -1164,45 +1206,58 @@ const StoreManagement = () => {
             </TabsContent>
             
             <TabsContent value="owner" className="space-y-4">
+              <div className="bg-blue-900/20 border border-blue-600/30 rounded-lg p-4 mb-4">
+                <h4 className="text-blue-300 font-semibold mb-2">Required for Store Access</h4>
+                <p className="text-sm text-blue-200">
+                  These credentials will allow the store owner to login immediately after creation.
+                </p>
+              </div>
+              
               <div className="space-y-4">
                 <div>
-                  <Label htmlFor="ownerName" className="text-sm font-semibold text-gray-200">Owner Name</Label>
+                  <Label htmlFor="ownerName" className="text-sm font-semibold text-gray-200">Store Owner Name *</Label>
                   <Input
                     id="ownerName"
                     name="ownerName"
                     value={formData.ownerName}
                     onChange={handleInputChange}
-                    placeholder="John Doe"
+                    placeholder="John Smith"
                     className="mt-1 bg-gray-800 border-gray-700 text-white"
+                    required
                   />
                 </div>
                 
                 <div>
-                  <Label htmlFor="ownerEmail" className="text-sm font-semibold text-gray-200">Owner Email</Label>
+                  <Label htmlFor="ownerEmail" className="text-sm font-semibold text-gray-200">Login Email *</Label>
                   <Input
                     id="ownerEmail"
                     name="ownerEmail"
                     type="email"
                     value={formData.ownerEmail}
                     onChange={handleInputChange}
-                    placeholder="owner@example.com"
+                    placeholder="owner@pest.com"
                     className="mt-1 bg-gray-800 border-gray-700 text-white"
+                    required
                   />
+                  <p className="text-xs text-gray-400 mt-1">
+                    This will be used to login to the store dashboard
+                  </p>
                 </div>
                 
                 <div>
-                  <Label htmlFor="ownerPassword" className="text-sm font-semibold text-gray-200">Password</Label>
+                  <Label htmlFor="ownerPassword" className="text-sm font-semibold text-gray-200">Login Password *</Label>
                   <Input
                     id="ownerPassword"
                     name="ownerPassword"
                     type="password"
                     value={formData.ownerPassword}
                     onChange={handleInputChange}
-                    placeholder="••••••••"
+                    placeholder="Enter secure password"
                     className="mt-1 bg-gray-800 border-gray-700 text-white"
+                    required
                   />
                   <p className="text-xs text-gray-400 mt-1">
-                    Leave blank to skip creating an owner account. You can add an owner later.
+                    Store owner will use this password to login
                   </p>
                 </div>
               </div>
@@ -1219,10 +1274,10 @@ const StoreManagement = () => {
             </Button>
             <Button 
               onClick={submitCreateStore}
-              disabled={!formData.name || loading}
+              disabled={!formData.name || !formData.ownerName || !formData.ownerEmail || !formData.ownerPassword || loading}
               className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
             >
-              {loading ? 'Creating...' : 'Create Store'}
+              {loading ? 'Creating Store & Login...' : 'Create Store with Login'}
             </Button>
           </DialogFooter>
         </DialogContent>

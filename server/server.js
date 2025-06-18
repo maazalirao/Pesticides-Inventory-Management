@@ -11,6 +11,7 @@ import invoiceRoutes from './routes/invoiceRoutes.js';
 import orderRoutes from './routes/orderRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
 import storeRoutes from './routes/storeRoutes.js';
+import storeRequestRoutes from './routes/storeRequestRoutes.js';
 import { notFound } from './middleware/errorMiddleware.js';
 import { errorHandler } from './middleware/authMiddleware.js';
 
@@ -57,6 +58,7 @@ const connectDB = async () => {
 // Routes import
 app.use('/api/users', userRoutes);
 app.use('/api/stores', storeRoutes);
+app.use('/api/store-requests', storeRequestRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/suppliers', supplierRoutes);

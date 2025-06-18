@@ -8,6 +8,7 @@ import {
   deleteStore,
   assignUserToStore,
   removeUserFromStore,
+  createStoreOwner,
   getMyStores,
   repairStoreRelationships,
   getPublicStores
@@ -54,5 +55,9 @@ router.route('/:id')
 router.route('/:id/users')
   .post(protect, admin, assignUserToStore)
   .delete(protect, admin, removeUserFromStore);
+
+// Store owner management routes
+router.route('/:id/owner')
+  .post(protect, admin, createStoreOwner);
 
 export default router; 

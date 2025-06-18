@@ -32,7 +32,7 @@ import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
 import { Badge } from '../components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '../components/ui/avatar';
-import { useAuth } from '../contexts/AuthContext';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 
 // Add a style block to hide webkit scrollbar
 const scrollbarStyle = `
@@ -55,8 +55,24 @@ const StoreOwnerLayout = () => {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   
-  // Get the selected store from auth context
-  const { selectedStore, stores, selectStore } = useAuth();
+  // Get the admin user and stores from auth context
+  const { adminUser, logout } = useAdminAuth();
+  
+  // Get selected store from localStorage or first assigned store
+  const getSelectedStore = () => {
+    const storedStore = localStorage.getItem('selectedStore');
+    if (storedStore) {
+      try {
+        return JSON.parse(storedStore);
+      } catch (error) {
+        console.error('Error parsing stored store:', error);
+      }
+    }
+    return adminUser?.stores?.[0] || null;
+  };
+  
+  const selectedStore = getSelectedStore();
+  const stores = adminUser?.stores || [];
 
   // Check if device is mobile or screen size is small
   useEffect(() => {
@@ -169,17 +185,18 @@ const StoreOwnerLayout = () => {
 
   // Handle logout
   const handleLogout = () => {
-    // Simple logout by navigating to home
-    navigate('/');
+    logout(); // Use admin auth logout
   };
 
   // Handle store change
   const handleStoreChange = (storeId) => {
-    // Call the selectStore function from auth context
-    // This now includes cache clearing and event dispatching
-    const selectedStore = selectStore(storeId);
+    const newSelectedStore = stores.find(store => store._id === storeId);
     
-    if (selectedStore) {
+    if (newSelectedStore) {
+      // Update localStorage
+      localStorage.setItem('selectedStoreId', storeId);
+      localStorage.setItem('selectedStore', JSON.stringify(newSelectedStore));
+      
       // Force a complete page reload to ensure all components refresh with new store data
       window.location.href = '/storeowner';
     }
@@ -462,7 +479,9 @@ const StoreOwnerLayout = () => {
                 >
                   <Avatar className="h-8 w-8 border border-emerald-700/50 bg-white/10">
                     <AvatarImage src="/avatar.png" alt="User" />
-                    <AvatarFallback className="bg-emerald-800/50 text-emerald-200">SO</AvatarFallback>
+                    <AvatarFallback className="bg-emerald-800/50 text-emerald-200">
+                      {adminUser?.name?.charAt(0)?.toUpperCase() || 'SO'}
+                    </AvatarFallback>
                   </Avatar>
                 </button>
                 
@@ -470,8 +489,9 @@ const StoreOwnerLayout = () => {
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-emerald-800 rounded-lg shadow-lg border border-emerald-700 py-1 z-50">
                     <div className="px-4 py-3 border-b border-emerald-700">
-                      <div className="text-sm font-medium text-slate-200">Store Owner</div>
-                      <div className="text-xs text-slate-400">store@example.com</div>
+                        <div className="text-sm font-medium text-slate-200">{adminUser?.name || 'Store Owner'}</div>
+                        <div className="text-xs text-slate-400">{adminUser?.email || 'store@example.com'}</div>
+                        <div className="text-xs text-emerald-400 mt-1 capitalize">{adminUser?.role || 'store_owner'}</div>
                     </div>
                     <div className="py-1">
                       <Link 

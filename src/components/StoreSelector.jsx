@@ -25,14 +25,29 @@ import {
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Textarea } from './ui/textarea';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 
-// The base URL for the API
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'  // Hard-coded for development
-  : '/api';  // For production, use relative URL
+// API instance configured with proper auth headers
+const createApiInstance = () => {
+  const instance = axios.create({
+    baseURL: process.env.NODE_ENV === 'development' ? 'http://localhost:5000/api' : '/api',
+  });
+  
+  // Add auth header interceptor
+  instance.interceptors.request.use((config) => {
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
+    return config;
+  });
+  
+  return instance;
+};
 
 const StoreSelector = () => {
   const { toast } = useToast();
+  const { adminUser, isAuthenticated, isLoading: authLoading } = useAdminAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [stores, setStores] = useState([]);
@@ -51,17 +66,32 @@ const StoreSelector = () => {
     reasonForRequest: '',
   });
   
-  // Trigger store fetch on component mount
+  // Trigger store fetch on component mount when authenticated
   useEffect(() => {
+    if (authLoading || !adminUser) {
+      return; // Don't fetch stores if still loading or no user
+    }
+
     const loadStores = async () => {
       setIsLoading(true);
       setError(null);
       
       try {
-        const response = await axios.get(`${API_URL}/stores/mystores`);
+        // Get stores from user data first (faster)
+        const userStores = adminUser?.stores || [];
+        
+        if (userStores.length > 0) {
+          console.log('StoreSelector: Using stores from user data:', userStores);
+          setStores(userStores);
+          setSelectedStore(userStores[0]);
+          localStorage.setItem('selectedStoreId', userStores[0]._id);
+        } else {
+          // Fallback to API call if no stores in user data
+          const apiInstance = createApiInstance();
+          const response = await apiInstance.get('/stores/mystores');
         const fetchedStores = response.data;
         
-        console.log('StoreSelector: Stores fetched:', fetchedStores);
+          console.log('StoreSelector: Stores fetched from API:', fetchedStores);
         setStores(fetchedStores);
         
         if (!fetchedStores || fetchedStores.length === 0) {
@@ -74,6 +104,7 @@ const StoreSelector = () => {
           // Select the first store by default
           setSelectedStore(fetchedStores[0]);
           localStorage.setItem('selectedStoreId', fetchedStores[0]._id);
+          }
         }
       } catch (error) {
         console.error('Failed to load stores:', error);
@@ -89,7 +120,7 @@ const StoreSelector = () => {
     };
     
     loadStores();
-  }, [toast]);
+  }, [toast, authLoading, adminUser]);
 
   // Handle store selection
   const handleStoreChange = (storeId) => {
@@ -163,7 +194,8 @@ const StoreSelector = () => {
       };
       
       // Submit the request to the API
-      const response = await axios.post(`${API_URL}/store-requests`, storeRequest);
+      const apiInstance = createApiInstance();
+      const response = await apiInstance.post('/store-requests', storeRequest);
       
       // Save to localStorage regardless of API response
       let existingRequests = [];
@@ -247,6 +279,23 @@ const StoreSelector = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Auth loading state
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <Card className="w-full max-w-md shadow-lg border-muted">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <Loader className="h-12 w-12 text-blue-500 animate-spin mb-6" />
+            <p className="text-xl font-medium">Checking authentication...</p>
+            <p className="text-sm text-muted-foreground mt-3">Please wait</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+
 
   // Loading state
   if (isLoading) {

@@ -56,10 +56,10 @@ import {
   addBatchToInventoryItem,
   clearCache
 } from "../../lib/api";
-import { useAuth } from "../../contexts/AuthContext";
+import { useAdminAuth } from "../../contexts/AdminAuthContext";
 
 const StoreOwnerInventory = () => {
-  const { selectedStore } = useAuth();
+  const { selectedStore, isAuthenticated } = useAdminAuth();
   // State for inventory filters and modals
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');

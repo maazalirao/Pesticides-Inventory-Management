@@ -34,11 +34,17 @@ const getStoreId = () => {
   return localStorage.getItem('selectedStoreId');
 };
 
-// Request interceptor to add store ID to all requests
+// Request interceptor to add authentication headers and store ID to all requests
 api.interceptors.request.use(
   (config) => {
     // Add request debugging for Vercel deployment
     console.log(`API Request: ${config.method?.toUpperCase()} ${config.baseURL}${config.url}`, config.params || {});
+    
+    // Add JWT token for admin routes authentication
+    const adminToken = localStorage.getItem('adminToken');
+    if (adminToken) {
+      config.headers.Authorization = `Bearer ${adminToken}`;
+    }
     
     // Skip store ID interceptor if explicitly requested (for admin global queries)
     if (config.params && config.params.skipStoreIdInterceptor) {
@@ -98,6 +104,16 @@ api.interceptors.response.use(
     
     // Handle different error types
     if (status === 401 || status === 403) {
+      // Clear admin auth tokens on authentication failure
+      localStorage.removeItem('adminToken');
+      localStorage.removeItem('adminUser');
+      
+      // Check if we're on admin routes and redirect to admin login
+      if (window.location.pathname.startsWith('/admin') && !window.location.pathname.includes('/login')) {
+        window.location.href = '/admin/login';
+        return;
+      }
+      
       throw 'Authentication error. Please log in again.';
     }
     
@@ -1031,3 +1047,359 @@ export const getAdminDashboardStats = async () => {
 };
 
 export default api; 
+
+// Store management API functions
+export const createStore = async (data) => {
+  try {
+    console.log('Creating new store:', data);
+    const response = await api.post('/stores', data, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating store:', error);
+    throw error;
+  }
+};
+
+export const updateStore = async (id, data) => {
+  try {
+    console.log('Updating store:', id, data);
+    const response = await api.put(`/stores/${id}`, data, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating store:', error);
+    throw error;
+  }
+};
+
+export const deleteStore = async (id) => {
+  try {
+    console.log('Deleting store:', id);
+    const response = await api.delete(`/stores/${id}`, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting store:', error);
+    throw error;
+  }
+};
+
+export const getStore = async (id) => {
+  try {
+    console.log('Getting store:', id);
+    const response = await api.get(`/stores/${id}`, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting store:', error);
+    throw error;
+  }
+};
+
+// Store owner management API functions
+export const createStoreOwner = async (storeId, userData) => {
+  try {
+    console.log('Creating store owner for store:', storeId, userData);
+    const response = await api.post(`/stores/${storeId}/owner`, userData, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating store owner:', error);
+    throw error;
+  }
+};
+
+export const updateStoreOwner = async (storeId, userData) => {
+  try {
+    console.log('Creating/Updating store owner for store:', storeId, userData);
+    const response = await api.post(`/stores/${storeId}/owner`, userData, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating/updating store owner:', error);
+    if (error.response?.data?.message) {
+      throw error.response.data.message;
+    }
+    throw 'Failed to create/update store owner';
+  }
+};
+
+// Function to get store dashboard data for admin viewing
+export const getStoreDashboardData = async (storeId) => {
+  try {
+    console.log('Getting store dashboard data for admin:', storeId);
+    
+    // Fetch all dashboard data for a specific store
+    const [
+      dashboardStats,
+      products,
+      inventory,
+      customers,
+      suppliers,
+      orders
+    ] = await Promise.allSettled([
+      api.get(`/analytics/store/${storeId}/dashboard-stats`),
+      api.get(`/products`, { params: { storeId } }),
+      api.get(`/inventory/store/${storeId}`),
+      api.get(`/customers/store/${storeId}`),
+      api.get(`/suppliers/store/${storeId}`),
+      api.get(`/orders/store/${storeId}`)
+    ]);
+
+    // Process results and handle any failures gracefully
+    const processResult = (result, fallback = []) => {
+      if (result.status === 'fulfilled') {
+        return result.value.data;
+      } else {
+        console.warn('Failed to fetch data:', result.reason);
+        return fallback;
+      }
+    };
+
+    return {
+      stats: processResult(dashboardStats, {}),
+      products: processResult(products, []),
+      inventory: processResult(inventory, []),
+      customers: processResult(customers, []),
+      suppliers: processResult(suppliers, []),
+      orders: processResult(orders, [])
+    };
+  } catch (error) {
+    console.error('Error getting store dashboard data:', error);
+    throw error;
+  }
+};
+
+// Admin inventory management functions
+export const createInventoryItemAdmin = async (storeId, data) => {
+  try {
+    console.log('Creating inventory item for store:', storeId, data);
+    const response = await api.post(`/inventory/store/${storeId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating inventory item:', error);
+    throw error;
+  }
+};
+
+export const updateInventoryItemAdmin = async (storeId, itemId, data) => {
+  try {
+    console.log('Updating inventory item:', storeId, itemId, data);
+    const response = await api.put(`/inventory/store/${storeId}/${itemId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating inventory item:', error);
+    throw error;
+  }
+};
+
+export const deleteInventoryItemAdmin = async (storeId, itemId) => {
+  try {
+    console.log('Deleting inventory item:', storeId, itemId);
+    const response = await api.delete(`/inventory/store/${storeId}/${itemId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting inventory item:', error);
+    throw error;
+  }
+};
+
+// Admin product management functions  
+export const createProductAdmin = async (storeId, data) => {
+  try {
+    console.log('Creating product for store:', storeId, data);
+    const response = await api.post(`/products`, { ...data, storeId });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating product:', error);
+    throw error;
+  }
+};
+
+export const updateProductAdmin = async (storeId, productId, data) => {
+  try {
+    console.log('Updating product:', storeId, productId, data);
+    const response = await api.put(`/products/${productId}`, { ...data, storeId });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating product:', error);
+    throw error;
+  }
+};
+
+export const deleteProductAdmin = async (storeId, productId) => {
+  try {
+    console.log('Deleting product:', storeId, productId);
+    const response = await api.delete(`/products/${productId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
+};
+
+// Admin customer management functions
+export const createCustomerAdmin = async (storeId, data) => {
+  try {
+    console.log('Creating customer for store:', storeId, data);
+    const response = await api.post(`/customers/store/${storeId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating customer:', error);
+    throw error;
+  }
+};
+
+export const updateCustomerAdmin = async (storeId, customerId, data) => {
+  try {
+    console.log('Updating customer:', storeId, customerId, data);
+    const response = await api.put(`/customers/store/${storeId}/${customerId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating customer:', error);
+    throw error;
+  }
+};
+
+export const deleteCustomerAdmin = async (storeId, customerId) => {
+  try {
+    console.log('Deleting customer:', storeId, customerId);
+    const response = await api.delete(`/customers/store/${storeId}/${customerId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting customer:', error);
+    throw error;
+  }
+};
+
+// Admin supplier management functions
+export const createSupplierAdmin = async (storeId, data) => {
+  try {
+    console.log('Creating supplier for store:', storeId, data);
+    const response = await api.post(`/suppliers/store/${storeId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error creating supplier:', error);
+    throw error;
+  }
+};
+
+export const updateSupplierAdmin = async (storeId, supplierId, data) => {
+  try {
+    console.log('Updating supplier:', storeId, supplierId, data);
+    const response = await api.put(`/suppliers/store/${storeId}/${supplierId}`, data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating supplier:', error);
+    throw error;
+  }
+};
+
+export const deleteSupplierAdmin = async (storeId, supplierId) => {
+  try {
+    console.log('Deleting supplier:', storeId, supplierId);
+    const response = await api.delete(`/suppliers/store/${storeId}/${supplierId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting supplier:', error);
+    throw error;
+  }
+};
+
+// Store Request Management API functions
+export const getStoreRequests = async () => {
+  try {
+    console.log('Getting all store requests');
+    const response = await api.get('/store-requests', {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error getting store requests:', error);
+    throw error;
+  }
+};
+
+export const createStoreRequest = async (requestData) => {
+  try {
+    console.log('Creating store request:', requestData);
+    const response = await api.post('/store-requests', requestData, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error creating store request:', error);
+    throw error;
+  }
+};
+
+export const updateStoreRequest = async (requestId, updateData) => {
+  try {
+    console.log('Updating store request:', requestId, updateData);
+    const response = await api.put(`/store-requests/${requestId}`, updateData, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error updating store request:', error);
+    throw error;
+  }
+};
+
+export const approveStoreRequest = async (requestId, ownerCredentials = null) => {
+  try {
+    console.log('Approving store request:', requestId, ownerCredentials);
+    const response = await api.post(`/store-requests/${requestId}/approve`, 
+      { ownerCredentials }, 
+      {
+        params: { skipStoreIdInterceptor: true }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error approving store request:', error);
+    if (error.response?.data?.message) {
+      throw error.response.data.message;
+    }
+    throw 'Failed to approve store request';
+  }
+};
+
+export const rejectStoreRequest = async (requestId, rejectionReason) => {
+  try {
+    console.log('Rejecting store request:', requestId, rejectionReason);
+    const response = await api.post(`/store-requests/${requestId}/reject`, 
+      { rejectionReason },
+      {
+        params: { skipStoreIdInterceptor: true }
+      }
+    );
+    return response.data;
+  } catch (error) {
+    console.error('Error rejecting store request:', error);
+    if (error.response?.data?.message) {
+      throw error.response.data.message;
+    }
+    throw 'Failed to reject store request';
+  }
+};
+
+export const deleteStoreRequest = async (requestId) => {
+  try {
+    console.log('Deleting store request:', requestId);
+    const response = await api.delete(`/store-requests/${requestId}`, {
+      params: { skipStoreIdInterceptor: true }
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting store request:', error);
+    throw error;
+  }
+}; 

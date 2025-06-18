@@ -21,12 +21,12 @@ import {
   AlertTriangle,
   Store,
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { getOrders, clearCache } from '../../lib/api';
 import { useToast } from '../../components/ui/use-toast';
 
 const StoreOwnerOrders = () => {
-  const { selectedStore } = useAuth();
+  const { selectedStore } = useAdminAuth();
   const { toast } = useToast();
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);

@@ -6,10 +6,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { getSuppliers, createSupplier, updateSupplier, deleteSupplier } from '../../lib/api';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 const StoreOwnerSuppliers = () => {
-  const { selectedStore } = useAuth();
+  const { selectedStore } = useAdminAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);

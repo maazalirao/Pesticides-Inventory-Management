@@ -3,11 +3,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Search, Plus, Edit, Trash, Phone, Mail, MapPin, User, Calendar, Store as StoreIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { getCustomers, createCustomer, updateCustomer, deleteCustomer, getAllStoresCustomers } from '../../lib/api';
+import { 
+  getCustomers, 
+  createCustomer, 
+  updateCustomer, 
+  deleteCustomer, 
+  getAllStoresCustomers,
+  createCustomerAdmin,
+  updateCustomerAdmin,
+  deleteCustomerAdmin
+} from '../../lib/api';
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
 import { Badge } from '../../components/ui/badge';
+import { useToast } from '../../components/ui/use-toast';
 
 // StoreBadge component for consistent store display
 const StoreBadge = ({ store }) => {
@@ -37,6 +47,7 @@ const StoreBadge = ({ store }) => {
 };
 
 const Customers = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -150,16 +161,34 @@ const Customers = () => {
     return matchesSearch && matchesStore;
   });
 
-  const handleDeleteCustomer = (id) => {
+  const handleDeleteCustomer = (customer) => {
     if (window.confirm('Are you sure you want to delete this customer?')) {
-      deleteCustomer(id)
+      const storeId = customer.store?._id || customer.storeId;
+      if (!storeId) {
+        toast({
+          title: 'Error',
+          description: 'Cannot delete customer: Store information missing',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      deleteCustomerAdmin(storeId, customer._id)
         .then(() => {
-        setCustomers(customers.filter(customer => customer._id !== id));
+          setCustomers(customers.filter(c => c._id !== customer._id));
+          toast({
+            title: 'Success',
+            description: 'Customer deleted successfully',
+          });
         })
         .catch(error => {
           console.error('Error deleting customer:', error);
-        setError('Failed to delete customer');
-      });
+          toast({
+            title: 'Error',
+            description: typeof error === 'string' ? error : 'Failed to delete customer',
+            variant: 'destructive',
+          });
+        });
     }
   };
 
@@ -292,7 +321,7 @@ const Customers = () => {
                         }}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer._id)}>
+                        <Button variant="ghost" size="sm" onClick={() => handleDeleteCustomer(customer)}>
                           <Trash className="h-4 w-4 text-red-500" />
                         </Button>
                       </div>

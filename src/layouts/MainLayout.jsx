@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useTheme } from '../lib/ThemeProvider';
+import { useAdminAuth } from '../contexts/AdminAuthContext';
 
 const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,6 +33,7 @@ const MainLayout = () => {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { adminUser, logout, isAdmin } = useAdminAuth();
 
   // Check if device is mobile or screen size is small
   useEffect(() => {
@@ -123,8 +125,8 @@ const MainLayout = () => {
   };
   
   const handleLogout = () => {
-    // Simple logout - just navigate to home
-    navigate('/');
+    // Use admin auth logout which clears tokens and redirects
+    logout();
   };
 
   return (
@@ -293,7 +295,7 @@ const MainLayout = () => {
                   className="flex items-center text-slate-300 hover:text-orange-500 p-2 rounded-full hover:bg-slate-700"
                 >
                   <div className="h-8 w-8 rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white font-medium">
-                    A
+                    {adminUser?.name?.charAt(0)?.toUpperCase() || 'A'}
                   </div>
                 </button>
                 
@@ -301,8 +303,9 @@ const MainLayout = () => {
                 {userMenuOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-slate-800 rounded-lg shadow-lg border border-slate-700 py-1 z-50">
                     <div className="px-4 py-3 border-b border-slate-700">
-                      <div className="text-sm font-medium text-white">Admin User</div>
-                      <div className="text-xs text-slate-400">admin@example.com</div>
+                      <div className="text-sm font-medium text-white">{adminUser?.name || 'Admin User'}</div>
+                      <div className="text-xs text-slate-400">{adminUser?.email || 'admin@example.com'}</div>
+                      <div className="text-xs text-orange-400 mt-1 capitalize">{adminUser?.role || 'admin'}</div>
                     </div>
                     <div className="py-1">
                       <Link 

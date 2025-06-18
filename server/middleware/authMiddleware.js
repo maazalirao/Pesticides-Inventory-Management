@@ -1,54 +1,75 @@
 import asyncHandler from 'express-async-handler';
+import jwt from 'jsonwebtoken';
 import User from '../models/userModel.js';
 import Store from '../models/storeModel.js';
 
-// Protect routes - automatically bypasses authentication
+// Protect routes - Real JWT authentication
 const protect = asyncHandler(async (req, res, next) => {
-  console.log("AUTH BYPASS: Allowing access without token verification");
-  
+  let token;
+
+  console.log('Auth middleware - Request URL:', req.originalUrl);
+  console.log('Auth middleware - Headers authorization:', req.headers.authorization ? 'Present' : 'Missing');
+
+  if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
   try {
-    // Find an admin user and populate their stores
-    const adminUser = await User.findOne({ role: 'admin' }).select('-password').populate('stores');
-    
-    if (adminUser) {
-      req.user = adminUser;
-    } else {
-      // Set a default admin user in the request if none exists
-      req.user = {
-        _id: '123456789012345678901234', // Mock ID
-        name: 'Dev Admin',
-        email: 'admin@example.com',
-        role: 'admin',
-        stores: [],
-      };
-    }
-    
-    // Proceed to the next middleware/route handler
-    return next();
+      // Get token from header (Bearer TOKEN)
+      token = req.headers.authorization.split(' ')[1];
+      console.log('Auth middleware - Token extracted:', token ? 'Yes' : 'No');
+
+      // Verify token
+      if (!process.env.JWT_SECRET) {
+        console.error('JWT_SECRET is not set in environment variables');
+        res.status(500);
+        throw new Error('Server configuration error');
+      }
+      
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get user from token and remove password
+      req.user = await User.findById(decoded.id).select('-password').populate('stores');
+      console.log('Auth middleware - User found:', req.user ? req.user.email : 'None');
+      console.log('Auth middleware - User role:', req.user?.role);
+      console.log('Auth middleware - User stores count:', req.user?.stores?.length || 0);
+
+      if (!req.user) {
+        console.log('Auth middleware - No user found for token');
+        res.status(401);
+        throw new Error('Not authorized, user not found');
+      }
+
+      next();
   } catch (error) {
-    console.error("Error setting up user:", error);
-    // Even if there's an error finding a user, still proceed with a default user
-    req.user = {
-      _id: '123456789012345678901234', // Mock ID
-      name: 'Default Admin',
-      email: 'admin@example.com',
-      role: 'admin',
-      stores: [],
-    };
-    return next();
+      console.error('Token verification failed:', error.message);
+      res.status(401);
+      throw new Error('Not authorized, token failed');
+    }
+  }
+
+  if (!token) {
+    console.log('Auth middleware - No token provided');
+    res.status(401);
+    throw new Error('Not authorized, no token');
   }
 });
 
-// Admin middleware - automatically passes
+// Admin middleware - Check if user is admin
 const admin = (req, res, next) => {
-  console.log("ADMIN CHECK BYPASS: Allowing admin access");
-  return next();
+  if (req.user && req.user.role === 'admin') {
+    next();
+  } else {
+    res.status(403);
+    throw new Error('Not authorized as admin');
+  }
 };
 
-// Store owner middleware - automatically passes
+// Store owner middleware - Check if user is admin or store owner
 const storeOwner = (req, res, next) => {
-  console.log("STORE OWNER CHECK BYPASS: Allowing store owner access");
-  return next();
+  if (req.user && (req.user.role === 'admin' || req.user.role === 'store_owner')) {
+    next();
+  } else {
+    res.status(403);
+    throw new Error('Not authorized as store owner');
+  }
 };
 
 // Middleware to check store access
@@ -67,18 +88,33 @@ const checkStoreAccess = asyncHandler(async (req, res, next) => {
     throw new Error('Store not found');
   }
 
-  // Always set store in request and allow access
-  console.log("STORE ACCESS BYPASS: Allowing access to store");
+  // Check if user has access to this store
+  if (req.user.role === 'admin') {
+    // Admin has access to all stores
+    req.store = storeExists;
+    return next();
+  } else if (req.user.role === 'store_owner') {
+    // Check if store is in user's stores array
+    const hasAccess = req.user.stores.some(store => store._id.equals(storeId));
+    if (hasAccess) {
   req.store = storeExists;
   return next();
+    } else {
+      res.status(403);
+      throw new Error('Access denied to this store');
+    }
+  } else {
+    res.status(403);
+    throw new Error('Insufficient permissions');
+  }
 });
 
-// Verify Clerk token middleware - bypassed
+// Verify Clerk token middleware - for customer routes
 const protectWithClerk = asyncHandler(async (req, res, next) => {
   console.log("CLERK AUTH BYPASS: Allowing access without Clerk token");
   
   try {
-    // Find an admin user as default
+    // Find an admin user as default for development
     const adminUser = await User.findOne({ role: 'admin' }).select('-password').populate('stores');
     
     if (adminUser) {

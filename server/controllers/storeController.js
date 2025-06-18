@@ -186,6 +186,95 @@ const removeUserFromStore = asyncHandler(async (req, res) => {
   res.status(200).json({ message: 'User removed from store successfully' });
 });
 
+// @desc    Create or update store owner
+// @route   POST /api/stores/:id/owner
+// @access  Admin
+const createStoreOwner = asyncHandler(async (req, res) => {
+  const { name, email, password } = req.body;
+  const storeId = req.params.id;
+
+  // Validate required fields
+  if (!name || !email || !password) {
+    res.status(400);
+    throw new Error('Name, email, and password are required');
+  }
+
+  // Check if store exists
+  const store = await Store.findById(storeId);
+  if (!store) {
+    res.status(404);
+    throw new Error('Store not found');
+  }
+
+  // Check if user with this email already exists
+  let existingUser = await User.findOne({ email });
+  
+  if (existingUser) {
+    // If user exists, update their role and assign the store
+    existingUser.role = 'store_owner';
+    existingUser.name = name; // Update name if provided
+    
+    // Update password if provided
+    if (password) {
+      existingUser.password = password; // Will be hashed by pre-save middleware
+    }
+    
+    // Add store to user's stores array if not already present
+    if (!existingUser.stores.includes(storeId)) {
+      existingUser.stores.push(storeId);
+    }
+    
+    await existingUser.save();
+    
+    // Update store's owner reference
+    store.owner = existingUser._id;
+    await store.save();
+    
+    const populatedStore = await Store.findById(storeId).populate('owner', 'name email role');
+    
+    res.status(200).json({
+      message: 'Store owner updated successfully',
+      store: populatedStore,
+      owner: {
+        _id: existingUser._id,
+        name: existingUser.name,
+        email: existingUser.email,
+        role: existingUser.role
+      }
+    });
+  } else {
+    // Create new store owner user
+    const newUser = await User.create({
+      name,
+      email,
+      password, // Will be hashed by pre-save middleware
+      role: 'store_owner',
+      stores: [storeId]
+    });
+
+    // Update store's owner reference
+    store.owner = newUser._id;
+    await store.save();
+
+    const populatedStore = await Store.findById(storeId).populate('owner', 'name email role');
+
+    res.status(201).json({
+      message: 'Store owner created successfully',
+      store: populatedStore,
+      owner: {
+        _id: newUser._id,
+        name: newUser.name,
+        email: newUser.email,
+        role: newUser.role
+      },
+      credentials: {
+        email: newUser.email,
+        password: password // Return the plain text password for admin reference
+      }
+    });
+  }
+});
+
 // @desc    Get stores for current user
 // @route   GET /api/stores/mystores
 // @access  Store Owner/Admin
@@ -423,6 +512,7 @@ export {
   deleteStore,
   assignUserToStore,
   removeUserFromStore,
+  createStoreOwner,
   getMyStores,
   repairStoreRelationships,
   getPublicStores

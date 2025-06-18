@@ -7,10 +7,10 @@ import { getCustomers, createCustomer, updateCustomer, deleteCustomer } from '..
 import { Label } from '../../components/ui/label';
 import { Input } from '../../components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 
 const StoreOwnerCustomers = () => {
-  const { selectedStore } = useAuth();
+  const { selectedStore } = useAdminAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);

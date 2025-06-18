@@ -12,6 +12,7 @@ import Reports from './pages/admin/Reports';
 import Store from './pages/store/Store';
 import Settings from './pages/admin/Settings';
 import StoreManagement from './pages/admin/StoreManagement';
+import AdminStoreDashboard from './pages/admin/AdminStoreDashboard';
 import StoreOwnerDashboard from './pages/storeowner/Dashboard';
 import StoreOwnerProducts from './pages/storeowner/Products';
 import StoreOwnerOrders from './pages/storeowner/Orders';
@@ -36,9 +37,17 @@ import OrderDetail from './pages/store/OrderDetail';
 import OrderConfirmation from './pages/store/OrderConfirmation';
 import UserAccount from './pages/store/UserAccount';
 
+// Admin Authentication
+import { AdminAuthProvider } from './contexts/AdminAuthContext';
+import AdminLogin from './pages/admin/AdminLogin';
+import StoreOwnerLogin from './pages/admin/StoreOwnerLogin';
+import UnifiedLogin from './pages/UnifiedLogin';
+import AdminProtectedRoute from './components/AdminProtectedRoute';
+import StoreOwnerStoreSelector from './components/StoreOwnerStoreSelector';
+
 function App() {
   return (
-    <>
+    <AdminAuthProvider>
       {/* This forces page reload when switching between admin/store */}
       <NavigationHandler />
       
@@ -49,11 +58,35 @@ function App() {
         {/* New unified role selection page */}
         <Route path="/role-selection" element={<RoleSelection />} />
         
-        {/* Store selection for store owners */}
-        <Route path="/select-store" element={<StoreSelector />} />
+        {/* Store selection for store owners - Protected route */}
+        <Route path="/select-store" element={
+          <AdminProtectedRoute requiredRoles={['admin', 'store_owner']}>
+            <StoreSelector />
+          </AdminProtectedRoute>
+        } />
         
-        {/* Admin routes - no role checks */}
-        <Route path="/admin/*" element={<MainLayout />}>
+        {/* Unified Login - Primary entry point */}
+        <Route path="/login" element={<UnifiedLogin />} />
+        
+        {/* Legacy Admin Login - Public route */}
+        <Route path="/admin/login" element={<AdminLogin />} />
+        
+        {/* Legacy Store Owner Login - Public route */}
+        <Route path="/storeowner/login" element={<StoreOwnerLogin />} />
+        
+        {/* Store Owner Store Selection - Protected route */}
+        <Route path="/storeowner/select-store" element={
+          <AdminProtectedRoute requiredRoles={['store_owner']}>
+            <StoreOwnerStoreSelector />
+          </AdminProtectedRoute>
+        } />
+        
+        {/* Admin routes - Protected with authentication */}
+        <Route path="/admin/*" element={
+          <AdminProtectedRoute requiredRoles={['admin']}>
+            <MainLayout />
+          </AdminProtectedRoute>
+        }>
           <Route index element={<Dashboard />} />
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="inventory" element={<Inventory />} />
@@ -65,11 +98,17 @@ function App() {
           <Route path="store" element={<Store />} />
           <Route path="settings" element={<Settings />} />
           <Route path="stores" element={<StoreManagement />} />
+          <Route path="store-dashboard/:storeId" element={<AdminStoreDashboard />} />
         </Route>
         
-        {/* Store Owner routes - no role checks */}
-        <Route path="/storeowner/*" element={<StoreOwnerLayout />}>
+        {/* Store Owner routes - Protected with authentication */}
+        <Route path="/storeowner/*" element={
+          <AdminProtectedRoute requiredRoles={['admin', 'store_owner']}>
+            <StoreOwnerLayout />
+          </AdminProtectedRoute>
+        }>
           <Route index element={<StoreOwnerDashboard />} />
+          <Route path="dashboard" element={<StoreOwnerDashboard />} />
           <Route path="products" element={<StoreOwnerProducts />} />
           <Route path="orders" element={<StoreOwnerOrders />} />
           <Route path="customers" element={<StoreOwnerCustomers />} />
@@ -81,7 +120,7 @@ function App() {
           <Route path="settings" element={<StoreProfile />} />
         </Route>
         
-        {/* Store routes - no role checks */}
+        {/* Store routes - Customer routes with Clerk auth (unchanged) */}
         <Route path="/store/*" element={<StoreLayout />}>
           <Route index element={<Homepage />} />
           <Route path="products" element={<ProductListing />} />
@@ -100,7 +139,7 @@ function App() {
       
       {/* Toast notifications */}
       <Toaster />
-    </>
+    </AdminAuthProvider>
   );
 }
 

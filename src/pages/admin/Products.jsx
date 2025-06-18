@@ -2,10 +2,20 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
 import { Button } from '../../components/ui/button';
 import { Search, Filter, Plus, Edit, Trash, ChevronDown, Download, Upload, Store as StoreIcon } from 'lucide-react';
-import { getProducts, deleteProduct, createProduct, updateProduct, getAllStoresProducts } from '../../lib/api';
+import { 
+  getProducts, 
+  deleteProduct, 
+  createProduct, 
+  updateProduct, 
+  getAllStoresProducts,
+  createProductAdmin,
+  updateProductAdmin,
+  deleteProductAdmin
+} from '../../lib/api';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
 import { Badge } from '../../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { useToast } from '../../components/ui/use-toast';
 
 // StoreBadge component for consistent store display
 const StoreBadge = ({ store }) => {
@@ -35,6 +45,7 @@ const StoreBadge = ({ store }) => {
 };
 
 const Products = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('All');
   const [filterStore, setFilterStore] = useState('All'); // Add store filter
@@ -45,6 +56,7 @@ const Products = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [currentProductId, setCurrentProductId] = useState(null);
+  const [selectedStoreId, setSelectedStoreId] = useState(''); // Store selection for admin actions
   const [newProduct, setNewProduct] = useState({
     name: '',
     description: '',
@@ -180,14 +192,33 @@ const Products = () => {
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
 
-  const handleDeleteProduct = async (id) => {
+  const handleDeleteProduct = async (product) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await deleteProduct(id);
-        setProducts(products.filter(product => product._id !== id));
+        const storeId = product.store?._id || product.storeId;
+        if (!storeId) {
+          toast({
+            title: 'Error',
+            description: 'Cannot delete product: Store information missing',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        await deleteProductAdmin(storeId, product._id);
+        setProducts(products.filter(p => p._id !== product._id));
+        
+        toast({
+          title: 'Success',
+          description: 'Product deleted successfully',
+        });
       } catch (error) {
-        setError('Failed to delete product');
-        console.error(error);
+        console.error('Error deleting product:', error);
+        toast({
+          title: 'Error',
+          description: typeof error === 'string' ? error : 'Failed to delete product',
+          variant: 'destructive',
+        });
       }
     }
   };
@@ -248,22 +279,40 @@ const Products = () => {
     setIsSubmitting(true);
 
     try {
-      // Validate required fields
+      // Validate required fields including store selection for admin
       if (!newProduct.name || !newProduct.category || !newProduct.price || !newProduct.storeId) {
-        setFormError('Please fill in all required fields');
+        setFormError('Please fill in all required fields including store selection');
         setIsSubmitting(false);
         return;
       }
 
       let result;
       if (isEditMode) {
-        result = await updateProduct(currentProductId, newProduct);
-        // Update the product in the list
-        setProducts(products.map(p => p._id === currentProductId ? result : p));
+        result = await updateProductAdmin(newProduct.storeId, currentProductId, newProduct);
+        // Update the product in the list with store information
+        const updatedProduct = { 
+          ...result, 
+          store: stores.find(s => s._id === newProduct.storeId) 
+        };
+        setProducts(products.map(p => p._id === currentProductId ? updatedProduct : p));
+        
+        toast({
+          title: 'Success',
+          description: 'Product updated successfully',
+        });
       } else {
-        result = await createProduct(newProduct);
-        // Add the new product to the list
-        setProducts([...products, result]);
+        result = await createProductAdmin(newProduct.storeId, newProduct);
+        // Add the new product to the list with store information
+        const newProductWithStore = { 
+          ...result, 
+          store: stores.find(s => s._id === newProduct.storeId) 
+        };
+        setProducts([...products, newProductWithStore]);
+        
+        toast({
+          title: 'Success',
+          description: 'Product created successfully',
+        });
       }
       
       // Reset form and close dialog
@@ -283,7 +332,14 @@ const Products = () => {
       });
       setIsDialogOpen(false);
     } catch (error) {
-      setFormError(error.toString());
+      const errorMessage = typeof error === 'string' ? error : 'Failed to save product. Please try again.';
+      setFormError(errorMessage);
+      toast({
+        title: 'Error',
+        description: errorMessage,
+        variant: 'destructive',
+      });
+      console.error('Product save error:', error);
     } finally {
       setIsSubmitting(false);
     }
@@ -841,7 +897,7 @@ const Products = () => {
                           >
                             <Edit className="h-4 w-4 text-blue-600" />
                           </button>
-                          <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product._id)}>
+                          <button className="p-1 rounded-md hover:bg-muted" onClick={() => handleDeleteProduct(product)}>
                             <Trash className="h-4 w-4 text-red-600" />
                           </button>
                         </div>
@@ -911,7 +967,7 @@ const Products = () => {
                               </button>
                               <button 
                                 className="p-2 rounded-md bg-red-500/10 hover:bg-red-500/20" 
-                                onClick={() => handleDeleteProduct(product._id)}
+                                onClick={() => handleDeleteProduct(product)}
                               >
                                 <Trash className="h-4 w-4 text-red-600" />
                               </button>

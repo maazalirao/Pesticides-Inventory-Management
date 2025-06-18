@@ -22,7 +22,7 @@ import {
   Clipboard,
   Eye
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import { getProducts, createProduct, updateProduct, deleteProduct } from '../../lib/api';
 import {
   Dialog,
@@ -46,7 +46,7 @@ import {
 
 const StoreOwnerProducts = () => {
   const { toast } = useToast();
-  const { selectedStore, token } = useAuth();
+  const { selectedStore } = useAdminAuth();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -56,8 +56,8 @@ if (!ADMIN_CLERK_KEY || !STORE_CLERK_KEY) {
     }
     
     if (isStorePath) {
-      // For store paths, stay in store interface
-      return currentPath !== '/' ? currentPath : "/store";
+      // For store paths, stay in store interface - keep user on the same store page
+      return currentPath;
     } else if (isAdminPath) {
       // For admin paths, stay in admin interface
       return currentPath !== '/' ? currentPath : "/admin";

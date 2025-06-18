@@ -171,9 +171,7 @@ const StoreLayout = () => {
                   whileTap={{ scale: 0.95 }}
                 >
                   <SignInButton 
-                    mode="modal" 
-                    redirectUrl={location.pathname.startsWith('/store') ? location.pathname : '/store'}
-                    afterSignInUrl={location.pathname.startsWith('/store') ? location.pathname : '/store'}
+                    mode="modal"
                   >
                     <button 
                       className="flex items-center gap-1 text-white bg-green-600 px-2 py-1.5 rounded-md hover:bg-green-700 transition-all"

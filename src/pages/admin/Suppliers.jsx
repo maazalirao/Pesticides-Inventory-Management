@@ -3,9 +3,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/ca
 import { Button } from '../../components/ui/button';
 import { Search, Plus, Edit, Trash, Phone, Mail, MapPin, Store as StoreIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '../../components/ui/dialog';
-import { getSuppliers, createSupplier, updateSupplier, deleteSupplier, getAllStoresSuppliers } from '../../lib/api';
+import { 
+  getSuppliers, 
+  createSupplier, 
+  updateSupplier, 
+  deleteSupplier, 
+  getAllStoresSuppliers,
+  createSupplierAdmin,
+  updateSupplierAdmin,
+  deleteSupplierAdmin
+} from '../../lib/api';
 import { Badge } from '../../components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
+import { useToast } from '../../components/ui/use-toast';
 
 // StoreBadge component for consistent store display
 const StoreBadge = ({ store }) => {
@@ -35,6 +45,7 @@ const StoreBadge = ({ store }) => {
 };
 
 const Suppliers = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -161,14 +172,33 @@ const Suppliers = () => {
     return matchesSearch && matchesStore;
   });
 
-  const handleDeleteSupplier = async (id) => {
+  const handleDeleteSupplier = async (supplier) => {
     if (window.confirm('Are you sure you want to delete this supplier?')) {
       try {
-        await deleteSupplier(id);
-        setSuppliers(suppliers.filter(supplier => supplier._id !== id));
+        const storeId = supplier.store?._id || supplier.storeId;
+        if (!storeId) {
+          toast({
+            title: 'Error',
+            description: 'Cannot delete supplier: Store information missing',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        await deleteSupplierAdmin(storeId, supplier._id);
+        setSuppliers(suppliers.filter(s => s._id !== supplier._id));
+        
+        toast({
+          title: 'Success',
+          description: 'Supplier deleted successfully',
+        });
       } catch (error) {
-        setError('Failed to delete supplier');
-        console.error(error);
+        console.error('Error deleting supplier:', error);
+        toast({
+          title: 'Error',
+          description: typeof error === 'string' ? error : 'Failed to delete supplier',
+          variant: 'destructive',
+        });
       }
     }
   };
@@ -654,7 +684,7 @@ const Suppliers = () => {
                           variant="outline" 
                           size="sm" 
                           className="flex items-center gap-1 h-8 px-2.5 sm:px-3 text-red-600 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-950"
-                          onClick={() => handleDeleteSupplier(supplier._id)}
+                          onClick={() => handleDeleteSupplier(supplier)}
                         >
                           <Trash className="h-3 w-3" />
                           <span className="sm:inline">Delete</span>

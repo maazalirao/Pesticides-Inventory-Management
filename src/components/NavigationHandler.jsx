@@ -22,7 +22,7 @@ const NavigationHandler = () => {
       const preferredRedirect = localStorage.getItem('clerk_preferred_redirect');
       
       if (preferredRedirect && preferredRedirect.startsWith('/store')) {
-        // User signed in from store interface, redirect them back
+        // User signed in from store interface, redirect them back to exact page
         if (location.pathname === '/' || !location.pathname.startsWith('/store')) {
           console.log('Redirecting user from landing to store after sign-in:', preferredRedirect);
           localStorage.removeItem('clerk_preferred_redirect');

@@ -19,11 +19,11 @@ import {
   Building,
   X
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAdminAuth } from '../../contexts/AdminAuthContext';
 import axios from 'axios';
 
 const StoreProfile = () => {
-  const { selectedStore, token, refreshStores } = useAuth();
+  const { selectedStore, getAuthHeaders } = useAdminAuth();
   const { toast } = useToast();
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -102,14 +102,11 @@ const StoreProfile = () => {
       const config = {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+          ...getAuthHeaders(),
         },
       };
       
       await axios.put(`/api/stores/${selectedStore._id}`, storeData, config);
-      
-      // Refresh store data
-      await refreshStores();
       
       toast({
         title: 'Success',

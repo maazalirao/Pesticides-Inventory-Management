@@ -70,19 +70,68 @@ const Homepage = () => {
         setLoading(true);
         setError(null);
         
-        // Fetch ALL products from ALL stores using the working API function
+        // Fetch ALL products from ALL stores for unified experience
         console.log('Fetching all products from all stores for unified store experience');
-        const productsData = await getAllStoresProducts();
         
-        // Handle different response formats
         let products = [];
-        if (Array.isArray(productsData)) {
-          products = productsData;
-        } else if (productsData.products && Array.isArray(productsData.products)) {
-          products = productsData.products;
+        
+        try {
+          // First try to fetch from the admin endpoint for all products
+          const productsResponse = await axios.get('/api/admin/products/all', {
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          });
+          
+          // Handle different response formats
+          if (Array.isArray(productsResponse.data)) {
+            products = productsResponse.data;
+          } else if (productsResponse.data.products && Array.isArray(productsResponse.data.products)) {
+            products = productsResponse.data.products;
+          }
+          
+          console.log(`Admin API: Fetched ${products.length} products from all stores`);
+        } catch (adminApiError) {
+          console.warn('Admin API endpoint failed, trying fallback methods:', adminApiError);
+          
+          // Fallback to the original API function
+          try {
+            const productsData = await getAllStoresProducts();
+            
+            if (Array.isArray(productsData)) {
+              products = productsData;
+            } else if (productsData && productsData.products && Array.isArray(productsData.products)) {
+              products = productsData.products;
+            } else if (productsData && productsData.data && Array.isArray(productsData.data)) {
+              products = productsData.data;
+            }
+            
+            console.log(`Fallback API: Fetched ${products.length} products from all stores`);
+          } catch (fallbackError) {
+            console.warn('Fallback API also failed:', fallbackError);
+            
+            // Final fallback to standard API
+            try {
+              const productResponse = await axios.get('/api/products', {
+                headers: {
+                  'Cache-Control': 'no-cache',
+                  'Pragma': 'no-cache',
+                  'Expires': '0'
+                }
+              });
+              products = productResponse.data || [];
+              console.log(`Standard API: Fetched ${products.length} products`);
+            } catch (standardError) {
+              console.error('All API endpoints failed:', standardError);
+              products = [];
+            }
+          }
         }
         
         console.log(`Total products fetched from all stores: ${products.length}`);
+        console.log('Products array:', products);
         
         // Store all products for search functionality
         setAllProducts(products);

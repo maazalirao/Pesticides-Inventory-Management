@@ -54,10 +54,10 @@ const Landing = () => {
             
             <div className="hidden sm:flex items-center gap-4">
               <Link
-                to="/role-selection"
+                to="/login"
                 className="text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors shadow-lg hover:shadow-orange-500/30"
               >
-                Choose Role
+                Enter System
               </Link>
             </div>
           </div>
@@ -92,7 +92,7 @@ const Landing = () => {
                 <ChevronRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
               </Link>
               
-              <Link to="/role-selection" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
+              <Link to="/login" className="px-6 py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition-all shadow-lg hover:shadow-orange-500/30 flex items-center justify-center">
                 <Settings className="mr-2 h-5 w-5" />
                 Enter System
               </Link>
@@ -140,7 +140,7 @@ const Landing = () => {
                     <h3 className="font-semibold text-lg mb-2 mt-4">Customer Store</h3>
                     <p className="text-sm text-slate-300">Browse products and place orders online</p>
                   </div>
-                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/role-selection')}>
+                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/login')}>
                     <div className="relative">
                       <div className="absolute inset-0 bg-orange-500/20 rounded-full blur-xl group-hover:blur-lg transition-all"></div>
                       <BarChart2 className="h-10 w-10 text-orange-500 relative z-10 group-hover:text-orange-400 transition-colors" />
@@ -148,7 +148,7 @@ const Landing = () => {
                     <h3 className="font-semibold text-lg mb-2 mt-4">Admin Dashboard</h3>
                     <p className="text-sm text-slate-300">Manage inventory, products, and orders</p>
                   </div>
-                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/role-selection')}>
+                  <div className="bg-white/10 p-6 rounded-lg hover:bg-white/15 transition-all duration-300 hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 flex flex-col items-center text-center group" onClick={() => navigate('/login')}>
                     <div className="relative">
                       <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl group-hover:blur-lg transition-all"></div>
                       <Building2 className="h-10 w-10 text-emerald-500 relative z-10 group-hover:text-emerald-400 transition-colors" />
@@ -182,17 +182,17 @@ const Landing = () => {
         </div>
         
         <div className="max-w-lg mx-auto">
-          <div className="bg-white/5 rounded-xl p-8 backdrop-blur-sm border border-orange-500/20 hover:bg-white/10 transition hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 group cursor-pointer" onClick={() => navigate('/role-selection')}>
+          <div className="bg-white/5 rounded-xl p-8 backdrop-blur-sm border border-orange-500/20 hover:bg-white/10 transition hover:shadow-lg hover:shadow-orange-500/5 hover:scale-105 group cursor-pointer" onClick={() => navigate('/login')}>
             <div className="flex items-center justify-center">
               <div className="h-16 w-16 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
                 <Settings className="h-8 w-8 text-white" />
               </div>
             </div>
-            <h3 className="text-2xl font-semibold text-center mb-3">Choose Your Role</h3>
-            <p className="text-slate-300 text-center mb-6">Access the system as an Administrator or Store Owner based on your responsibilities.</p>
+            <h3 className="text-2xl font-semibold text-center mb-3">Enter System</h3>
+            <p className="text-slate-300 text-center mb-6">Access the unified login page to sign in as an Administrator or Store Owner.</p>
             <div className="flex justify-center">
-              <Link to="/role-selection" className="group inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors">
-                Go to Role Selection <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
+              <Link to="/login" className="group inline-flex items-center text-orange-400 hover:text-orange-300 transition-colors">
+                Go to Login <ArrowRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </div>
@@ -287,7 +287,7 @@ const Landing = () => {
                 Explore Store
               </Link>
               
-              <Link to="/role-selection" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
+              <Link to="/login" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
                 <Settings className="mr-2 h-5 w-5" />
                 Enter System
               </Link>
@@ -338,7 +338,7 @@ const Landing = () => {
               <h3 className="text-lg font-medium mb-4 text-white">Admin</h3>
               <ul className="space-y-2 text-sm">
                 <li>
-                  <Link to="/role-selection" className="text-slate-400 hover:text-orange-400 transition-colors">Dashboard</Link>
+                  <Link to="/login" className="text-slate-400 hover:text-orange-400 transition-colors">Dashboard</Link>
                 </li>
                 <li><Link to="/admin/inventory" className="text-slate-400 hover:text-orange-400 transition-colors">Inventory</Link></li>
                 <li><Link to="/admin/products" className="text-slate-400 hover:text-orange-400 transition-colors">Products</Link></li>
