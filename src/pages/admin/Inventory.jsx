@@ -122,6 +122,10 @@ const Inventory = () => {
     batches: []
   });
 
+  // Simple pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(50); // Limit to 50 items per page
+
   // Fetch inventory items on component mount
   useEffect(() => {
     let isMounted = true;
@@ -129,13 +133,13 @@ const Inventory = () => {
     const fetchInventoryItems = async () => {
       try {
         setLoading(true);
-        console.log('Fetching inventory from all stores...');
-        // Use the new function to get inventory from all stores
-        const data = await getAllStoresInventory();
+        console.log('Fetching limited inventory from all stores...');
+        // Load only first 100 items for fast loading
+        const data = await getAllStoresInventory(100);
         
         if (isMounted) {
           if (data) {
-            console.log('Received data:', data);
+            console.log('Received limited data:', data);
             setInventoryItems(data.inventory || []);
             setStores(data.stores || []);
           } else {
@@ -148,11 +152,7 @@ const Inventory = () => {
       } catch (err) {
         if (isMounted) {
           console.error('Inventory fetch error in component:', err);
-          if (typeof err === 'string' && (err.includes('Not authorized') || err.includes('token'))) {
-            setError('Authentication error. Please log out and log in again.');
-          } else {
-            setError(typeof err === 'string' ? err : 'Failed to fetch inventory items. Please try again later.');
-          }
+          setError('Failed to fetch inventory items. Please try again later.');
           setInventoryItems([]);
         }
       } finally {
@@ -194,7 +194,7 @@ const Inventory = () => {
     alert("Detailed export feature will be implemented soon");
   };
 
-  // Filter and sort inventory items
+  // Filter and sort inventory items with pagination
   const filteredItems = inventoryItems.filter((item) => {
     const matchesSearch = item.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          item.sku?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -211,7 +211,7 @@ const Inventory = () => {
   // Get all unique categories from inventory items
   const categories = [...new Set(inventoryItems.map(item => item.category).filter(Boolean))];
 
-  // Sort the filtered items
+  // Sort and paginate the filtered items
   const sortedItems = [...filteredItems].sort((a, b) => {
     if (sortBy === 'name') {
       return sortDirection === 'asc' 
@@ -234,6 +234,11 @@ const Inventory = () => {
     }
     return 0;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(sortedItems.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedItems = sortedItems.slice(startIndex, startIndex + itemsPerPage);
 
   // Get inventory statistics
   const totalInventoryItems = inventoryItems.length;

@@ -28,6 +28,7 @@ const StoreLayout = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   
   // Handle scroll effect for header
   useEffect(() => {
@@ -48,6 +49,22 @@ const StoreLayout = () => {
   // Check if a link is active
   const isActive = (path) => {
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
+  };
+
+  // Handle search functionality
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/store/products?search=${encodeURIComponent(searchTerm.trim())}`);
+      setSearchOpen(false);
+      setSearchTerm('');
+    }
+  };
+
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch(e);
+    }
   };
 
   return (
@@ -96,6 +113,26 @@ const StoreLayout = () => {
               </Link>
             </nav>
 
+            {/* Desktop Search Bar */}
+            <div className="hidden lg:flex items-center flex-1 max-w-md mx-8">
+              <form onSubmit={handleSearch} className="w-full relative">
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full p-2 pr-12 bg-white/10 border border-green-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-green-200"
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-green-300 hover:text-white transition-colors"
+                >
+                  <Search size={18} />
+                </button>
+              </form>
+            </div>
+
             {/* Actions */}
             <div className="flex items-center space-x-3">              
               <motion.button 
@@ -133,8 +170,20 @@ const StoreLayout = () => {
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <SignInButton mode="modal" redirectUrl={location.pathname}>
-                    <button className="flex items-center gap-1 text-white bg-green-600 px-2 py-1.5 rounded-md hover:bg-green-700 transition-all">
+                  <SignInButton 
+                    mode="modal" 
+                    redirectUrl={location.pathname.startsWith('/store') ? location.pathname : '/store'}
+                    afterSignInUrl={location.pathname.startsWith('/store') ? location.pathname : '/store'}
+                  >
+                    <button 
+                      className="flex items-center gap-1 text-white bg-green-600 px-2 py-1.5 rounded-md hover:bg-green-700 transition-all"
+                      onClick={() => {
+                        // Store preferred redirect for Clerk
+                        const preferredUrl = location.pathname.startsWith('/store') ? location.pathname : '/store';
+                        localStorage.setItem('clerk_preferred_redirect', preferredUrl);
+                        console.log('Setting preferred redirect to:', preferredUrl);
+                      }}
+                    >
                       <User size={16} />
                       <span className="text-xs font-medium">Sign In</span>
                     </button>
@@ -144,23 +193,30 @@ const StoreLayout = () => {
             </div>
           </div>
           
-          {/* Mobile Search Bar */}
+          {/* Search Bar */}
           {searchOpen && (
             <motion.div 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 relative"
             >
-              <input
-                type="text"
-                placeholder="Search products..."
-                className="w-full p-2 pr-10 bg-white/10 border border-green-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-green-200"
-                autoFocus
-              />
-              <Search 
-                size={18} 
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-300" 
-              />
+              <form onSubmit={handleSearch}>
+                <input
+                  type="text"
+                  placeholder="Search products... (Press Enter to search)"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
+                  className="w-full p-2 pr-20 bg-white/10 border border-green-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-white focus:border-transparent transition-all duration-200 text-white placeholder-green-200"
+                  autoFocus
+                />
+                <button 
+                  type="submit"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-green-600 hover:bg-green-500 text-white px-3 py-1 rounded text-sm transition-colors"
+                >
+                  Search
+                </button>
+              </form>
             </motion.div>
           )}
           

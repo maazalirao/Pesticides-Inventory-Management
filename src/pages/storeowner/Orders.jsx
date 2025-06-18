@@ -47,15 +47,32 @@ const StoreOwnerOrders = () => {
     fetchOrders();
   }, [selectedStore]);
 
+  // Listen for order updates
+  useEffect(() => {
+    const handleOrdersUpdate = () => {
+      console.log('Orders updated, refreshing store owner orders');
+      if (selectedStore) {
+        fetchOrders();
+      }
+    };
+
+    window.addEventListener('ordersUpdated', handleOrdersUpdate);
+    return () => {
+      window.removeEventListener('ordersUpdated', handleOrdersUpdate);
+    };
+  }, [selectedStore]);
+
     const fetchOrders = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      console.log("Fetching orders for store:", selectedStore?._id);
+      console.log("=== STORE OWNER ORDERS DEBUG ===");
+      console.log("Selected Store:", selectedStore);
+      console.log("Selected Store ID:", selectedStore?._id);
       
       if (!selectedStore || !selectedStore._id) {
-        console.warn("No store selected or invalid store ID");
+        console.warn("❌ No store selected or invalid store ID");
         setOrders([]);
         setFilteredOrders([]);
         setError("Please select a store to view orders");
@@ -65,16 +82,35 @@ const StoreOwnerOrders = () => {
       
       // Get store-specific orders from localStorage using the selected store ID
       const storeOrdersKey = `store_orders_${selectedStore._id}`;
+      console.log("🔑 Looking for orders with key:", storeOrdersKey);
+      
       const savedOrders = JSON.parse(localStorage.getItem(storeOrdersKey) || '[]');
+      console.log("📦 Found orders in localStorage:", savedOrders.length);
+      console.log("Orders data:", savedOrders);
       
-      console.log(`Fetching orders for store: ${selectedStore.name} (${selectedStore._id})`);
+      // Debug: Check all localStorage keys to see what store orders exist
+      const allLocalStorageKeys = Object.keys(localStorage).filter(key => key.startsWith('store_orders_'));
+      console.log("🗂️ All store order keys in localStorage:", allLocalStorageKeys);
       
-      // If we have saved orders for this store, use them
       if (savedOrders && savedOrders.length > 0) {
-        console.log("Found orders in localStorage:", savedOrders.length);
+        console.log("✅ Using orders from localStorage for store:", selectedStore.name);
+        
+        // Double-check that these orders actually belong to this store
+        const validStoreOrders = savedOrders.filter(order => {
+          const belongsToStore = order.storeId === selectedStore._id || 
+                                (order.items && order.items.some(item => item.storeId === selectedStore._id));
+          
+          if (!belongsToStore) {
+            console.warn("⚠️ Found order that doesn't belong to this store:", order.id, "Store ID:", order.storeId);
+          }
+          
+          return belongsToStore;
+        });
+        
+        console.log("✅ Valid orders for this store:", validStoreOrders.length);
         
         // Ensure each order has the store information
-        const ordersWithStore = savedOrders.map(order => ({
+        const ordersWithStore = validStoreOrders.map(order => ({
           ...order,
           store: {
             id: selectedStore._id,
@@ -88,45 +124,12 @@ const StoreOwnerOrders = () => {
         // Dispatch event to notify other components about orders update
         window.dispatchEvent(new Event('ordersUpdated'));
       } else {
-        // Otherwise fall back to the API - in a real app, you'd filter by store ID on the server
-        try {
-          // In a real API call, you'd include the store ID as a parameter
-          // const data = await getOrders(selectedStore._id);
-          const data = await getOrders();
-          
-          // Filter orders to only include those from the selected store
-          const storeOrders = (data || []).filter(order => {
-            // Check if any product in the order belongs to the selected store
-            return order.items && order.items.some(item => 
-              item.storeId === selectedStore._id
-            );
-          });
-          
-          console.log("Orders filtered for this store:", storeOrders.length);
-          
-          // Add store information to each order
-          const ordersWithStore = storeOrders.map(order => ({
-            ...order,
-            store: {
-              id: selectedStore._id,
-              name: selectedStore.name
-            }
-          }));
-          
-          setOrders(ordersWithStore);
-          setFilteredOrders(ordersWithStore);
-          
-          // Dispatch event to notify other components about orders update
-          window.dispatchEvent(new Event('ordersUpdated'));
-        } catch (apiError) {
-          console.error("API error:", apiError);
-          // If API fails, just use empty array
-          setOrders([]);
-          setFilteredOrders([]);
-        }
+        console.log("📭 No orders found for this store in localStorage");
+        setOrders([]);
+        setFilteredOrders([]);
       }
     } catch (error) {
-      console.error("Error fetching orders:", error);
+      console.error("❌ Error fetching orders:", error);
       setError("Failed to load orders. Please try again later.");
       toast({
         title: "Error",

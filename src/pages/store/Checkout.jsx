@@ -85,15 +85,29 @@ const Checkout = () => {
     setLoading(true);
     
     try {
-      // Create order object with all necessary details
-      const orderItems = cart.map(item => ({
-        product: item.id,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        image: item.image || `https://placehold.co/100x100/e2e8f0/64748b?text=${item.name.charAt(0)}`,
-        storeId: item.storeId || 'default-store' // Store ID for associating with store owner
-      }));
+      // Create order object with all necessary details  
+      console.log("=== CART ITEMS DEBUG ===");
+      console.log("Cart items:", cart);
+      
+      const orderItems = cart.map(item => {
+        // Ensure every item has a valid store ID
+        const storeId = item.storeId || item.store?._id || 'default-store';
+        
+        if (storeId === 'default-store') {
+          console.warn("⚠️ Item missing store ID, using default:", item.name);
+        }
+        
+        return {
+          product: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image || `https://placehold.co/100x100/e2e8f0/64748b?text=${item.name.charAt(0)}`,
+          storeId: storeId // Store ID for associating with store owner
+        };
+      });
+      
+      console.log("📦 Order items with store IDs:", orderItems);
       
       const orderData = {
         orderItems,
@@ -170,9 +184,16 @@ const Checkout = () => {
       });
 
       // Save order to each store's orders
+      console.log("=== CHECKOUT ORDER CREATION DEBUG ===");
+      console.log("Store Orders to create:", storeOrders);
+      
       Object.keys(storeOrders).forEach(storeId => {
         const storeOrdersKey = `store_orders_${storeId}`;
         const existingStoreOrders = JSON.parse(localStorage.getItem(storeOrdersKey) || '[]');
+        
+        console.log(`📦 Creating order for store: ${storeId}`);
+        console.log(`🔑 Using key: ${storeOrdersKey}`);
+        console.log(`📋 Existing orders for this store: ${existingStoreOrders.length}`);
         
         const storeOrder = {
           id: orderId,
@@ -181,13 +202,20 @@ const Checkout = () => {
           itemsCount: storeOrders[storeId].quantity,
           total: storeOrders[storeId].total,
           status: 'processing',
+          paymentStatus: 'paid', // Add payment status for store owner dashboard
           shippingAddress: orderData.shippingAddress,
           paymentMethod: orderData.paymentMethod,
           customer: customerInfo,
-          storeId: storeId
+          storeId: storeId, // Ensure store ID is explicitly set
+          notes: formData.notes || '' // Add notes if any
         };
         
-        localStorage.setItem(storeOrdersKey, JSON.stringify([...existingStoreOrders, storeOrder]));
+        console.log(`✅ Created store order:`, storeOrder);
+        
+        const updatedStoreOrders = [...existingStoreOrders, storeOrder];
+        localStorage.setItem(storeOrdersKey, JSON.stringify(updatedStoreOrders));
+        
+        console.log(`💾 Saved ${updatedStoreOrders.length} orders for store ${storeId}`);
       });
       
       // Notify any listening components that orders have been updated

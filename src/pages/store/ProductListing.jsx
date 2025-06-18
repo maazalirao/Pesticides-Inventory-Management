@@ -15,7 +15,8 @@ const ProductListing = () => {
   const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
   const categoryParam = searchParams.get('category');
-  const storeParam = searchParams.get('store');
+  const searchParam = searchParams.get('search');
+  // Remove store parameter support for unified store experience
   
   const { addToCart } = useCart();
   const [products, setProducts] = useState([]);
@@ -24,90 +25,71 @@ const ProductListing = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [filterOpen, setFilterOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState(categoryParam || 'all');
-  const [selectedStore, setSelectedStore] = useState(null);
   const [priceRange, setPriceRange] = useState([0, 100]);
   const [sortBy, setSortBy] = useState('featured');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(searchParam || '');
+  const [searchResults, setSearchResults] = useState([]);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  // Handle instant search with debouncing
+  useEffect(() => {
+    if (!searchTerm.trim()) {
+      setSearchResults([]);
+      setIsSearching(false);
+      return;
+    }
+    
+    setIsSearching(true);
+    
+    // Debounce search - wait 300ms after user stops typing
+    const searchTimer = setTimeout(() => {
+      const filtered = products.filter(product => {
+        const nameMatch = product.name.toLowerCase().includes(searchTerm.toLowerCase());
+        const descMatch = product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase());
+        const categoryMatch = product.category && product.category.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        return nameMatch || descMatch || categoryMatch;
+      });
+      
+      setSearchResults(filtered);
+      setIsSearching(false);
+    }, 300);
+    
+    return () => clearTimeout(searchTimer);
+  }, [searchTerm, products]);
   
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         
-        // Get selected store from URL param or localStorage, prioritize URL param
-        const storeId = storeParam || localStorage.getItem('selectedStoreId');
-        console.log('Current storeId:', storeId);
+        // Fetch ALL products from ALL stores for unified experience
+        console.log('Fetching all products from all stores for unified experience');
         
-        if (storeId) {
-          try {
-            // Get store details
-            const storeResponse = await axios.get(`/api/stores/${storeId}`);
-            setSelectedStore(storeResponse.data);
-            console.log('Selected store:', storeResponse.data.name);
-            
-            // Update localStorage with current store
-            localStorage.setItem('selectedStoreId', storeId);
-            
-            // First try to fetch from the public endpoint (which works better on Vercel)
-            console.log('Fetching products from public endpoint for store:', storeId);
-            try {
-              const productsResponse = await axios.get(`/api/public/products`, {
-                params: { store: storeId },
-                headers: {
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              });
-              console.log(`Fetched ${productsResponse.data.length} products using public endpoint`);
-              setProducts(productsResponse.data);
-            } catch (publicApiError) {
-              console.warn('Public API endpoint failed, trying standard endpoint:', publicApiError);
-              // Fall back to standard API if public endpoint fails
-              const productsResponse = await axios.get(`/api/products`, {
-                params: { store: storeId },
-                headers: {
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              });
-              console.log(`Fetched ${productsResponse.data.length} products using standard endpoint`);
-              setProducts(productsResponse.data);
+        try {
+          // First try to fetch from the admin endpoint for all products
+          const productsResponse = await axios.get('/api/admin/products/all', {
+            headers: {
+              'Cache-Control': 'no-cache',
+              'Pragma': 'no-cache',
+              'Expires': '0'
             }
-          } catch (err) {
-            console.error('Error fetching store data:', err);
-            setError('Could not load store information');
-            
-            // Fallback to fetching all products from public endpoint
-            console.log('Falling back to fetching all products from public endpoint');
-            try {
-              const productResponse = await axios.get('/api/public/products', {
-                headers: {
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              });
-              console.log(`Fetched ${productResponse.data.length} products in fallback mode`);
-              setProducts(productResponse.data);
-            } catch (publicApiFallbackError) {
-              console.warn('Public API fallback failed, trying standard endpoint:', publicApiFallbackError);
-              // Final fallback to standard API
-              const productResponse = await axios.get('/api/products', {
-                headers: {
-                  'Cache-Control': 'no-cache',
-                  'Pragma': 'no-cache',
-                  'Expires': '0'
-                }
-              });
-              console.log(`Fetched ${productResponse.data.length} products using standard endpoint fallback`);
-              setProducts(productResponse.data);
-            }
+          });
+          
+          // Handle different response formats
+          let allProducts = [];
+          if (Array.isArray(productsResponse.data)) {
+            allProducts = productsResponse.data;
+          } else if (productsResponse.data.products && Array.isArray(productsResponse.data.products)) {
+            allProducts = productsResponse.data.products;
           }
-        } else {
-          // No store selected, fetch all products from public endpoint
-          console.log('No store selected, fetching all products from public endpoint');
+          
+          console.log(`Fetched ${allProducts.length} products from all stores`);
+          setProducts(allProducts);
+        } catch (adminApiError) {
+          console.warn('Admin API endpoint failed, trying public endpoint:', adminApiError);
+          
+          // Fallback to public endpoint
           try {
             const productResponse = await axios.get('/api/public/products', {
               headers: {
@@ -116,11 +98,12 @@ const ProductListing = () => {
                 'Expires': '0'
               }
             });
-            console.log(`Fetched ${productResponse.data.length} products`);
+            console.log(`Fetched ${productResponse.data.length} products using public endpoint`);
             setProducts(productResponse.data);
           } catch (publicApiError) {
             console.warn('Public API endpoint failed, trying standard endpoint:', publicApiError);
-            // Fall back to standard API
+            
+            // Final fallback to standard API
             const productResponse = await axios.get('/api/products', {
               headers: {
                 'Cache-Control': 'no-cache',
@@ -143,16 +126,14 @@ const ProductListing = () => {
 
     fetchData();
     
-    // Update category if provided in URL
+    // Update search term and category from URL params
+    if (searchParam && searchParam !== searchTerm) {
+      setSearchTerm(searchParam);
+    }
     if (categoryParam) {
       setSelectedCategory(categoryParam.toLowerCase());
     }
-    
-    // If store param is provided in URL, update localStorage
-    if (storeParam) {
-      localStorage.setItem('selectedStoreId', storeParam);
-    }
-  }, [categoryParam, storeParam]);
+  }, [categoryParam, searchParam]); // Include searchParam dependency
   
   // Format currency
   const formatCurrency = (amount) => {
@@ -162,8 +143,26 @@ const ProductListing = () => {
     }).format(amount);
   };
   
-  // Filter products
-  const filteredProducts = products.filter(product => {
+  // Filter products - use search results when searching, otherwise filter normally
+  const filteredProducts = (() => {
+    // If user is searching and we have search results, use those
+    if (searchTerm.trim() && searchResults.length >= 0) {
+      return searchResults.filter(product => {
+        // Still apply category and price filters to search results
+        const categoryMatch = 
+          selectedCategory === 'all' || 
+          (product.category && product.category.toLowerCase() === selectedCategory);
+        
+        const priceMatch = 
+          product.price >= priceRange[0] * 100 && 
+          product.price <= priceRange[1] * 100;
+        
+        return categoryMatch && priceMatch;
+      });
+    }
+    
+    // Normal filtering when not searching
+    return products.filter(product => {
     // Filter by category
     const categoryMatch = 
       selectedCategory === 'all' || 
@@ -174,28 +173,20 @@ const ProductListing = () => {
       product.price >= priceRange[0] * 100 && 
       product.price <= priceRange[1] * 100;
     
-    // Filter by search term
-    const searchMatch = 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    // We don't need to filter by store anymore as we're fetching store-specific products
-    // from the API already
-    
-    return categoryMatch && priceMatch && searchMatch;
+      return categoryMatch && priceMatch;
   });
+  })();
   
   // Debug product data
   useEffect(() => {
     if (products.length > 0) {
       console.log('Products loaded:', products.length);
       console.log('Filtered products:', filteredProducts.length);
-      console.log('Selected store:', selectedStore?.name);
       console.log('Selected category:', selectedCategory);
       // Log a sample product to check structure
       console.log('Sample product:', products[0]);
     }
-  }, [products, filteredProducts, selectedStore, selectedCategory]);
+  }, [products, filteredProducts, selectedCategory]);
   
   // Sort products
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -254,15 +245,21 @@ const ProductListing = () => {
     e?.preventDefault();
     e?.stopPropagation();
     
-    addToCart({
+    const success = addToCart({
       id: product._id,
       name: product.name,
       price: product.price,
       image: product.image,
       category: product.category,
+      storeId: product.storeId || product.store?._id || 'default-store', // Include store ID
       quantity: 1
     });
-    // No alert notification needed
+    
+    // Show success notification if item was added successfully
+    if (success) {
+      // You can add a toast notification here if you want
+      console.log(`Added ${product.name} to cart`);
+    }
   };
   
   return (
@@ -280,12 +277,10 @@ const ProductListing = () => {
         
         <div className="container mx-auto px-4 relative z-20">
           <div className="max-w-2xl">
-            {selectedStore && (
             <div className="inline-flex items-center px-3 py-1 rounded-full bg-white text-green-700 text-xs font-medium mb-4 shadow-sm">
                 <Store className="w-3 h-3 mr-1 text-green-700" />
-                Browsing {selectedStore.name}
+                AgriStore - All Products
             </div>
-            )}
             <h1 className="text-3xl md:text-4xl font-bold mb-4">
               Shop Our Premium <span className="text-green-300">Agricultural Products</span>
             </h1>
@@ -293,16 +288,23 @@ const ProductListing = () => {
               Browse our extensive selection of high-quality pesticides, herbicides, fungicides, and more to maximize your crop yield and protect your investment.
             </p>
             
-            <div className="bg-white rounded-lg overflow-hidden relative mt-6 shadow-md">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-green-700" />
-              <input
-                type="text"
-                placeholder="Search for products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-white pl-12 pr-4 py-3 outline-none text-gray-800 placeholder-gray-500"
-              />
+            {searchTerm && (
+              <div className="bg-white/10 rounded-lg p-3 mt-6 backdrop-blur-sm border border-white/20">
+                <p className="text-white/90 text-sm">
+                  {isSearching ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none"/>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 078-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 714 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
+                      </svg>
+                      Searching for "{searchTerm}"...
+                    </span>
+                  ) : (
+                    `Showing ${searchResults.length} results for "${searchTerm}"`
+                  )}
+                </p>
             </div>
+            )}
           </div>
         </div>
       </section>
@@ -314,12 +316,7 @@ const ProductListing = () => {
             <Link to="/" className="hover:text-green-600 transition-colors">Home</Link>
             <ChevronRight size={16} className="mx-2" />
             <span className="font-medium text-gray-800">Products</span>
-            {selectedStore && (
-              <>
-                <ChevronRight size={16} className="mx-2" />
-                <span className="font-medium text-green-600">{selectedStore.name}</span>
-              </>
-            )}
+
             {selectedCategory !== 'all' && (
               <>
                 <ChevronRight size={16} className="mx-2" />
@@ -598,31 +595,27 @@ const ProductListing = () => {
                 <div className="bg-white rounded-xl border p-8 text-center shadow-sm">
                   <Package size={36} className="mx-auto text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium mb-2 text-gray-800">No Products Found</h3>
-                  <p className="text-gray-600 mb-4">
-                    {selectedStore 
-                      ? `There are no products available from ${selectedStore.name} that match your current filters.` 
-                      : "There are no products that match your current filters."}
+                                    <p className="text-gray-600 mb-4">
+                    There are no products that match your current filters.
                   </p>
                   <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <button 
-                    onClick={() => {
-                      setSelectedCategory('all');
-                      setPriceRange([0, 100]);
-                      setSortBy('featured');
-                      setSearchTerm('');
-                    }}
-                    className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
-                  >
-                    Reset Filters
-                  </button>
-                    {selectedStore && (
-                      <Link
-                        to="/store"
-                        className="px-4 py-2 border border-green-700 text-green-700 rounded-lg hover:bg-green-50 transition-colors"
-                      >
-                        Return to Homepage
-                      </Link>
-                    )}
+                    <button 
+                      onClick={() => {
+                        setSelectedCategory('all');
+                        setPriceRange([0, 100]);
+                        setSortBy('featured');
+                        setSearchTerm('');
+                      }}
+                      className="px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-800 transition-colors"
+                    >
+                      Reset Filters
+                    </button>
+                    <Link
+                      to="/store"
+                      className="px-4 py-2 border border-green-700 text-green-700 rounded-lg hover:bg-green-50 transition-colors"
+                    >
+                      Return to Homepage
+                    </Link>
                   </div>
                 </div>
               ) : viewMode === 'grid' ? (

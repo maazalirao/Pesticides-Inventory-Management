@@ -35,34 +35,69 @@ if (!ADMIN_CLERK_KEY || !STORE_CLERK_KEY) {
     </div>
   )
 } else {
-  // Check the current URL path
-  const isStorePath = window.location.pathname.startsWith('/store');
-  
-  // Select the appropriate key based on the path
-  const clerkKey = isStorePath ? STORE_CLERK_KEY : ADMIN_CLERK_KEY;
-  
-  // Use current path for sign-in redirect if available, otherwise fall back to default paths
-  const currentPath = window.location.pathname;
-  const afterSignInUrl = currentPath && currentPath !== '/' ? currentPath : (isStorePath ? "/store" : "/admin");
-  const afterSignUpUrl = currentPath && currentPath !== '/' ? currentPath : (isStorePath ? "/store" : "/admin");
-  const afterSignOutUrl = isStorePath ? "/store" : "/";
-  
-  // Custom sign-in, sign-up, and sign-out URLs to ensure redirection works properly
-  const signInUrl = isStorePath ? "/store/sign-in" : "/admin/sign-in";
-  const signUpUrl = isStorePath ? "/store/sign-up" : "/admin/sign-up";
-  
+  // Function to get the appropriate Clerk key based on current path
+  const getClerkKey = () => {
+    const isStorePath = window.location.pathname.startsWith('/store');
+    return isStorePath ? STORE_CLERK_KEY : ADMIN_CLERK_KEY;
+  };
+
+  // Smart redirect function for after sign-in/sign-up
+  const getRedirectUrl = () => {
+    const currentPath = window.location.pathname;
+    const isStorePath = currentPath.startsWith('/store');
+    const isAdminPath = currentPath.startsWith('/admin');
+    const isStoreOwnerPath = currentPath.startsWith('/storeowner');
+    
+    // Check if there's a preferred redirect stored in localStorage
+    const preferredRedirect = localStorage.getItem('clerk_preferred_redirect');
+    if (preferredRedirect && preferredRedirect.startsWith('/store')) {
+      localStorage.removeItem('clerk_preferred_redirect');
+      return preferredRedirect;
+    }
+    
+    if (isStorePath) {
+      // For store paths, stay in store interface
+      return currentPath !== '/' ? currentPath : "/store";
+    } else if (isAdminPath) {
+      // For admin paths, stay in admin interface
+      return currentPath !== '/' ? currentPath : "/admin";
+    } else if (isStoreOwnerPath) {
+      // For store owner paths, stay in store owner interface
+      return currentPath !== '/' ? currentPath : "/storeowner";
+    } else {
+      // For landing/other pages, check if user came from store
+      const referrer = document.referrer;
+      if (referrer && referrer.includes('/store')) {
+        return "/store";
+      }
+      // Default to landing page
+      return "/";
+    }
+  };
+
   // Set theme colors based on path
+  const isStorePath = window.location.pathname.startsWith('/store');
   const primaryColor = isStorePath ? "green" : "orange";
   const primaryColorHover = isStorePath ? "green-700" : "orange-600";
   
-  // Log which key we're using (for debugging)
+  // Get appropriate redirect URLs
+  const afterSignInUrl = getRedirectUrl();
+  const afterSignUpUrl = getRedirectUrl();
+  const afterSignOutUrl = isStorePath ? "/store" : "/";
+  
+  // Custom sign-in, sign-up, and sign-out URLs
+  const signInUrl = isStorePath ? "/store/sign-in" : "/admin/sign-in";
+  const signUpUrl = isStorePath ? "/store/sign-up" : "/admin/sign-up";
+  
+  // Log configuration for debugging
   console.log(`Using ${isStorePath ? 'STORE' : 'ADMIN'} Clerk key for ${window.location.pathname}`);
+  console.log(`Redirect URLs - SignIn: ${afterSignInUrl}, SignUp: ${afterSignUpUrl}, SignOut: ${afterSignOutUrl}`);
   
   // Render the application with the appropriate key
   ReactDOM.createRoot(document.getElementById('root')).render(
     <React.StrictMode>
       <ClerkProvider 
-        publishableKey={clerkKey}
+        publishableKey={getClerkKey()}
         afterSignInUrl={afterSignInUrl}
         afterSignUpUrl={afterSignUpUrl}
         afterSignOutUrl={afterSignOutUrl}

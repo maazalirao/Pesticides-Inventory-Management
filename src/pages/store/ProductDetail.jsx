@@ -73,6 +73,7 @@ const ProductDetail = () => {
         price: product.price,
         image: product.image,
         category: product.category,
+        storeId: product.store?._id || product.storeId || 'default-store', // Include store ID
         quantity
       });
       // No alert notification needed

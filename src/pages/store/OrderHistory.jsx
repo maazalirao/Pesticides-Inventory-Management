@@ -35,8 +35,7 @@ const OrderHistory = () => {
     return 'orders_guest';
   };
   
-  // Fetch orders on component mount
-  useEffect(() => {
+  // Fetch orders function
     const fetchOrders = async () => {
       setLoading(true);
       try {
@@ -60,8 +59,23 @@ const OrderHistory = () => {
       }
     };
     
+  // Fetch orders on component mount
+  useEffect(() => {
     fetchOrders();
   }, [isSignedIn, user]);
+
+  // Listen for order updates
+  useEffect(() => {
+    const handleOrdersUpdate = () => {
+      console.log('Orders updated, refreshing order history');
+      fetchOrders();
+    };
+
+    window.addEventListener('ordersUpdated', handleOrdersUpdate);
+    return () => {
+      window.removeEventListener('ordersUpdated', handleOrdersUpdate);
+    };
+  }, []);
   
   // Filter orders based on search term and status filter
   const filteredOrders = orders.filter(order => {

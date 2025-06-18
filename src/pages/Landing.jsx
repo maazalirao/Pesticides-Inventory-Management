@@ -79,7 +79,14 @@ const Landing = () => {
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4">
-              <Link to="/store" className="group px-6 py-3 bg-white hover:bg-gray-100 text-slate-900 rounded-lg font-semibold transition flex items-center justify-center shadow-lg hover:shadow-white/20">
+              <Link 
+                to="/store" 
+                className="group px-6 py-3 bg-white hover:bg-gray-100 text-slate-900 rounded-lg font-semibold transition flex items-center justify-center shadow-lg hover:shadow-white/20"
+                onClick={() => {
+                  // Set preferred redirect to store for any future authentication
+                  localStorage.setItem('clerk_preferred_redirect', '/store');
+                }}
+              >
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 Visit Store
                 <ChevronRight className="ml-2 h-4 w-4 transform transition-transform group-hover:translate-x-1" />
@@ -268,10 +275,17 @@ const Landing = () => {
             <h2 className="text-3xl md:text-4xl font-bold mb-6">Ready to Streamline Your Inventory Management?</h2>
             <p className="text-xl text-slate-300 mb-8">Get started today with our comprehensive solution for managing your agricultural products inventory and online store.</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a href="/store" className="px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-gray-100 transition shadow-xl flex items-center justify-center">
+              <Link 
+                to="/store" 
+                className="px-8 py-4 bg-white text-slate-900 rounded-lg font-semibold hover:bg-gray-100 transition shadow-xl flex items-center justify-center"
+                onClick={() => {
+                  // Set preferred redirect to store for any future authentication
+                  localStorage.setItem('clerk_preferred_redirect', '/store');
+                }}
+              >
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 Explore Store
-              </a>
+              </Link>
               
               <Link to="/role-selection" className="px-8 py-4 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white rounded-lg font-semibold transition shadow-xl flex items-center justify-center">
                 <Settings className="mr-2 h-5 w-5" />
