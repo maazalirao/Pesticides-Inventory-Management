@@ -672,6 +672,7 @@ const ProductListing = () => {
                         <Link to={`/store/product/${product._id}`} className="hover:text-green-700 transition-colors">
                           <h3 className="font-semibold text-gray-800 mb-1 line-clamp-1">{product.name}</h3>
                         </Link>
+                        <p className="text-xs text-black mb-2">{product.store?.name || 'Store'}</p>
                         <p className="text-sm text-gray-600 mb-4 line-clamp-2">{product.description}</p>
                         <div className="mt-auto">
                           <div className="flex items-center justify-between mb-3">
@@ -737,6 +738,7 @@ const ProductListing = () => {
                           <Link to={`/store/product/${product._id}`} className="hover:text-green-700 transition-colors">
                             <h3 className="font-semibold text-gray-800">{product.name}</h3>
                           </Link>
+                          <p className="text-xs text-black">{product.store?.name || 'Store'}</p>
                           <div className="flex items-center">
                             {Array.from({ length: 5 }).map((_, i) => (
                               <Star 

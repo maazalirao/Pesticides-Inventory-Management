@@ -20,7 +20,8 @@ import {
   Sparkles,
   BarChart,
   Phone,
-  Package
+  Package,
+  Store
 } from 'lucide-react';
 
 
@@ -414,8 +415,9 @@ const Homepage = () => {
                       <span className="text-xs text-gray-500 ml-2">({product.reviews || 0} reviews)</span>
                     </div>
                     <Link to={`/store/product/${product._id}`} className="hover:underline">
-                      <h3 className="font-semibold text-lg text-gray-800 mb-2 line-clamp-1">{product.name}</h3>
+                      <h3 className="font-semibold text-lg text-gray-800 mb-1 line-clamp-1">{product.name}</h3>
                     </Link>
+                    <p className="text-xs text-black mb-2">{product.store?.name || 'Store'}</p>
                     <p className="text-gray-600 text-sm mb-4 line-clamp-2">{product.description}</p>
                     <div className="mt-auto">
                       <div className="flex items-center justify-between mb-3">
